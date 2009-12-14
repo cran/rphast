@@ -1,0 +1,29 @@
+\name{as.data.frame.feat}
+\alias{as.data.frame.feat}
+\title{Features to Data Frame}
+\usage{as.data.frame.feat(x, row.names=NULL, optional=FALSE, ...)}
+\description{Convert a features object to a data frame}
+\value{a data frame containing features data}
+\seealso{\code{\link{feat}} for a description of features data frames,
+and \code{\link{as.pointer.feat}} for conversion in the other
+direction.}
+\arguments{\item{x}{an object of type \code{feat}}
+\item{row.names}{optional names for each feature}
+\item{optional}{logical, if \code{TRUE}, setting row names and 
+converting column names (to syntactic names: see
+\code{\link{make.names}} is optional.}
+\item{...}{additional arguments to be passed to other methods}}
+\examples{
+seq <- rep("hg18.chr6", 10)
+src <- rep("fake_example", 10)
+feature <- rep("CDS", 10)
+start <- seq(1, 100, by=10)
+end <- seq(10, 100, by=10)
+f1 <- feat(seq, src, feature, start, end, pointer.only=TRUE)
+summary(f1)
+f2 <- as.data.frame(f1)
+summary(f2)
+dim(f2)
+}
+\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
+    <acs4@cornell.edu>}

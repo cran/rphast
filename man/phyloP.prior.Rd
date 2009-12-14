@@ -1,0 +1,31 @@
+\name{phyloP.prior}
+\alias{phyloP.prior}
+\title{phyloP prior}
+\usage{phyloP.prior(mod, nsites=100, subtree=NULL, branches=NULL,
+    outfile=NULL, outfile.only=FALSE, quantiles=FALSE, epsilon=1e-10)}
+\description{Prior distribution on number of substitutions}
+\value{A data.frame.  If quantiles=FALSE, the columns will be the
+number of substitutions and their probability under the null model.
+If quantiles=TRUE, there will be 101 rows with the 0, 0.05, ..., 1.0th
+quantile.}
+\arguments{\item{mod}{An object of class \code{tm} representing the neutral model.}
+\item{nsites}{The number of sites in the alignment}
+\item{subtree}{Character string specifying the name of a node in the tree.
+If given, partition the tree into the subtree beneath the node
+and the complementary supertree, and compute joint number of substitutions
+in the sub/supertree.  The branch above the specified node is included
+in the subtree.}
+\item{branches}{A vector of character strings givingi the names of
+branches to consider in the subtree.  The remaininig branches are
+in the supertree.  Return joint distribution of number of substitutions
+in sub/supertree.}
+\item{outfile}{Character string.  If given, write results to given file.}
+\item{outfile.only}{Logical.  If \code{TRUE}, do not return any results
+to R (this may be useful if results are very large).}
+\item{quantiles}{Logical.  If \code{TRUE}, report quantiles of distribution
+rather than whole distribution.}
+\item{epsilon}{Numeric value indicating the thhreshold used in truncating
+tails of distributions; tail probabilities less than this value are
+discarded.  This only applies to the right tail.}}
+\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
+    <acs4@cornell.edu>}

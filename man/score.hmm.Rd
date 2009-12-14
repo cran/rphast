@@ -1,0 +1,75 @@
+\name{score.hmm}
+\alias{score.hmm}
+\title{Score an alignment using a general phylo-HMM}
+\usage{score.hmm(msa, mod, hmm, states, viterbi=TRUE, ref.idx=1,
+    reflect.strand=NULL, features=NULL, quiet=(!is.null(features)))}
+\description{Produce likelihood of an alignment given a phylo-HMM, posterior
+probabilities of phylo-HMM states across an alignment,
+and predict states using Viterbi algorithm}
+\value{If \code{features} is not NULL, returns a numeric vector
+with one value per feature, giving the likelihood of the feature under
+the phylo-HMM.
+
+Otherwise, returns a list with some or all of
+the following arguments (depending on options):
+\item{in.states}{An object of type \code{feat} which describes regions which
+fall within the interesting states specified in the states parameter,
+as determined by the Viterbi algorithm.}
+\item{post.prob.wig}{A data frame giving a coordinate and posterior
+probibility that each site falls within an interesting state.}
+\item{likelihood}{The likelihood of the data under the estimated model.}}
+\keyword{hmm}
+\arguments{\item{msa}{An object of type \code{msa}}
+\item{mod}{A list of tree model objects, corresponding to each state in the phylo-HMM}
+\item{hmm}{An object of type \code{hmm} describing transitions between states,
+equilbrium frequencies, initial frequencies, and optionally end frequencies}
+\item{states}{A vector of characters naming
+the states of interest in the phylo-HMM, or a vector of integers
+corresponding to states in the transition matrix.  The post.probs will give
+the probability of any of these states, and the viterbi regions reflect
+regions where the state is predicted to be any of these states.}
+\item{viterbi}{A logical value indicating whether to predict a path through the phylo-HMM
+using the Viterbi algorithm.}
+\item{ref.idx}{An integer value.  Use the coordinate frame of the given sequence.
+Default is 1, indicating the first sequence in the alignment.
+A value of 0 indicates the coordinate frame of the entire alignment.}
+\item{reflect.strand}{Given an hmm describing
+the forward strand, create a larger HMM that allows for features
+on both strands by "reflecting" the original HMM about the specified
+states.  States can be described as a vector of integers or characters
+in the same manner as states argument (above).  The new hmm will be
+used for prediction on both strands.}
+\item{features}{If non-NULL, compute the likelihood of each feature
+under the phylo-HMM.}
+\item{quiet}{If \code{TRUE}, suppress printing of progress information.}}
+\examples{
+exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
+files <- c("ENr334.maf", "rev.mod", "gencode.ENr334.gff")
+unzip(exampleArchive, files)
+# make "conserved" and "neutral" models and a phylo-HMM that describes
+# transitions between them, and predict conserved elements (this
+# is the same thing that phastCons does, but can be extended to general
+# phylo-HMMs)
+align <- read.msa("ENr334.maf")
+neutralMod <- read.tm("rev.mod")
+
+# create a conserved model
+conservedMod <- neutralMod
+conservedMod$tree <- rescale.tree(neutralMod$tree, 0.3)
+
+# create a simple phylo-HMM
+state.names <- c("neutral", "conserved")
+h <- hmm(matrix(c(0.99, 0.01, 0.01, 0.99), nrow=2, dimnames=list(state.names, state.names)),
+                eq.freq=c(neutral=0.9, conserved=0.1))
+scores <- score.hmm(align, mod=list(neutral=neutralMod, conserved=conservedMod),
+                    hmm=h, states="conserved")
+# try an alternate approach of comparing likelihoods of genes 
+feats <- read.feat("gencode.ENr334.gff")
+# plot in a region with some genes
+plot.track(list(feat.track(scores$in.states, name="hmmScores"),
+                feat.track(feats[feats$feature=="CDS",], name="genes")),
+           xlim=c(41650000, 41680000))
+unlink(files)
+}
+\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
+    <acs4@cornell.edu>}

@@ -1,0 +1,11 @@
+\name{ninf.msa}
+\alias{ninf.msa}
+\title{The number of informative columns in an alignment...}
+\usage{ninf.msa(msa)}
+\description{The number of informative columns in an alignment}
+\value{The number of "informative" columns in the msa.  An informative
+column has at least two non-missing and non-gap characters.}
+\keyword{msa}
+\arguments{\item{msa}{An object of type \code{msa}}}
+\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
+    <acs4@cornell.edu>}

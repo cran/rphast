@@ -1,0 +1,16 @@
+% \VignetteIndexEntry{rphast}
+% \VignetteKeywords{Phylogenetics, conservation, Hidden Markov Models}
+% \VignettePackage{rphast}
+
+\documentclass[a4paper]{article}
+
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{pdfpages}
+
+\begin{document}
+
+\includepdf[fitpaper=true,pages=-]{vignette2-source.pdf}
+
+\end{document} 
+
