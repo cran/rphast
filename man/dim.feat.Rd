@@ -6,6 +6,7 @@
 \value{An integer vector of length two containing the number of
 rows and number of columns in the features object.}
 \keyword{features}
+\author{Melissa J. Hubisz}
 \arguments{\item{x}{an object of type \code{feat}}}
 \examples{
 seq <- rep("hg18.chr6", 10)
@@ -20,5 +21,3 @@ f2 <- as.pointer.feat(f1)
 dim(f2)
 dim.feat(f2)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

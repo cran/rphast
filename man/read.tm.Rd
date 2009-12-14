@@ -6,6 +6,7 @@
 \value{An object of class "tm"}
 \seealso{\code{\link{tm}}}
 \keyword{tm}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{filename}{The file containing a tree model}}
 \examples{
 exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
@@ -15,5 +16,3 @@ tm <- read.tm(filename)
 tm
 unlink(filename)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

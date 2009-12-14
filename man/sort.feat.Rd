@@ -9,8 +9,7 @@ start position, then by end position.}
 object in C; in this case it may sort differently depending on how
 the object has been previously used.  x will be sorted if it is a pointer.}
 \keyword{features}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{An object of type \code{feat}}
 \item{decreasing}{Set to TRUE to sort from highest to lowest coordinates}
 \item{...}{Currently not used}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

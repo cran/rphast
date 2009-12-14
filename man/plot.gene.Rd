@@ -7,6 +7,7 @@
 \description{make gene plot}
 \keyword{features}
 \keyword{plot}
+\author{Melissa J. Hubisz}
 \arguments{\item{x}{An object of type \code{feat}}
 \item{y}{the location of the plot on the y axis}
 \item{height}{the height of the boxes}
@@ -27,5 +28,3 @@ f <- read.feat(featFile)
 plot.gene(f)
 plot.gene(f, xlim=c(0, 10000))  #zoom in
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

@@ -6,6 +6,7 @@
 \value{a character vector giving the names of the sequences, or
 NULL if they are not defined}
 \keyword{msa}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{an MSA object}}
 \examples{
 m <- msa(seqs=c("ACGTAT", "AGGTAA", "AGGTAG"),
@@ -14,5 +15,3 @@ names.msa(m)
 m <- msa(seqs=c("ACGTAT", "AGGTAA", "AGGTAG"))
 names.msa(m)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

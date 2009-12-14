@@ -9,6 +9,7 @@ combined feat object if \code{get.feats==TRUE}.}
 \note{Any features object passed into this function which is stored as a
 pointer to an object stored in C may be reordered (sorted) by this function.}
 \keyword{features}
+\author{Melissa J. Hubisz}
 \arguments{\item{...}{objects of type \code{feat}}
 \item{or}{if \code{TRUE}, get the coverage of union of feat arguments.
 or is \code{FALSE} by default, which takes the intersection.}
@@ -39,5 +40,3 @@ coverage.feat(feat1, feat2, get.feats=TRUE, or=TRUE)
 coverage.feat(feat1, feat2, or=TRUE)
 rm(feat1, feat2)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

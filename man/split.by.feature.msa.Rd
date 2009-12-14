@@ -12,11 +12,10 @@ be altered by this function.  Use
 object in C.}
 \keyword{msa}
 \keyword{features}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{An object of type \code{msa}}
 \item{f}{An object of type \code{feat}}
 \item{drop}{Not currently used}
 \item{pointer.only}{If \code{TRUE}, returned list elements are pointers to
 objects stored in C (advanced use only).}
 \item{...}{Not currently used}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

@@ -19,6 +19,7 @@ be changed by this function!}
 \keyword{PHYLIP}
 \keyword{SS}
 \seealso{\code{\link{msa}}, \code{\link{read.feat}}}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{filename}{The name of the input file containing an alignment.}
 \item{format}{input file format: one of "FASTA", "MAF", "SS", "PHYLIP",
 "MPM", must be correctly specified.}
@@ -94,5 +95,3 @@ ncol.msa(m1, "hg18")
 
 unlink(files) # clean up
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

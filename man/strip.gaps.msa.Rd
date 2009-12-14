@@ -19,6 +19,7 @@ modify x.  Use strip.gaps.msa(copy.msa(x)) to avoid this behavior.  Also,
 the return value will be stored as a pointer if x is stored as a pointer;
 otherwise the return value will be stored in R.}
 \keyword{msa}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{MSA object}
 \item{strip.mode}{Determines which gaps to strip.  See Details}}
 \examples{
@@ -33,5 +34,3 @@ m <- as.pointer.msa(m)
 temp <- strip.gaps.msa(m, "any.gaps")
 print(m, print.seq=TRUE)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

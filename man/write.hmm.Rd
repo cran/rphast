@@ -4,6 +4,7 @@
 \usage{write.hmm(x, filename, append=FALSE)}
 \description{Write an HMM object to a file}
 \keyword{hmm}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{An object of type \code{hmm}}
 \item{filename}{The name of the file to write to (if NULL, write
 to terminal)}
@@ -18,5 +19,3 @@ filename <- tempfile()
 write.hmm(h, filename)
 unlink(filename)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

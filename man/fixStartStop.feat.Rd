@@ -9,9 +9,8 @@ include start codons and exclude stop codons, as required by the GTF2 standard.}
 added to x.}
 \note{Assumes at most one start_codon and at most one stop_codon per transcript.}
 \keyword{features}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{An object of type \code{feat}.  CDS regions must be present with type
 "CDS", and the transcript_id must be indicated in the attribute field.
 Start and stop codons should have feature type "start_codon" and "stop_codon"
 (as produced by addSignals.feat).}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

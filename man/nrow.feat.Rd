@@ -5,6 +5,7 @@
 \description{Get the number of rows in a features object}
 \value{An integer containing the number of rows in each features object}
 \keyword{features}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{An object of type \code{feat}}}
 \examples{
 seq <- rep("hg18.chr6", 10)
@@ -15,5 +16,3 @@ end <- seq(10, 100, by=10)
 f <- feat(seq, src, feature, start, end)
 nrow.feat(f)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

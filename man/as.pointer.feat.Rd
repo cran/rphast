@@ -7,6 +7,7 @@
 object created in C.}
 \seealso{\code{\link{feat}} for more details on features storage
 options.}
+\author{Melissa J. Hubisz}
 \arguments{\item{x}{an object of type \code{feat} stored as a data frame in R}}
 \examples{
 seq <- rep("hg18.chr6", 10)
@@ -19,5 +20,3 @@ f2 <- as.pointer.feat(f1)
 f1
 f2
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

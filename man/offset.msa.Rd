@@ -7,6 +7,7 @@ some reference sequence.}
 \value{The difference between the first position in an alignment
 from the beginning of a chromosome.}
 \keyword{msa}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{msa}{an MSA object}}
 \examples{
 m <- msa(seqs=c("A--ACGTAT", "AG-AGGTAA", "AGGAGGTAG"),
@@ -16,5 +17,3 @@ m <- msa(seqs=c("A--ACGTAT", "AG-AGGTAA", "AGGAGGTAG"),
          names=c("human", "mouse", "rat"), offset=500000)
 offset.msa(m)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

@@ -18,6 +18,7 @@ the sequence is stored by value (the default storage mode), or by
 reference.  If the MSA is stored by value, the default format is
 as a R character vector.  Otherwise, the default format is FASTA.}
 \keyword{msa}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{an object of class msa}
 \item{...}{additional arguments sent to \code{print}}
 \item{print.seq}{whether to supress printing of the alignment}
@@ -37,5 +38,3 @@ m <- msa(seqs=c("ACGTAT", "AGGTAA", "AGGTAG"),
          pointer.only=TRUE)
 print(m)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

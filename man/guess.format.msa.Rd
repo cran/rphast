@@ -8,6 +8,7 @@
 based on the file extension.}
 \seealso{validFormatStr.msa}
 \keyword{msa}
+\author{Melissa J. Hubisz}
 \arguments{\item{filename}{The name of an MSA file}}
 \examples{
 guess.format.msa("file/asdf.fa")
@@ -16,5 +17,3 @@ guess.format.msa("abcd/efg/hij.ss")
 guess.format.msa("maf.fasta.lav")
 guess.format.msa("helloWorld")
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

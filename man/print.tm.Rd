@@ -5,6 +5,7 @@
 \description{Print a tree model}
 \seealso{\code{\link{tm}}}
 \keyword{tm}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{An object of class \code{tm}.}
 \item{aslist}{Logical.  If \code{TRUE}, print the tree model as a list
 rather than in tree model format.}
@@ -18,5 +19,3 @@ tm
 print(tm, aslist=TRUE)
 unlink(filename)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

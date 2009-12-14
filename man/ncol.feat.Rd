@@ -7,6 +7,7 @@
 \note{If the features object is stored as a pointer in C, the number
 of columns is always 9.}
 \keyword{features}
+\author{Melissa J. Hubisz}
 \arguments{\item{x}{An object of type \code{feat}}}
 \examples{
 seq <- rep("hg18.chr6", 10)
@@ -18,5 +19,3 @@ f <- feat(seq, src, feature, start, end)
 ncol.feat(f)
 ncol.feat(as.pointer.feat(f))
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

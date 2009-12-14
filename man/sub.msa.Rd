@@ -7,6 +7,7 @@
 \value{A new MSA object containing a subset of the original MSA.}
 \note{This function will not modify x even if it is stored as a pointer.}
 \keyword{msa}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{An object of type \code{msa}}
 \item{seqs}{The sequence names to keep (or to remove if keep is
 \code{FALSE})}
@@ -27,5 +28,3 @@ print(sub.msa(m, c("mouse"), keep=FALSE, refseq="human",
               start.col=3, end.col=4),
       print.seq=TRUE)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

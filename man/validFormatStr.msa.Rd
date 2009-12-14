@@ -11,10 +11,9 @@ MULTIZ and TBA.}
 \value{a logical vector indicating whether each element of the
 input parameter is a valid format string.}
 \keyword{msa}
+\author{Melissa J. Hubisz}
 \arguments{\item{format}{a character vector of strings to test}}
 \examples{
 validFormatStr.msa(c("MAF", "SS", "PHYLIP", "MPM", "LAV", "FASTA",
                      "BAD_FORMAT_STRING"))
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

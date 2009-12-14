@@ -5,6 +5,7 @@
 \description{Check if a string represents a phast substitution model}
 \value{A vector of logical values indicating whether each string
 represents a defined substitution model}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{mod}{A vector of character strings representing substitution
 model names to be tested}}
 \examples{
@@ -13,5 +14,3 @@ isSubstMod.tm(c("JC69", "K80", "F81", "HKY85", "HKY85+Gap",
                 "U2S", "R3", "R3S", "U3", "U3S", "GC", "HB",
                 "bad.model"))
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

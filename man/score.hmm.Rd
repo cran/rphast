@@ -19,6 +19,7 @@ as determined by the Viterbi algorithm.}
 probibility that each site falls within an interesting state.}
 \item{likelihood}{The likelihood of the data under the estimated model.}}
 \keyword{hmm}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{msa}{An object of type \code{msa}}
 \item{mod}{A list of tree model objects, corresponding to each state in the phylo-HMM}
 \item{hmm}{An object of type \code{hmm} describing transitions between states,
@@ -71,5 +72,3 @@ plot.track(list(feat.track(scores$in.states, name="hmmScores"),
            xlim=c(41650000, 41680000))
 unlink(files)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

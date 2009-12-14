@@ -12,6 +12,7 @@ of each column (if \code{by.column==TRUE}).}
 \keyword{msa}
 \keyword{tm}
 \keyword{features}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{An object of class \code{msa} representing the multiple alignment}
 \item{tm}{An object of class \code{tm} representing the tree and model of
 substitution}
@@ -20,5 +21,3 @@ for each feature rather than the whole alignment.}
 \item{by.column}{Logical indicating whether to get likelihoods for
 each alignment column.  If FALSE, returns total likelihood.  Ignored
 if features is not NULL.}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

@@ -33,6 +33,7 @@ objects stored as pointer will not behave like normal R objects: both objects
 will point to the same C structure, and both will be changed if either one
 is altered.  Instead \code{align2 <- copy.msa(align1)} should be used.}
 \keyword{msa}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{seqs}{a character vector containing sequences, one per sample}
 \item{names}{a character vector identifying the sample name for each
 sequence}
@@ -57,5 +58,3 @@ print(m1)
 print(m1, print.seq=TRUE)
 print(m2, print.seq=TRUE)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

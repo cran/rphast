@@ -6,6 +6,7 @@
 \value{A vector of trees which have been pruned, removing all nodes
 which are not descendants of the given node.}
 \keyword{trees}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{tree}{A vector of character strings, each containing a newick tree}
 \item{node}{A vector of character strings, each representing the name
 of the node which will be the new root of the tree.  If node is shorter
@@ -19,5 +20,3 @@ trees <- c("((hg18, panTro2), mm9);",
 trees <- name.ancestors(trees)
 subtree(trees, c("hg18-panTro2", "mm9-rn4"))
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

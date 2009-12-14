@@ -21,6 +21,7 @@ features object.}
 
 \code{\link{msa}} for more details on the pointer.only option.}
 \keyword{features}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{seqname}{a character vector containing the name of the sequence}
 \item{src}{The source of the feature}
 \item{feature}{The feature type name}
@@ -47,5 +48,3 @@ f <- feat(seq, src, feature, start, end, pointer.only=TRUE)
 dim.feat(f)
        
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

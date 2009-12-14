@@ -27,5 +27,3 @@ rather than whole distribution.}
 \item{epsilon}{Numeric value indicating the thhreshold used in truncating
 tails of distributions; tail probabilities less than this value are
 discarded.  This only applies to the right tail.}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

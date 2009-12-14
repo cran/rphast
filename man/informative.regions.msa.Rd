@@ -16,6 +16,7 @@ be added to the coordinates in the returned features object only if
 \note{This function will not alter the value of x even if it is stored as
 a pointer.}
 \keyword{msa}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{An object of type \code{msa}.}
 \item{min.numspec}{The minimum number of species with non-missing data
 required for an alignment column to be considered informative.}
@@ -39,5 +40,3 @@ informative.regions.msa(m, 1, refseq=0)
 informative.regions.msa(m, 3, refseq=0)
 informative.regions.msa(m, 3, refseq=2, spec=c("mouse", "rat"))
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

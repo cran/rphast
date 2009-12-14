@@ -11,6 +11,7 @@ features from another.}
 then this function may reorder the elements in these objects, but leave them
 otherwise unchanged.}
 \keyword{features}
+\author{Melissa J. Hubisz}
 \arguments{\item{x}{An object of type \code{feat} containing features to select}
 \item{filter}{An object of type \code{feat} which determines which elements of x to select}
 \item{numbase}{The number of bases of overlap between x and filter required to choose
@@ -41,5 +42,3 @@ overlap.feat(feat1, feat2, get.fragments=TRUE)
 overlap.feat(feat1, feat2, get.fragments=TRUE)
 rm(feat1, feat2)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

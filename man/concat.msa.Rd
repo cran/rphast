@@ -11,10 +11,9 @@ this as necessary.}
 \note{None of the msas passed to this function will be altered, even if
 they are stored as pointers to objects in C.}
 \keyword{msa}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{msas}{A list of MSA objects to concatenate together.}
 \item{ordered}{If FALSE, disregard the order of columns in the combined
 MSA.}
 \item{pointer.only}{(Advanced use only, for very large MSA objects) If
 TRUE, return object will be a pointer to an object stored in C.}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

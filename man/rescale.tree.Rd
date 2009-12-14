@@ -5,6 +5,7 @@
 \description{Rescale a tree}
 \value{A vector of trees whose branches have been scaled}
 \keyword{trees}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{tree}{A vector of character strings, each containing a newick tree}
 \item{scale}{A vector of scale factors for each tree (will be recycled
 as necessary if shorter than trees)}
@@ -27,5 +28,3 @@ rename.tree(trees,
             old.names=c("hg18", "panTro2", "mm9", "rn4", "canFam2"),
             new.names=c("human", "chimp", "mouse", "rat", "dog"))
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

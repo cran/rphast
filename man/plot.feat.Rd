@@ -8,6 +8,7 @@
 \description{plot features}
 \keyword{features}
 \keyword{plot}
+\author{Melissa J. Hubisz}
 \arguments{\item{x}{an object of type \code{feat}}
 \item{y}{the location of the plot on the y axis}
 \item{height}{the height of the boxes}
@@ -36,5 +37,3 @@ f <- read.feat(featFile)
 plot.feat(f[f$feature=="CDS",])
 unlink(featFile)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

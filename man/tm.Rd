@@ -10,6 +10,7 @@ tree.  They are stored as a list, with components defined by the
 arguments to this function.}
 \keyword{tm}
 \value{An object of class \code{tm} representing a phylogenetic model.}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{tree}{A character string representing a phylogenetic tree in
 newick foromat}
 \item{subst.mod}{A character string giving a valid substitution mod.
@@ -56,5 +57,3 @@ t <- tm(tree, subst.mod, rate.matrix=rate.mat,
         rate.consts=rate.consts, root.leaf=root.leaf)
 t
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

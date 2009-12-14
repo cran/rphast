@@ -6,9 +6,8 @@
 \value{A vector of character strings, in which all nodes with names
 given in old.names are replaced with values from new.names}
 \keyword{trees}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{tree}{A vector of character strings, each containing a newick tree}
 \item{old.names}{A vector of current names to be substituted}
 \item{new.names}{A vector of equal length to old.names giving the
 substitutions}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

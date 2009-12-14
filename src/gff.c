@@ -698,7 +698,7 @@ void gff_sort_within_groups(GFF_Set *set) {
 /** Group features by value of specified tag.  All features with
     undefined values will be placed in a single group. */
 void gff_group(GFF_Set *set, char *tag) {
-  char tmpstr[STR_SHORT_LEN];
+  char *tmpstr=smalloc((100+strlen(tag))*sizeof(char));
   Regex *tag_re;
   List *l = lst_new_ptr(1);
   int est_no_groups = max(lst_size(set->features) / 10, 1);
@@ -758,6 +758,7 @@ void gff_group(GFF_Set *set, char *tag) {
   str_re_free(tag_re);
   str_free(nullstr);
   hsh_free(hash);
+  free(tmpstr);
 }
 
 

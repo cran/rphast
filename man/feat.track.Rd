@@ -6,6 +6,7 @@
 \value{An object of type \code{track} which can be plotted with plot.track
 function}
 \keyword{plot}
+\author{Melissa J. Hubisz}
 \arguments{\item{x}{An object of type \code{feat}}
 \item{name}{The name of the track (a character string)}
 \item{short.label}{An optional character string to be displayed in
@@ -23,5 +24,3 @@ geneTrack <- gene.track(f, "gene track")
 plot.track(list(featTrack, geneTrack))
 plot.track(list(featTrack, geneTrack, geneTrack, geneTrack, geneTrack), xlim=c(14800, 16000))
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

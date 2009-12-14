@@ -13,8 +13,7 @@ to 1.}
 \note{If x or annotations are passed to this function as pointers to objects
 stored in C, they will be sorted after the function call.}
 \keyword{features}
+\author{Melissa J. Hubisz}
 \arguments{\item{x}{An object of type \code{feat}.}
 \item{annotations}{An object of type \code{feat} containing
 some annotations.}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

@@ -6,6 +6,7 @@
 \value{A vector of character strings containing newick trees with all
 ancestors named.}
 \keyword{trees}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{tree}{A vector of character strings, each containing a newick tree}}
 \examples{
 trees <- c("((hg18, panTro2), mm9);",
@@ -13,5 +14,3 @@ trees <- c("((hg18, panTro2), mm9);",
                 0.020666,canFam2:0.193569);")
 name.ancestors(trees)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

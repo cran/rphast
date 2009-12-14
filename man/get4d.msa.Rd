@@ -10,6 +10,7 @@ reduced to four-fold degenerate sites, so the original alignment will be lost.
 Use get4d.msma(copy.msa(x), features) to avoid this behavior.}
 \note{For very large MSA objects it is more efficient to use the do.4d option
 in the read.msa function instead.}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{An object of type \code{msa}}
 \item{features}{an object of type \code{feat}.  Should have defined coding regions
 with feature type "CDS"}}
@@ -27,5 +28,3 @@ m4 <- get4d.msa(read.msa("ENr334.maf"), features=f)
 m5 <- get4d.msa(read.msa("ENr334.fa", offset=41405894), features=f)
 unlink(files)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

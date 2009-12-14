@@ -7,6 +7,7 @@
 \seealso{\code{\link{feat}} for a description of features data frames,
 and \code{\link{as.pointer.feat}} for conversion in the other
 direction.}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{an object of type \code{feat}}
 \item{row.names}{optional names for each feature}
 \item{optional}{logical, if \code{TRUE}, setting row names and 
@@ -25,5 +26,3 @@ f2 <- as.data.frame(f1)
 summary(f2)
 dim(f2)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

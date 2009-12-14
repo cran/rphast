@@ -8,6 +8,7 @@
 \value{An object of type \code{track} which can be plotted with the plot.track
 function}
 \keyword{plot}
+\author{Melissa J. Hubisz}
 \arguments{\item{coord}{A numeric vector of coordinates (to be used for x-axis)}
 \item{score}{A numeric vector of scores (y-axis coords), should be same length as coord}
 \item{name}{The name of the track (a character string)}
@@ -23,5 +24,3 @@ points to display in the smoothed wig.}
 \item{horiz.line}{If non-NULL, draw horizontal lines on the display at the given y coordinates}
 \item{horiz.lty}{If horiz.line is defined, use this line type.}
 \item{horiz.col}{If horiz.line is defined, use this color}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

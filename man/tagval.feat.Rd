@@ -12,6 +12,7 @@ vector containing the values for the corresponding element of x (or
 NA for no value).}
 \keyword{features}
 \keyword{GFF}
+\author{Melissa J. Hubisz}
 \arguments{\item{x}{A features object of type \code{feat}.  The attribute field
 should be in tag-value format (as described in the GFF standard; ie,
 "tag1 val1a val1b; tag2 val2 ; ...",
@@ -28,5 +29,3 @@ length(unique(geneName)) # number of unique genes
 unlink(featFile)
 rm(f, geneName)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

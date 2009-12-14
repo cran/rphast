@@ -5,6 +5,7 @@
 \description{Write a tree model to a file (or to the terminal)}
 \seealso{\code{\link{tm}}}
 \keyword{tm}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{tm}{An object of class "tm"}
 \item{filename}{The filename to write to (use NULL for output to terminal)}
 \item{append}{Whether to append the tree to the end of the file
@@ -19,5 +20,3 @@ write.tm(tm, NULL)
 write.tm(tm, "test.mod")
 unlink(c(filename, "test.mod"))
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

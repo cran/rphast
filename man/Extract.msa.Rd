@@ -15,6 +15,7 @@ on genomic coordinates denoted in a features object.}
 \note{This function will not alter the value of x even if it is stored as
 a pointer to a C structure.}
 \keyword{msa}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{An object of type \code{msa}}
 \item{rows}{A numeric vector of sequence indices,
 character vector (containing sequence name), or
@@ -40,5 +41,3 @@ print(m[c(TRUE, FALSE, TRUE),], print.seq=TRUE)
 print(m[TRUE,], print.seq=TRUE)
 print("[.msa"(m, "mouse",c(1,6,3,5)), print.seq=TRUE)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

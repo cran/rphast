@@ -21,6 +21,7 @@ of BED and GenePred formats.}
 \keyword{Genepred}
 \keyword{BED}
 \keyword{features}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{filename}{the name of the file}
 \item{pointer.only}{Whether to store object by reference instead of a
 data.frame}}
@@ -33,5 +34,3 @@ dim(f)
 f[1:10,]
 unlink(featFile)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

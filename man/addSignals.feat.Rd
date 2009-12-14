@@ -10,7 +10,6 @@ added to x.}
 \note{Does not correctly handle case of splice site in middle of start
 or stop codon.}
 \keyword{features}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{An object of type \code{feat}.  CDS regions must be present with type "CDS", and
 the transcript_id must be indicated in the attribute field.}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

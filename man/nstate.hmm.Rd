@@ -5,6 +5,5 @@
 \description{HMM number of states}
 \value{The number of states in the hidden Markov Model}
 \keyword{hmm}
+\author{Melissa J. Hubisz}
 \arguments{\item{hmm}{An object of type \code{hmm}}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

@@ -9,6 +9,5 @@ to a C structure, this is the only way to make an explicit copy
 of the MSA object.}
 \value{an MSA object which can be modified independently from the
 original object}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{msa}{an MSA object}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

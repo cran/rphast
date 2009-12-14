@@ -6,6 +6,5 @@
 \value{The number of "informative" columns in the msa.  An informative
 column has at least two non-missing and non-gap characters.}
 \keyword{msa}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{msa}{An object of type \code{msa}}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

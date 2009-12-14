@@ -7,6 +7,7 @@
 returns a copy of the object.}
 \seealso{\code{\link{msa}} for details on MSA storage options.}
 \keyword{msa}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{src}{an MSA object stored by reference}}
 \examples{
 m <- msa(seqs=c("A--ACGTAT", "AG-AGGTAA", "AGGAGGTAG"),
@@ -15,5 +16,3 @@ m
 m <- from.pointer.msa(m)
 m
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

@@ -12,6 +12,7 @@ length as the number of states in the HMM.}
 \value{An object of type MSA containing the simulated alignment.}
 \keyword{msa}
 \keyword{hmm}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{object}{An object of type \code{tm} (or a list of these objects)
 describing the phylogenetic model from which to simulate.  If it
 is a list of tree models then an HMM should be provided to describe
@@ -53,5 +54,3 @@ m <- simulate.msa(list(mod, mod2, mod3, mod, mod2, mod3, mod, mod2, mod3),
                   20, hmm=h)
 unlink(filename)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

@@ -7,6 +7,7 @@
 If refseq is NULL, returns the number of columns in the alignment.}
 \keyword{msa}
 \seealso{\code{\link{msa}}}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{an MSA object}
 \item{refseq}{character vector giving name(s) of sequence whose
 length to return.  The default \code{NULL} implies the frame of
@@ -17,5 +18,3 @@ m <- msa(seqs=c("A--ACGTAT", "AG-AGGTAA", "AGGAGGTAG"),
 ncol.msa(m)
 ncol.msa(m, names.msa(m))
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

@@ -14,6 +14,7 @@ annotation type.}
 \note{If any of the arguments to this function are passed as pointers to
 objects stored in C, they will be sorted after this function call.}
 \keyword{features}
+\author{Melissa J. Hubisz}
 \arguments{\item{x}{An object of type \code{feat}}
 \item{annotations}{An object of type \code{feat} containing
 some annotations.}
@@ -21,5 +22,3 @@ some annotations.}
 the boundary coordinates of the regions of interest (such as chromosome
 boundaries).  All elements from the first two arguments should fall
 entirely within region.bounds.}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

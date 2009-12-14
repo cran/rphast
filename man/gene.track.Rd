@@ -10,11 +10,10 @@ features will be ignored.}
 the plot.track function}
 \seealso{addIntrons.feat to add intron annotations to a features object.}
 \keyword{plot}
+\author{Melissa J. Hubisz}
 \arguments{\item{x}{An object of type \code{feat}}
 \item{name}{The name of the track (a character string)}
 \item{short.label}{An optional character string to be displayed in
 the left hand margin of the track}
 \item{col}{The color to use plotting this track}
 \item{arrow.density}{The number of lines per inch used to denote strand.}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

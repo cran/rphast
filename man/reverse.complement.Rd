@@ -9,6 +9,5 @@ its reverse complement.  Use reverse.complement(copy.msa(x)) to avoid this
 behavior.  The return value will be a pointer if the input value was stored
 as a pointer.}
 \keyword{msa}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{An object of type \code{msa}.}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

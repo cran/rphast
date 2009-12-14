@@ -8,6 +8,7 @@
     1e-10), confidence.interval=NULL, quantiles=FALSE)}
 \description{phyloP in SPH mode}
 \value{Either a list, data frame, or matrix, depending on options.}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{mod}{An object of class \code{tm} representing the neutral model.}
 \item{msa}{The multiple alignment to be scored.}
 \item{mode}{The type of p-value to compute.  One of "CON", "ACC",
@@ -54,5 +55,3 @@ the combined distribution will be approximately normal (true for
 large numbers of sites by the central limit theorem).}
 \item{quantiles}{Logical.  If \code{TRUE}, report quantiles of distribution
 rather than whole distribution.}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

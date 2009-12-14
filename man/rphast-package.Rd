@@ -3,23 +3,33 @@
 \alias{rphast}
 \docType{package}
 \title{
-RPHAST
+RPHAST: R interface to PHAST
 }
 \description{
-R interface to PHAST
+RPHAST is an R interface to the PHAST pacakge
+(Phylogenetic Analyis with Space/Time Models).  It can be used for
+many types of analysis in comparative and evolutionary genomics,
+such as estimating models of evolution from sequence data, scoring
+alignments for conservation or acceleration, and predicting
+elements based on conservation or custom phylogenetic hidden markov
+models.  It can also perform many basic operations on multiple
+sequence alignments and phylogenetic trees.
 }
 \details{
 \tabular{ll}{
 Package: \tab rphast\cr
-Version: \tab 1.0\cr
+Version: \tab 1.1\cr
 Date: \tab 2009-12-14\cr
 License: \tab GPL (>= 2)\cr
-URL: \tab http://compgen.bscb.cornell.edu/phast\cr
+URL: \tab http://compgen.bscb.cornell.edu/rphast\cr
+Copyright: \tab The code in src/pcre is Copyright (c) 1997-2010 University
+of Cambridge.  All other code is Copyright (c) 2002-2010 University
+of California, Cornell University.\cr
 Suggests: \tab ape, seqLogo\cr
 Collate: \tab 'checkArgs.R' 'feat.R' 'hmm.R' 'listOfLists.R' 'msa.R'
 'phastCons.R' 'phyloFit.R' 'phyloP.R' 'plot.R' 'treeModel.R'
 'trees.R'\cr
-Built: \tab R 2.11.1; x86_64-unknown-linux-gnu; 2010-09-14 18:20:28 UTC; unix\cr
+Built: \tab R 2.11.1; x86_64-unknown-linux-gnu; 2010-09-20 18:56:39 UTC; unix\cr
 }
 
 Index:
@@ -140,14 +150,13 @@ write.tm                Wrting Tree Models
 
 Further information is available in the following vignettes:
 \tabular{ll}{
-\code{vignette1} \tab rphast (source, pdf)\cr
-\code{vignette2} \tab rphast (source, pdf)\cr
-\code{vignette3} \tab rphast (source, pdf)\cr
+\code{vignette1} \tab vignette1 (source, pdf)\cr
+\code{vignette2} \tab vignette2 (source, pdf)\cr
+\code{vignette3} \tab vignette3 (source, pdf)\cr
 }
 }
 \author{
-Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-<acs4@cornell.edu>
+Melissa Hubisz, Katherine Pollard, and Adam Siepel
 
 Maintainer: Melissa Hubisz <mjhubisz@cornell.edu>
 }

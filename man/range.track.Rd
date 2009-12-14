@@ -6,7 +6,6 @@
 \value{a numeric vector of length two giving the minimum and maximum
 coordinates in any element of the list}
 \keyword{plot}
+\author{Melissa J. Hubisz}
 \arguments{\item{...}{a list of tracks}
 \item{na.rm}{logical, indicating if \code{NA}'s should be omitted}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

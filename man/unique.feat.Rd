@@ -13,10 +13,9 @@ out first.}
 \note{If x is a pointer to an object in C, it will be modified (to
 the return value).}
 \keyword{features}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{An object of type \code{feat}, usually read from a genepred
 file.  Should have attributes labelled "transcript_id" which identify
 features belonging to the same gene.}
 \item{incomparables}{Not currently used (present for S3 compatibility).}
 \item{...}{Not currently used.}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

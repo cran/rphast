@@ -8,6 +8,7 @@
 \description{Make browser-like plot in rphast}
 \seealso{\code{plotPhast}, which may be easier to use but less flexible}
 \keyword{plot}
+\author{Melissa J. Hubisz}
 \arguments{\item{x}{a list of tracks, created by the wig.track or feat.track}
 \item{doLabels}{Logical.  Whether to plot the label above each plot.  Will be
 recycled to the length of x.  Does not affect printing of shortLabels.}
@@ -28,5 +29,3 @@ value between 0 and 1, representing the total fraction of the plot occupied by b
 in fractions of a character width.}
 \item{lmar}{The size of the left margin (in number of lines)}
 \item{...}{Other options to be passed to \code{plot}.  See \link{par}.}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

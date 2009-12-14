@@ -5,6 +5,7 @@
 \description{Write a features object to a file in GFF format.}
 \keyword{features}
 \keyword{GFF}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{filename}{The name of the file to write to (will be overwritten)}
 \item{x}{an object of type \code{feat}}}
 \examples{
@@ -18,5 +19,3 @@ write.feat("test.gff", f)
 
 unlink("test.gff") # clean up
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

@@ -12,6 +12,7 @@ Use \code{extract.feature.msa(copy.msa(x),...)} if you don't want this behavior!
 \seealso{\code{sub.msa}, \code{[.msa}}
 \keyword{msa}
 \keyword{features}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{An object of type MSA}
 \item{features}{An object of type \code{features} denoting the regions
 of the alignment to extract.}
@@ -19,5 +20,3 @@ of the alignment to extract.}
 fourfold-degenerate sites will be extracted.}
 \item{pointer.only}{If \code{TRUE}, return only a pointer to an object
 stored in C (useful for large alignments; advanced use only)}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

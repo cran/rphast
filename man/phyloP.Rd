@@ -31,6 +31,7 @@ return objects are in 0-based coordinates.}
 \keyword{msa}
 \keyword{tm}
 \keyword{features}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{mod}{An object of class \code{tm} representing the neutral model.}
 \item{msa}{The multiple alignment to be scored.}
 \item{method}{The scoring method.  One of "SPH", "LRT", "SCORE", or "GERP".}
@@ -56,5 +57,3 @@ results to R (this may be useful if results are very large).}
 \item{outfile.format}{Character string describing format of file
 output.  Possible formats depend on other options (see description below).
 Current options are "default", "gff", or "wig".}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

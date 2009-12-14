@@ -9,6 +9,7 @@ with all features of length > max.length broken into segments
 (starting from the first position in feature).  The last piece
 of each split segment may be smaller than max.length}
 \keyword{features}
+\author{Melissa J. Hubisz}
 \arguments{\item{x}{An object of type \code{feat}}
 \item{f}{The maximum length of features in new object.  Can be a
 vector giving a different length for each row, or a single numeric
@@ -23,5 +24,3 @@ be recycled to the length of \code{nrow.feat(x)}}
 \item{pointer.only}{If \code{TRUE}, return an object which is a pointer
 to a features object stored in C (advanced use only).}
 \item{...}{Currently not used (for S3 compatibility).}}
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

@@ -8,6 +8,7 @@
 object.}
 \keyword{msa}
 \seealso{\code{\link{print.msa}}}
+\author{Melissa J. Hubisz}
 \arguments{\item{object}{an MSA object}
 \item{...}{additional arguments sent to \code{print}}
 \item{print.seq}{whether to supress printing of the alignment}
@@ -25,5 +26,3 @@ m <- msa(seqs=c("ACGTAT", "AGGTAA", "AGGTAG"),
          pointer.only=TRUE)
 summary(m)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

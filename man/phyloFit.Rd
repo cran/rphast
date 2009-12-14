@@ -17,6 +17,7 @@ they may be altered by this function!  Use \code{copy.msa(msa)} or
 \keyword{tm}
 \keyword{features}
 \keyword{trees}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{msa}{An alignment object.  May be altered if passed in as a pointer to
 C memory (see Note).}
 \item{tree}{A character string containing a Newick formatted tree
@@ -89,5 +90,3 @@ mod[["5'flank"]]
 phyloFit(m, init.mod=mod$AR, nrates=3, alpha=4.0)
 phyloFit(m, init.mod=mod$AR, rate.constants=c(10, 5, 1))
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

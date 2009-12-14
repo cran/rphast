@@ -9,6 +9,7 @@ re-sampled from the original}
 conjunction with "[.msa".  It will not alter the value of x even if it
 is stored as a pointer.}
 \keyword{msa}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{An object of type \code{msa}}
 \item{size}{The number of columns to sample}
 \item{replace}{Whether to sample with replacement}
@@ -24,5 +25,3 @@ m <- msa(seqs=c("AAAAAAAAAACCCCCGGT", "GGGGGGGGGGTTTTTCCA", "CCCCCCCCCCAAAAAGGA"
 sample.msa(m, 10, replace=TRUE)
 sample.msa(m, 10, replace=TRUE, prob=c(rep(1, 10), rep(2, 5), rep(5, 2), 10))
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

@@ -33,6 +33,7 @@ bases in the alignment}
 parameters for the phylogenetic models, does not perform very well and is discouraged.
 See CITE PHASTCONS PAPER for more details.}
 \keyword{msa}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{msa}{An object of type \code{msa} representing the multiple
 alignment to be scored.}
 \item{mod}{Either a single object of type \code{tm}, or a list
@@ -110,5 +111,3 @@ names(rv2)
 rv2$tree.models
 unlink(files)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

@@ -4,6 +4,7 @@
 \usage{summary.feat(object, ...)}
 \description{Prints a brief summary of a features object.}
 \keyword{features}
+\author{Melissa J. Hubisz}
 \arguments{\item{object}{an object of type \code{feat}}
 \item{...}{further arguments to be passed to or from other methods}}
 \examples{
@@ -16,5 +17,3 @@ f <- feat(seq, src, feature, start, end)
 summary(f)  # this calls summary.data.frame
 summary(as.pointer.feat(f))
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

@@ -11,6 +11,7 @@ in one of several formats.}
 \keyword{PHYLIP}
 \keyword{MPM}
 \keyword{SS}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{msa}{an object of class msa}
 \item{filename}{File to write (will be overwritten).  If NULL, output
 goes to terminal.}
@@ -29,5 +30,3 @@ write.msa(m, NULL, format="PHYLIP", pretty.print=TRUE)
 unlink("foo.ss")
 unlink("foo.fa")
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}

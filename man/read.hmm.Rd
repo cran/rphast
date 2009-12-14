@@ -8,6 +8,7 @@ simple.  See \code{write.hmm} or file used in example below for
 exaples of hmm format.}
 \value{An hmm object}
 \keyword{hmm}
+\author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{filename}{The file to read}}
 \examples{
 exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
@@ -19,5 +20,3 @@ h <- read.hmm(file)
 h
 unlink(file)
 }
-\author{Melissa Hubisz <mjhubisz@cornell.edu> and Adam Siepel
-    <acs4@cornell.edu>}
