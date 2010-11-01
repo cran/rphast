@@ -31,7 +31,7 @@ second will be an object of type \code{feat} describing the path through
 the phylo-hmm in the simulated alignment.}
 \item{pointer.only}{(Advanced use only). If TRUE, return only a pointer
 to the simulated alignment.  Possibly useful for very (very) large
-alignments.  Cannot be used if \code{get.features==TRUE}.}
+alignments.}
 \item{...}{Currently not used (for S3 compatibility)}
 }
 
@@ -52,9 +52,12 @@ mod3 <- mod
 mod3$backgd <- c(0.6, 0.1, 0.2, 0.1)
 m <- simulate.msa(mod, 20)
 m <- simulate.msa(list(mod, mod2, mod3), 20, hmm=h)
-m <- matrix(1, nrow=9, ncol=9)
+m <- matrix(1, nrow=3, ncol=3)
 h <- hmm(m)
-m <- simulate.msa(list(mod, mod2, mod3, mod, mod2, mod3, mod, mod2, mod3),
-                  20, hmm=h)
+l <- simulate.msa(list(mod, mod2, mod3), 100, get.features=TRUE, hmm=h)
+names(l)
+l$msa
+l$feats
+coverage.feat(l$feats[l$feats$feature=="state1",])
 unlink(filename)
 }

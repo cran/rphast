@@ -9,6 +9,17 @@
 
 /* $Id: tree_model.h,v 1.20.2.1 2009-03-18 19:35:57 mt269 Exp $ */
 
+/** \file tree_model.h
+    \brief A tree model represents a phylogenetic tree, substitution rate matrix,
+    and background frequencies.  
+    The model allows for rate variation and
+    also for varying substitution models on different branches.  If the
+    tree model is optimized by maximum likelihood, the tree model object 
+    contains data which indicate which parameters to hold constant, and 
+    which to optimize, as well as boundary conditions.
+    \ingroup phylo
+*/
+
 #ifndef TREE_MODEL_H
 #define TREE_MODEL_H
 
@@ -74,7 +85,7 @@ struct tp_struct;
 
 /* defines alternative substitution model for a particular branch */
 typedef struct {
-  subst_mod_type subst_mod;  
+  subst_mod_type subst_mod; 
   Vector *backgd_freqs;        /* eq freqs (set to NULL if separate_freq=0 */
   MarkovMatrix *rate_matrix;   /* rate_matrix (set to NULL if separate_rm=0 */
   int ratematrix_idx, backgd_idx, selection_idx, bgc_idx;
@@ -90,6 +101,7 @@ typedef struct {
 			   to define the alt model */
   String *noopt_arg;
 } AltSubstMod;
+
 
 
 /** Tree model object */
@@ -197,10 +209,17 @@ struct tm_struct {
 
 typedef struct tm_struct TreeModel;
 
-TreeModel *tm_new(TreeNode *tree, MarkovMatrix *rate_matrix, 
-                  Vector *backgd_freqs, subst_mod_type subst_mod, 
-                  char *alphabet, int nratecats, double alpha,
-                  List *rate_consts, int root_leaf_id);
+
+/** Create new tree model object.*/
+TreeModel *tm_new(TreeNode *tree,  /** phylogenetic tree */
+		  MarkovMatrix *rate_matrix, 
+                  Vector *backgd_freqs, 
+		  subst_mod_type subst_mod, 
+                  char *alphabet, 
+		  int nratecats, 
+		  double alpha,
+                  List *rate_consts, 
+		  int root_leaf_id);
 
 void tm_reinit(TreeModel *tm, subst_mod_type subst_mod,
                int new_nratecats, double new_alpha, 
@@ -228,6 +247,8 @@ void tm_set_subst_matrix(TreeModel *tm, MarkovMatrix *P, double t);
 
 void tm_scale_model(TreeModel *tm, Vector *params, int scale_blens,
 		    int reset_subst_matrices);
+
+void tm_mod_freqs(TreeModel *tm, Vector *newfreqs);
 
 void tm_scale_branchlens(TreeModel *tm, double scale_const, int reset_subst_mats);
 
@@ -305,5 +326,11 @@ void tm_setup_params(TreeModel *mod);
 void tm_set_boundaries(Vector **lower_bounds, 
 		       Vector **upper_bounds, 
 		       int npar, TreeModel *mod);
+/** Initialize the preferred codons.
+    @param tm A tree model object
+    @param preferred preferred An array of character strings representing all preferred codons.  Each character string should be length 3 (null terminators are not required).
+    @param length The number of preferred codons
+ */
+void set_preferred_codons(TreeModel *tm, char **preferred, int length);
 
 #endif

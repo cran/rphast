@@ -65,16 +65,18 @@ void lol_push_dbl(ListOfLists *lol, double *vals, int len,
 
 List *lol_find_list(ListOfLists *lol, const char *lstName, 
 		    list_element_type lstType) {
-  list_element_type currType;
   List *temp, *currResult=NULL;
   int i;
+  if (lol == NULL) return NULL;
   for (i=0; i < lst_size(lol->lst); i++) {
-    currType = lst_get_int(lol->lstType, i);
-    if (currType == lstType && 
+    if (lst_get_int(lol->lstType, i) == lstType && 
 	strcmp((char*)lst_get_ptr(lol->lstName, i), lstName)==0)
-      return lol->lst;
-    if (currType == LIST_LIST) {
-      temp = lol_find_list((ListOfLists*)lst_get_ptr(lol->lst, i), lstName, lstType);
+      currResult = (List*)lst_get_ptr(lol->lst, i);
+  }
+  for (i=0; i < lst_size(lol->lst); i++) {
+    if (lst_get_int(lol->lstType, i) == LIST_LIST) {
+      temp = lol_find_list((ListOfLists*)lst_get_ptr(lol->lst, i), 
+			   lstName, lstType);
       if (temp != NULL) {
 	if (currResult != NULL) die("lol_find_list failed: multiple lists in object named %s with same type", lstName);
 	currResult = temp;
@@ -83,6 +85,12 @@ List *lol_find_list(ListOfLists *lol, const char *lstName,
   }
   return currResult;
 }
+
+
+ListOfLists *lol_find_lol(ListOfLists *lol, const char *name) {
+  return (ListOfLists*)lol_find_list(lol, name, LIST_LIST);
+}
+
 
 
 /* The following three functions push single values onto the end of
@@ -318,7 +326,23 @@ void lol_push_gff(ListOfLists *lol, GFF_Set *gff, const char *name) {
 }
 
 
-//free a lol and all associated memory (if type is char free the strings)
+void lol_push_gff_ptr(ListOfLists *lol, GFF_Set *gff, const char *name) {
+  ListOfLists *gffLst = lol_new(1);
+  lol_set_class(gffLst, "feat");
+  lol_push(gffLst, gff, "externalPtr", GFF_PTR_LIST);
+  lol_push(lol, gffLst, name, LIST_LIST);
+} 
+
+void lol_push_msa_ptr(ListOfLists *lol, MSA *msa, const char *name) { 
+  ListOfLists *msaLst = lol_new(1);
+  lol_set_class(msaLst, "msa");
+  lol_push(msaLst, msa, "externalPtr", MSA_PTR_LIST);
+  lol_push(lol, msaLst, name, LIST_LIST);
+} 
+
+
+//free a lol and associated memory (if type is char free the strings)
+//Does not free GFF or MSA pointers however.
 void lol_free(ListOfLists *lol) {
   List *currlst;
   int i, j;
@@ -349,4 +373,50 @@ void lol_free(ListOfLists *lol) {
   lst_free(lol->lst);
   if (lol->class != NULL) sfree(lol->class);
   sfree(lol);
+}
+
+
+void lol_push_dbl_array_recursive(ListOfLists *lol, void *data, int ndim,
+				  int *dimsize) {
+  ListOfLists *sublol;
+  int i;
+
+  if (ndim <= 1) 
+    die("lol_push_dbl_array_recursive expects at least 2 dimensions");
+
+  for (i=0; i < dimsize[0]; i++) {
+    if (ndim==2)
+      lol_push_dbl(lol, ((double**)data)[i], dimsize[1], NULL);
+    else {
+      sublol = lol_new(dimsize[1]);
+      lol_push_dbl_array_recursive(sublol, ((double**)data)[i], 
+				   ndim-1, &(dimsize[1]));
+      lol_push_lol(lol, sublol, NULL);
+    }
+  }
+}
+
+//push an array of any dimension onto a list-of-list.
+// data is a double(*^ndim)
+//name is the name of the entire array that is pushed onto the lol
+//ndim is the number of dimensions in the array
+//dimsize[i] gives the size of dimension i
+//dimname is a char ** giving the dimsize[i] names corresponding to dimension i
+//so if ndim=2, then dimname[0] would contain the row names and 
+//dimname[1] would contain the column names
+//Dimensions are numbered as data[0][1][2][3][...]
+void lol_push_dbl_array(ListOfLists *lol, void *data, char *name, 
+			int ndim, int *dimsize, char ***dimname) {
+  ListOfLists *arr_lol, *dimnames_lol;
+  int i;
+  if (ndim < 2) die("lol_push_dbl_array only works for >= 2 dimensions");
+  arr_lol = lol_new(dimsize[0] + 2);
+  lol_set_class(arr_lol, "array");
+  dimnames_lol = lol_new(ndim);
+  for (i=0; i < ndim; i++)
+    lol_push_charvec(dimnames_lol, dimname[i], dimsize[i], NULL);
+  lol_push_lol(arr_lol, dimnames_lol, "dimnames");
+  lol_push_int(arr_lol, dimsize, ndim, "dim");
+  lol_push_dbl_array_recursive(arr_lol, data, ndim, dimsize);
+  lol_push_lol(lol, arr_lol, name);
 }

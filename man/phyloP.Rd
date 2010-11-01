@@ -27,8 +27,7 @@ p-values for that column.  If outfile.format is "wig", then the output
 file will be in strict wig format, with a single value per line indicating
 the -log10 p-value.}
 \value{A data frame containing scores and parameter estimates for
-every feature (if features is given) or for every base (otherwise).  All
-return objects are in 0-based coordinates.}
+every feature (if features is given) or for every base (otherwise).}
 \keyword{msa}
 \keyword{tm}
 \keyword{features}

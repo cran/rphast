@@ -18,7 +18,7 @@ sequence alignments and phylogenetic trees.
 \details{
 \tabular{ll}{
 Package: \tab rphast\cr
-Version: \tab 1.2\cr
+Version: \tab 1.3\cr
 Date: \tab 2010-11-01\cr
 License: \tab BSD\cr
 URL: \tab http://compgen.bscb.cornell.edu/rphast\cr
@@ -30,7 +30,7 @@ Suggests: \tab ape, seqLogo\cr
 Collate: \tab 'checkArgs.R' 'feat.R' 'hmm.R' 'listOfLists.R' 'msa.R'\cr
 \tab 'phastCons.R' 'phyloFit.R' 'phyloP.R' 'plot.R' 'rphast.R'\cr
 \tab 'treeModel.R' 'trees.R'\cr
-Built: \tab R 2.11.1; x86_64-unknown-linux-gnu; 2010-11-10 16:45:25 UTC; unix\cr
+Built: \tab R 2.12.0; x86_64-unknown-linux-gnu; 2010-12-22 16:59:09 UTC; unix\cr
 }
 
 Index:
@@ -55,10 +55,14 @@ base.freq.msa           Get the frequencies of characters in an
 bgc.sel.factor          BGC+selection factor...
 branchlength.tree       Get the total length of the edges of a tree...
 codon.clean.msa         Clean an alignment for codon analysis...
+col.expected.subs.msa   Obtain expected number of substitutions on each
+                        branch for each site...
 complement              complement
 composition.feat        Composition of features with respect to
                         annotations...
 concat.msa              Concatenate msa objects...
+coord.range.msa         Obtain the range of coordinates in a MSA
+                        objects...
 copy.feat               Features copy
 copy.msa                MSA copy
 coverage.feat           Features coverage...
@@ -67,7 +71,7 @@ depth.tree              Get the distance from a node to the root of a
                         tree...
 dim.feat                Feature dimensions
 dim.msa                 Returns the dimensions of an msa object as (#
-                        of species, # of columns)...
+                        of species, # of
 enrichment.feat         Enrichment of features with respect to
                         annotation types...
 expected.subs.msa       Obtain expected number of substitutions on each
@@ -98,6 +102,8 @@ is.track                Is this a track?
 label.branches          Label tree branches
 label.subtree           Label subtree
 likelihood.msa          MSA Likelihood
+mod.backgd.tm           Adjust tree model background frequencies while
+                        maintaining
 msa                     MSA Objects
 name.ancestors          Name Ancestral Nodes
 names.msa               MSA Sequence Names
@@ -168,7 +174,7 @@ summary.feat            Features Summary
 summary.msa             MSA Summary
 summary.tm              Tree Model Summary
 summary.tree            Get a summary of a Newick-formatted tree, edge
-                        lengths, node names, etc...
+                        lengths, node names,
 tagval                  Extract value from tag-value formatted
                         attributes...
 tagval.feat             Extract value from tag-value formatted
@@ -177,6 +183,7 @@ tm                      Tree Models
 total.expected.subs.msa
                         Obtain expected number of substitutions on each
                         branch...
+translate.msa           Get amino acid sequences from an alignment...
 unapply.bgc.sel         Unapply bgc+selection parameters from a
                         matrix...
 unique.feat             Remove overlapping genes...

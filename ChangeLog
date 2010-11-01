@@ -1,3 +1,25 @@
+12-22-2010 : 1.3
+	* improvements to memory handler, which previously slowed down rphast
+	  by 33%.  Now there is no significant increase in run-time, at least
+	  for the code in rphast/tests.  It also no longer causes occasional
+	  segfaults when code is interrupted, since protection now occurs
+	  during the on.exit function instead of only when the function
+	  finishes cleanly.  We also protect all external pointer objects,
+	  rather than only the ones the user might see, which also cleans up
+	  potential segfaults and makes writing new RPHAST functions more 
+	  foolproof.
+	* fixed bug in phyloFit when optimizing codon models with the
+	  selection parameter; now rate matrix is scaled before applying
+	  selection parameter.
+	* fixed bug in plot.msa where alignment plot was placed wrongly when
+	  ploted with several tracks.
+	* changed phyloP to always return 1-based coordinates
+	* added function mod.backgd.tm which modifies background frequency of
+	  tree model while maintaining reversibility
+	* added function translate.msa
+	* added function col.expected.subs.msa
+	* use %g notation (instead of %f) to print branch lengths of trees;
+	  this avoids some loss of precision when passing trees to/from R/C.
 11-10-2010: 1.2 released 
 	* added memory handler so that memory allocated in C is no longer
 	  lost due to function interrupt (or failure to explicitly free it)
