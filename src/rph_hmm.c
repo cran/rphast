@@ -17,7 +17,6 @@ Last updated: 12/14/08
 *****************************************************/
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <getopt.h>
 #include <ctype.h>
 #include <Rdefines.h>
@@ -30,25 +29,13 @@ Last updated: 12/14/08
 #include <vector.h>
 #include <list_of_lists.h>
 
-//TODO: fix this!  Freeing hmm is causing crashes because phmm_reflect_hmm
-//frees it already (when calling phastCons --hmm --reflect-strand).  Not
-//sure how to get around, for now a small memory leak seems OK.
-void rph_hmm_free(SEXP hmmP) {
-  HMM *hmm;
-  return;  //FIXME
-  hmm = (HMM*)EXTPTR_PTR(hmmP);
-  hmm_free(hmm);
-}
-
 
 SEXP rph_hmm_new_extptr(HMM *hmm) {
   SEXP result;
   PROTECT(result=R_MakeExternalPtr((void*)hmm, R_NilValue, R_NilValue));
-  R_RegisterCFinalizerEx(result, rph_hmm_free, 1);
   UNPROTECT(1);
   return result;
 }
-
 
 SEXP rph_hmm_new(SEXP matrixP, SEXP eqFreqP, SEXP beginFreqP,
 		 SEXP endFreqP) {
@@ -127,7 +114,6 @@ SEXP rph_hmm_transMat(SEXP hmmP) {
   lol = lol_new(1);
   lol_push_matrix(lol, hmm->transition_matrix->matrix, "trans.mat");
   PROTECT(result = rph_listOfLists_to_SEXP(lol));
-  lol_free(lol);
   UNPROTECT(1);
   return result;
 }
@@ -140,7 +126,6 @@ SEXP rph_hmm_eqFreq(SEXP hmmP) {
   lol = lol_new(1);
   lol_push_dbl(lol, hmm->eq_freqs->data, hmm->eq_freqs->size, "eqFreq");
   PROTECT(result = rph_listOfLists_to_SEXP(lol));
-  lol_free(lol);
   UNPROTECT(1);
   return result;
 }
@@ -154,7 +139,6 @@ SEXP rph_hmm_beginFreq(SEXP hmmP) {
   lol_push_dbl(lol, hmm->begin_transitions->data, hmm->begin_transitions->size, 
 	       "beginFreq");
   PROTECT(result = rph_listOfLists_to_SEXP(lol));
-  lol_free(lol);
   UNPROTECT(1);
   return result;
 }
@@ -169,7 +153,8 @@ SEXP rph_hmm_endFreq(SEXP hmmP) {
   lol_push_dbl(lol, hmm->end_transitions->data, hmm->end_transitions->size, 
 	       "endFreq");
   PROTECT(result = rph_listOfLists_to_SEXP(lol));
-  lol_free(lol);
   UNPROTECT(1);
   return result;
 }
+
+

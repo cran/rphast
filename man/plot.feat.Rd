@@ -1,10 +1,11 @@
 \name{plot.feat}
 \alias{plot.feat}
 \title{Features plot}
-\usage{plot.feat(x, y=0, height=1, plottype="r", arrow.density=5, angle=30,
-    col="black", fill.col=if (plottype == "r") col else NULL,
-    lty=par("lty"), lwd=par("lwd"), add=FALSE, xlim=range.feat(x),
-    ylim=c(y - height * 3/4, y + height * 3/4), ...)}
+\usage{plot.feat(x, y=0, height=1, plottype="r", arrow.density=5, angle=30, col="black",
+    fill.col=if (plottype == "r") col else NULL, lty=par("lty"),
+    lwd=par("lwd"), add=FALSE, xlim=range.feat(x), ylim=c(y - height *
+    3/4, y + height * 3/4), ...)
+}
 \description{plot features}
 \keyword{features}
 \keyword{plot}
@@ -27,7 +28,9 @@ then do not fill.}
 \item{add}{if \code{TRUE}, add to existing plot}
 \item{xlim}{A numerical vector of length 2 giving the range for the x-axis.}
 \item{ylim}{A numerical vector of length 2 giving the range for the y-axis.}
-\item{...}{graphical parameters to be passed to \code{plot}.}}
+\item{...}{graphical parameters to be passed to \code{plot}.}
+}
+
 \examples{
 exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
 featFile <- "gencode.ENr334.gff"

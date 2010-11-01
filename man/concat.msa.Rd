@@ -1,7 +1,8 @@
 \name{concat.msa}
 \alias{concat.msa}
 \title{Concatenate msa objects...}
-\usage{concat.msa(msas, ordered=FALSE, pointer.only=FALSE)}
+\usage{concat.msa(msas, ordered=FALSE, pointer.only=FALSE)
+}
 \description{Concatenate msa objects}
 \details{If the MSAs do not contain the same set of sequences, the sequences
 will be added to each MSA and filled with missing data.  The order
@@ -16,4 +17,6 @@ they are stored as pointers to objects in C.}
 \item{ordered}{If FALSE, disregard the order of columns in the combined
 MSA.}
 \item{pointer.only}{(Advanced use only, for very large MSA objects) If
-TRUE, return object will be a pointer to an object stored in C.}}
+TRUE, return object will be a pointer to an object stored in C.}
+}
+

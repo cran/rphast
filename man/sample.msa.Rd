@@ -1,7 +1,8 @@
 \name{sample.msa}
 \alias{sample.msa}
 \title{Sample columns from an MSA...}
-\usage{sample.msa(x, size, replace=FALSE, prob=NULL, pointer.only=FALSE)}
+\usage{sample.msa(x, size, replace=FALSE, prob=NULL, pointer.only=FALSE)
+}
 \description{Sample columns from an MSA}
 \value{An object of type \code{msa} with columns randomly
 re-sampled from the original}
@@ -17,7 +18,9 @@ is stored as a pointer.}
 \code{prob=NULL} implies equal probability for all columns.  Probabilities
 need not sum to one but should be non-negative and can not all be zero.}
 \item{pointer.only}{If \code{TRUE}, return only a pointer to an alignment
-object stored in C (useful for large objects; advanced use only).}}
+object stored in C (useful for large objects; advanced use only).}
+}
+
 \examples{
 require("rphast")
 m <- msa(seqs=c("AAAAAAAAAACCCCCGGT", "GGGGGGGGGGTTTTTCCA", "CCCCCCCCCCAAAAAGGA"),

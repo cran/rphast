@@ -2,7 +2,8 @@
 \alias{overlap.feat}
 \title{Feature overlap...}
 \usage{overlap.feat(x, filter, numbase=1, min.percent=NULL, overlapping=TRUE,
-    get.fragments=FALSE, pointer.only=FALSE)}
+    get.fragments=FALSE, pointer.only=FALSE)
+}
 \description{Feature overlap}
 \details{Creates a features object containing all the features from one set which overlap
 features from another.}
@@ -26,7 +27,9 @@ If \code{TRUE}, return only the fragments of x that overlap
 with filter.  In this case, the same fragments may be output multiple times, if they are
 selected by multiple entries in filter.  numbase and min.percent apply in either case.}
 \item{pointer.only}{If \code{TRUE}, the return object will only be a
-pointer to an object stored in C (useful for very large features; advanced use only).}}
+pointer to an object stored in C (useful for very large features; advanced use only).}
+}
+
 \examples{
 feat1 <- feat(seqname=c(rep("chr1", 3), rep("chr2", 2)),
               start=c(1, 5, 100, 10, 20),

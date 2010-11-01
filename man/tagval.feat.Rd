@@ -1,7 +1,8 @@
 \name{tagval.feat}
 \alias{tagval.feat}
 \title{Extract value from tag-value formatted attribute in features object...}
-\usage{tagval.feat(x, tag)}
+\usage{tagval.feat(x, tag)
+}
 \description{Extract value from tag-value formatted attribute in features object}
 \value{If there is at most one relevant value for each feature,
 a character vector of the same length as x will be returned, containing
@@ -17,7 +18,9 @@ NA for no value).}
 should be in tag-value format (as described in the GFF standard; ie,
 "tag1 val1a val1b; tag2 val2 ; ...",
 where vals are in quotes if they are strings.}
-\item{tag}{The tag whose values are to be extracted.}}
+\item{tag}{The tag whose values are to be extracted.}
+}
+
 \examples{
 exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
 featFile <- "sol1.gp"

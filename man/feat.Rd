@@ -2,7 +2,8 @@
 \alias{feat}
 \title{Features Objects}
 \usage{feat(seqname="default", src=".", feature=".", start, end, score=NULL,
-    strand=NULL, frame=NULL, attribute=NULL, pointer.only=FALSE)}
+    strand=NULL, frame=NULL, attribute=NULL, pointer.only=FALSE)
+}
 \description{Create a new features object}
 \details{See \url{http://www.sanger.ac.uk/resources/software/gff/spec.html}
 for more detailed description of each parameter.
@@ -34,7 +35,9 @@ strand is not available or relevant).}
 \item{frame}{A 0, 1, or 2, which specifies whether the feature is in frame.}
 \item{attribute}{A feature attribute (character string).}
 \item{pointer.only}{Whether to store object as a pointer to an object
-in C, rather than as a data.frame in R.}}
+in C, rather than as a data.frame in R.}
+}
+
 \examples{
 seq <- rep("hg18.chr6", 10)
 src <- rep("fake_example", 10)

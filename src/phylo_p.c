@@ -42,6 +42,7 @@ struct phyloP_struct *phyloP_struct_new(int rphast) {
   p->fit_model = FALSE;
   p->base_by_base = FALSE;
   p->refidx = 1;
+  p->refidx_feat = 1;
   p->ci = -1;
   p->epsilon = -1;
   p->subtree_name = NULL;
@@ -93,7 +94,7 @@ TreeModel* fit_tree_model(TreeModel *source_mod, MSA *msa,
   tm_init_rmp(source_mod);           /* (no. params changes) */
   params = tm_params_new_init_from_model(retval);
 
-  tm_fit(retval, msa, params, -1, OPT_HIGH_PREC, NULL);
+  tm_fit(retval, msa, params, -1, OPT_HIGH_PREC, NULL, 1);
 
   oldscale = vec_get(params, retval->scale_idx);
 
@@ -195,6 +196,10 @@ void phyloP(struct phyloP_struct *p) {
     die("Need either --prior-only or an alignment\n");
   if (msa != NULL && (refidx < 0 || refidx > msa->nseqs))
     die("refidx should be 0 (for alignment frame of refernce), or between 1 and msa->nseqs (%i)", msa->nseqs);
+  if (chrom == NULL) {
+    if (msa != NULL && refidx >= 1) chrom = msa->names[refidx-1];
+    else chrom="chr1";
+  }
   if (method != SPH && (fit_model || epsilon>=0 || ci!=-1 || 
 			prior_only || post_only || quantiles_only))
     die("ERROR: given arguments only available in SPH mode.  Try '%s'.\n", help);
@@ -218,7 +223,7 @@ void phyloP(struct phyloP_struct *p) {
     die("ERROR: need to specify nsites or msa to get prior");
   if (!prior_only) {
     if (msa->ss == NULL)
-      ss_from_msas(msa, 1, TRUE, NULL, NULL, NULL, -1);
+      ss_from_msas(msa, 1, TRUE, NULL, NULL, NULL, -1, 0);
 
     if (msa_alph_has_lowercase(msa)) msa_toupper(msa);     
     msa_remove_N_from_alph(msa);
@@ -284,7 +289,7 @@ void phyloP(struct phyloP_struct *p) {
   if (feats != NULL) {
     if (msa->idx_offset > 0)
       gff_add_offset(feats, -(msa->idx_offset), msa_seqlen(msa, 0));
-    msa_map_gff_coords(msa, feats, 1, 0, 0, NULL);
+    msa_map_gff_coords(msa, feats, p->refidx_feat, 0, 0, NULL);
   }
 
   /* SPH method */
@@ -295,7 +300,7 @@ void phyloP(struct phyloP_struct *p) {
 
     /* set up for subtree mode */
     if (subtree_name != NULL) {
-      if (!tm_is_reversible(mod->subst_mod))
+      if (!tm_is_reversible(mod))
         die("ERROR: reversible model required with --subtree.\n");
       tr_name_ancestors(mod->tree);
       sub_reroot(mod, subtree_name);
@@ -376,7 +381,7 @@ void phyloP(struct phyloP_struct *p) {
       }
       else {                        /* --features case */
         p_value_stats *stats = sub_p_value_many(jp, msa, feats->features, ci);
-        msa_map_gff_coords(msa, feats, 0, 1, 0, NULL);
+        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0, NULL);
 	if (msa->idx_offset > 0)
 	  gff_add_offset(feats, msa->idx_offset, 0);
         print_feats_sph(outfile, stats, feats, mode, epsilon, output_gff, 
@@ -417,10 +422,10 @@ void phyloP(struct phyloP_struct *p) {
 			     "post.mean.sup", post_means_sup, 
 			     "post.var.sup", post_vars_sup, 
                              "pval", pvals);
-	  free(post_means_sub);
-	  free(post_means_sup);
-	  free(post_vars_sub);
-	  free(post_vars_sup);
+	  sfree(post_means_sub);
+	  sfree(post_means_sup);
+	  sfree(post_vars_sub);
+	  sfree(post_vars_sup);
         }
       }
 
@@ -457,7 +462,7 @@ void phyloP(struct phyloP_struct *p) {
         p_value_joint_stats *jstats = 
           sub_p_value_joint_many(jp, msa, feats->features, 
                                  ci, MAX_CONVOLVE_SIZE, NULL);
-        msa_map_gff_coords(msa, feats, 0, 1, 0, NULL);
+        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0, NULL);
 	if (msa->idx_offset > 0)
 	  gff_add_offset(feats, msa->idx_offset, 0);
         print_feats_sph_subtree(outfile, jstats, feats, mode, epsilon, 
@@ -511,7 +516,7 @@ void phyloP(struct phyloP_struct *p) {
       }
       if (subtree_name == NULL && branch_name == NULL) {  /* no subtree case */
         ff_lrts(mod, msa, feats, mode, pvals, scales, llrs, logf);
-        msa_map_gff_coords(msa, feats, 0, 1, 0, NULL);
+        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0, NULL);
 	if (msa->idx_offset > 0)
 	  gff_add_offset(feats, msa->idx_offset, 0);
         if (output_gff) 
@@ -529,7 +534,7 @@ void phyloP(struct phyloP_struct *p) {
         }
         ff_lrts_sub(mod, msa, feats, mode, pvals, null_scales, scales, 
                     sub_scales, llrs, logf);
-        msa_map_gff_coords(msa, feats, 0, 1, 0, NULL);
+        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0, NULL);
 	if (msa->idx_offset > 0)
 	  gff_add_offset(feats, msa->idx_offset, 0);
         if (output_gff) 
@@ -594,7 +599,7 @@ void phyloP(struct phyloP_struct *p) {
       }
       if (subtree_name == NULL && branch_name == NULL) { /* no subtree case */
         ff_score_tests(mod, msa, feats, mode, pvals, derivs, teststats);
-        msa_map_gff_coords(msa, feats, 0, 1, 0, NULL);
+        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0, NULL);
 	if (msa->idx_offset > 0)
 	  gff_add_offset(feats, msa->idx_offset, 0);
         if (output_gff) 
@@ -613,7 +618,7 @@ void phyloP(struct phyloP_struct *p) {
         }
         ff_score_tests_sub(mod, msa, feats, mode, pvals, null_scales, derivs, 
                            sub_derivs, teststats, logf);
-        msa_map_gff_coords(msa, feats, 0, 1, 0, NULL);
+        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0, NULL);
 	if (msa->idx_offset > 0)
 	  gff_add_offset(feats, msa->idx_offset, 0);
         if (output_gff) 
@@ -658,7 +663,7 @@ void phyloP(struct phyloP_struct *p) {
         nspec = smalloc(lst_size(feats->features) * sizeof(double));
       }
       ff_gerp(mod, msa, feats, mode, nneut, nobs, nrejected, nspec, logf);
-      msa_map_gff_coords(msa, feats, 0, 1, 0, NULL);
+      msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0, NULL);
       if (msa->idx_offset > 0)
 	gff_add_offset(feats, msa->idx_offset, 0);
       if (output_gff) 
@@ -671,21 +676,20 @@ void phyloP(struct phyloP_struct *p) {
 			    "nrej", nrejected, "nspec", nspec);
     }
   } /* end GERP */
-
-  if (pvals != NULL) free(pvals);
-  if (post_means != NULL) free(post_means);
-  if (post_vars != NULL) free(post_vars);
-  if (llrs != NULL) free(llrs);
-  if (scales != NULL) free(scales);
-  if (sub_scales != NULL) free(sub_scales);
-  if (null_scales != NULL) free(null_scales);
-  if (teststats != NULL) free(teststats);
-  if (derivs != NULL) free(derivs);
-  if (sub_derivs != NULL) free(sub_derivs);
-  if (nrejected != NULL) free(nrejected);
-  if (nneut != NULL) free(nneut);
-  if (nobs != NULL) free(nobs);
-  if (nspec != NULL) free(nspec);
+  if (pvals != NULL) sfree(pvals);
+  if (post_means != NULL) sfree(post_means);
+  if (post_vars != NULL) sfree(post_vars);
+  if (llrs != NULL) sfree(llrs);
+  if (scales != NULL) sfree(scales);
+  if (sub_scales != NULL) sfree(sub_scales);
+  if (null_scales != NULL) sfree(null_scales);
+  if (teststats != NULL) sfree(teststats);
+  if (derivs != NULL) sfree(derivs);
+  if (sub_derivs != NULL) sfree(sub_derivs);
+  if (nrejected != NULL) sfree(nrejected);
+  if (nneut != NULL) sfree(nneut);
+  if (nobs != NULL) sfree(nobs);
+  if (nspec != NULL) sfree(nspec);
 } 
 
 

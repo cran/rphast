@@ -173,7 +173,7 @@ MSA *maf_read_cats_subset(FILE *F,          /**< MAF file */
       for (i=0; i<lst_size(seqnames); i++) {
 	currname = (String*)lst_get_ptr(seqnames, i);
 	hsh_put_int(name_hash, currname->chars, i);
-	msa->names[i] = strdup(currname->chars);
+	msa->names[i] = copy_charstr(currname->chars);
       }
       msa->nseqs = lst_size(seqnames);
       maf_quick_peek(F, &msa->names, name_hash, NULL, &refseqlen, 0);
@@ -220,18 +220,15 @@ MSA *maf_read_cats_subset(FILE *F,          /**< MAF file */
     if (REFSEQF != NULL) 
       msa->alloc_len = msa->length = refseqlen;  //this may still not be big enough because of gaps in refseq
     else 
-      msa->alloc_len = max(msa->length, 50000);
-    max_tuples = min(msa->length,
-		     pow(strlen(msa->alphabet)+strlen(msa->missing)+1, 
-			 2 * msa->nseqs * tuple_size));
-    if (max_tuples > 10000000) max_tuples = 10000000; 
-    if (max_tuples < 100000) max_tuples = 100000;
+      msa->alloc_len = 50000;
+    max_tuples =  max(1000000, pow(strlen(msa->alphabet)+strlen(msa->missing)+1, 
+				   2 * msa->nseqs * tuple_size));
+    if (max_tuples > 10000000 || max_tuples < 0) max_tuples = 10000000;
+    if (max_tuples < 1000000) max_tuples = 1000000;
   }
-  else {
-    msa->length = 0;
-    max_tuples = min(50000,
-                     pow(strlen(msa->alphabet)+strlen(msa->missing)+1, 2 * msa->nseqs * tuple_size));
-  }
+  else 
+    max_tuples = min(1000000,
+		     pow(strlen(msa->alphabet)+strlen(msa->missing)+1, 2 * msa->nseqs * tuple_size));
 
   tuple_hash = hsh_new(max_tuples); 
   ss_new(msa, tuple_size, max_tuples, gff != NULL || cycle_size > 0 ? 1 : 0, 
@@ -396,7 +393,7 @@ MSA *maf_read_cats_subset(FILE *F,          /**< MAF file */
     /* extract the suff stats from the mini alignment and fold them
        into the new msa */
     ss_from_msas(msa, tuple_size, store_order, cats_to_do, mini_msa, 
-                 tuple_hash, idx_offset);
+                 tuple_hash, idx_offset, 0);
 
     if (gff != NULL) {          /* free features and clear list */
       for (i = 0; i < lst_size(mini_gff->features); i++)
@@ -550,7 +547,7 @@ MSA *maf_read_cats_subset(FILE *F,          /**< MAF file */
     }
     
     str_free(refseq);
-    free(fasthash);
+    sfree(fasthash);
   }
 
   msa->names = mini_msa->names;
@@ -882,7 +879,7 @@ MSA *maf_read_unsorted(FILE *F,          /**< MAF file */
     /* extract the suff stats from the mini alignment and fold them
        into the new msa */
     ss_from_msas(msa, tuple_size, store_order, cats_to_do, mini_msa, 
-                 tuple_hash, idx_offset);
+                 tuple_hash, idx_offset, 0);
 
     if (gff != NULL) {          /* free features and clear list */
       for (i = 0; i < lst_size(mini_gff->features); i++)
@@ -1020,7 +1017,7 @@ MSA *maf_read_unsorted(FILE *F,          /**< MAF file */
     }
     
     str_free(refseq);
-    free(fasthash);
+    sfree(fasthash);
   }
 
   mini_msa->names = NULL;       /* will prohibit names from being
@@ -1158,7 +1155,7 @@ int maf_read_block_addseq(FILE *F, MSA *mini_msa, Hashtable *name_hash,
   str_free(this_name);
 
   if (mini_msa->length == -1 && !more_blocks) {
-    free(mark);
+    sfree(mark);
     return EOF;}                 /* in this case, an EOF must have been
                                    encountered before any alignment
                                    blocks were found */
@@ -1170,7 +1167,7 @@ int maf_read_block_addseq(FILE *F, MSA *mini_msa, Hashtable *name_hash,
       mini_msa->seqs[i][mini_msa->length] = '\0';
     }
   }
-  free(mark);
+  sfree(mark);
   return 0;
 }
 
@@ -1349,7 +1346,7 @@ void maf_quick_peek(FILE *F, char ***names, Hashtable *name_hash, int *nseqs, in
 	    if (add_seqs) {
 	      hsh_put_int(name_hash, name->chars, count);
 	      *names = srealloc(*names, (count+1) * sizeof(char*));
-	      (*names)[count] = strdup(name->chars);
+	      (*names)[count] = copy_charstr(name->chars);
 	    }
 	    count++;
 	  }
@@ -1372,7 +1369,7 @@ void maf_quick_peek(FILE *F, char ***names, Hashtable *name_hash, int *nseqs, in
       if (hsh_get_int(name_hash, name->chars) == -1 && add_seqs) {
 	hsh_put_int(name_hash, name->chars, count);
 	*names = srealloc(*names, (count+1) * sizeof(char*));
-	(*names)[count] = strdup(name->chars);
+	(*names)[count] = copy_charstr(name->chars);
 	count++;
       }
 
@@ -1449,7 +1446,7 @@ void maf_peek(FILE *F, char ***names, Hashtable *name_hash,
       if (hsh_get_int(name_hash, name->chars) == -1) {
         hsh_put_int(name_hash, name->chars, count);
         *names = srealloc(*names, (count+1) * sizeof(char*));
-        (*names)[count] = strdup(name->chars);
+        (*names)[count] = copy_charstr(name->chars);
         count++;
       }
 
@@ -1570,7 +1567,7 @@ void maf_peek(FILE *F, char ***names, Hashtable *name_hash,
       lst_push_int(map->seq_list, gp->idx + 1);
       lst_push_int(map->msa_list, gp->idx + partial_gap_sum + 1);
                                 /* note: coord map uses 1-based indexing */
-      free(gp);
+      sfree(gp);
     }
     map->seq_len = *refseqlen;
     map->msa_len = *refseqlen + partial_gap_sum;

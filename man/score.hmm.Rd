@@ -1,8 +1,9 @@
 \name{score.hmm}
 \alias{score.hmm}
 \title{Score an alignment using a general phylo-HMM}
-\usage{score.hmm(msa, mod, hmm, states, viterbi=TRUE, ref.idx=1,
-    reflect.strand=NULL, features=NULL, quiet=(!is.null(features)))}
+\usage{score.hmm(msa, mod, hmm, states=NULL, viterbi=TRUE, ref.idx=1,
+    reflect.strand=NULL, features=NULL, quiet=(!is.null(features)))
+}
 \description{Produce likelihood of an alignment given a phylo-HMM, posterior
 probabilities of phylo-HMM states across an alignment,
 and predict states using Viterbi algorithm}
@@ -28,7 +29,10 @@ equilbrium frequencies, initial frequencies, and optionally end frequencies}
 the states of interest in the phylo-HMM, or a vector of integers
 corresponding to states in the transition matrix.  The post.probs will give
 the probability of any of these states, and the viterbi regions reflect
-regions where the state is predicted to be any of these states.}
+regions where the state is predicted to be any of these states.  If NULL,
+the post.probs will be a data frame with probabilities of each state at
+each site, and the viterbi algorithm will give the predicted state
+at every site.}
 \item{viterbi}{A logical value indicating whether to predict a path through the phylo-HMM
 using the Viterbi algorithm.}
 \item{ref.idx}{An integer value.  Use the coordinate frame of the given sequence.
@@ -39,10 +43,15 @@ the forward strand, create a larger HMM that allows for features
 on both strands by "reflecting" the original HMM about the specified
 states.  States can be described as a vector of integers or characters
 in the same manner as states argument (above).  The new hmm will be
-used for prediction on both strands.}
+used for prediction on both strands. NOTE: if reflect.strand is provided,
+the first state is treated as a "default" state and is implicitly included
+in the reflect.strand list!  Also, reflection is done assuming a
+reversible model.}
 \item{features}{If non-NULL, compute the likelihood of each feature
 under the phylo-HMM.}
-\item{quiet}{If \code{TRUE}, suppress printing of progress information.}}
+\item{quiet}{If \code{TRUE}, suppress printing of progress information.}
+}
+
 \examples{
 exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
 files <- c("ENr334.maf", "rev.mod", "gencode.ENr334.gff")
@@ -60,15 +69,17 @@ conservedMod$tree <- rescale.tree(neutralMod$tree, 0.3)
 
 # create a simple phylo-HMM
 state.names <- c("neutral", "conserved")
-h <- hmm(matrix(c(0.99, 0.01, 0.01, 0.99), nrow=2, dimnames=list(state.names, state.names)),
+h <- hmm(matrix(c(0.99, 0.01, 0.01, 0.99), nrow=2,
+                dimnames=list(state.names, state.names)),
                 eq.freq=c(neutral=0.9, conserved=0.1))
-scores <- score.hmm(align, mod=list(neutral=neutralMod, conserved=conservedMod),
+scores <- score.hmm(align, mod=list(neutral=neutralMod,
+                             conserved=conservedMod),
                     hmm=h, states="conserved")
 # try an alternate approach of comparing likelihoods of genes 
 feats <- read.feat("gencode.ENr334.gff")
 # plot in a region with some genes
-plot.track(list(feat.track(scores$in.states, name="hmmScores"),
-                feat.track(feats[feats$feature=="CDS",], name="genes")),
+plot.track(list(as.track.feat(scores$in.states, name="hmmScores"),
+                as.track.feat(feats[feats$feature=="CDS",], name="genes")),
            xlim=c(41650000, 41680000))
 unlink(files)
 }

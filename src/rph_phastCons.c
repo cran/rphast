@@ -17,7 +17,6 @@ Last updated: 4/21/2010
 #include <stdlib.h>
 #include <stdio.h>
 #include <msa.h>
-#include <string.h>
 #include <getopt.h>
 #include <ctype.h>
 #include <misc.h>
@@ -26,23 +25,34 @@ Last updated: 4/21/2010
 #include <trees.h>
 #include <phast_cons.h>
 #include <hmm.h>
+#include <rph_util.h>
 #include <Rdefines.h>
 #include <R_ext/Random.h>
 
 SEXP rph_listOfLists_to_SEXP(ListOfLists *lol);
 
-SEXP rph_phastCons(SEXP msaP, SEXP modP, SEXP rhoP, SEXP targetCoverageP,
-		   SEXP expectedLengthP, SEXP transitionsP,
+SEXP rph_phastCons(SEXP msaP, 
+		   SEXP modP, 
+		   SEXP rhoP, 
+		   SEXP targetCoverageP,
+		   SEXP expectedLengthP, 
+		   SEXP transitionsP,
 		   SEXP estimateRhoP,
 		   SEXP estimateExpectedLengthP,
 		   SEXP estimateTransitionsP,
 		   SEXP estimateTreesP,
-		   SEXP viterbiP, SEXP scoreViterbiP,
-		   SEXP gcP, SEXP nratesP, 
-		   SEXP computeLnlP, SEXP suppressProbsP,
+		   SEXP viterbiP, 
+		   SEXP scoreViterbiP,
+		   SEXP gcP, 
+		   SEXP nratesP, 
+		   SEXP computeLnlP, 
+		   SEXP suppressProbsP,
 		   SEXP refIdxP,
-		   SEXP hmmP, SEXP statesP, SEXP reflectStrandP,
-		   SEXP quietP) {
+		   SEXP hmmP, 
+		   SEXP statesP, 
+		   SEXP reflectStrandP,
+		   SEXP quietP,
+		   SEXP categoryMapP) {
   struct phastCons_struct *p = phastCons_struct_new(1);
   int i, *intp, numprotect=0;
   double *doublep;
@@ -135,17 +145,17 @@ SEXP rph_phastCons(SEXP msaP, SEXP modP, SEXP rhoP, SEXP targetCoverageP,
   if (LOGICAL_VALUE(quietP))
     p->results_f = NULL;
 
-  phastCons(p);
+  if (categoryMapP != R_NilValue)
+    p->cm = cm_new_string_or_file(CHARACTER_VALUE(categoryMapP));
 
-  //free anything allocated?
-  //close outfiles
+  phastCons(p);
+  rph_msa_protect(p->msa);
+
   if (p->results != NULL) {
     PROTECT(rv = rph_listOfLists_to_SEXP(p->results));
     numprotect++;
-    lol_free(p->results);
   } else rv=R_NilValue;
   
-  free(p);
   PutRNGstate();
   if (numprotect > 0) UNPROTECT(numprotect);
   return rv;

@@ -19,7 +19,7 @@ void lol_set_class(ListOfLists *lol, char *class) {
     if (strcmp(lol->class, class)==0) return;
     phast_warning("warning: changing class of list from %s to %s\n", 
 		  lol->class, class);
-    free(lol->class);
+    sfree(lol->class);
   }
   lol->class = copy_charstr(class);
 }
@@ -63,6 +63,55 @@ void lol_push_dbl(ListOfLists *lol, double *vals, int len,
 }
 
 
+List *lol_find_list(ListOfLists *lol, const char *lstName, 
+		    list_element_type lstType) {
+  list_element_type currType;
+  List *temp, *currResult=NULL;
+  int i;
+  for (i=0; i < lst_size(lol->lst); i++) {
+    currType = lst_get_int(lol->lstType, i);
+    if (currType == lstType && 
+	strcmp((char*)lst_get_ptr(lol->lstName, i), lstName)==0)
+      return lol->lst;
+    if (currType == LIST_LIST) {
+      temp = lol_find_list((ListOfLists*)lst_get_ptr(lol->lst, i), lstName, lstType);
+      if (temp != NULL) {
+	if (currResult != NULL) die("lol_find_list failed: multiple lists in object named %s with same type", lstName);
+	currResult = temp;
+      }
+    }
+  }
+  return currResult;
+}
+
+
+/* The following three functions push single values onto the end of
+   a list.  They search the list of lists for a list with the given name
+   and appropriate type.  If none found, or if multiple matching lists are
+   found, it is an error */
+
+void lol_push_dbl_val(ListOfLists *lol, const char *lstName, double val) {
+  List *l = lol_find_list(lol, lstName, DBL_LIST);
+  if (l == NULL) die("Could not find double list named %s", lstName);
+  lst_push_dbl(l, val);
+}
+
+void lol_push_int_val(ListOfLists *lol, const char *lstName, int val) {
+  List *l = lol_find_list(lol, lstName, INT_LIST);
+  if (l == NULL) die("Could not find int list named %s", lstName);
+  lst_push_int(l, val);
+}
+
+
+void lol_push_char_val(ListOfLists *lol, const char *lstName, const char *val) {
+  List *l = lol_find_list(lol, lstName, CHAR_LIST);
+  char *tempstr;
+  if (l == NULL) die("Could not find char* list named %s", lstName);
+  tempstr = smalloc((strlen(val)+1)*sizeof(char));
+  strcpy(tempstr, val);
+  lst_push_ptr(l, tempstr);
+}
+
 
 //add a list of ints to end of LOL object.  Copies all values.
 void lol_push_int(ListOfLists *lol, int *vals, int len,
@@ -104,7 +153,7 @@ void lol_push_matrix(ListOfLists *lol, Matrix *mat,
     lol_push_dbl(matList, tmpVec->data, tmpVec->size, tmpstr);
     vec_free(tmpVec);
   }
-  free(tmpstr);
+  sfree(tmpstr);
   for (i=0; i<mat->ncols; i++) {
     tmpstr = smalloc(10*sizeof(char));
     sprintf(tmpstr, "%i", i);
@@ -120,6 +169,8 @@ void lol_push_treeModel(ListOfLists *lol, TreeModel *tm,
 			const char *name) {
   char *str;
   ListOfLists *tmList = lol_new(11);
+  ListOfLists *altModList, *currAltMod;
+  int i;
   if (tm->rate_matrix->states != NULL)
     lol_push_charvec(tmList, &tm->rate_matrix->states, 1, "alphabet");
   if (tm->backgd_freqs != NULL)
@@ -129,27 +180,52 @@ void lol_push_treeModel(ListOfLists *lol, TreeModel *tm,
     lol_push_matrix(tmList, tm->rate_matrix->matrix, "rate.matrix");
   str = copy_charstr(tm_get_subst_mod_string(tm->subst_mod));
   lol_push_charvec(tmList, &str, 1, "subst.mod");
-  free(str);
+  sfree(str);
   if (tm->lnL != NULL_LOG_LIKELIHOOD)
     lol_push_dbl(tmList, &(tm->lnL), 1, "likelihood");
-  if (tm->alpha != 0.0)
-    lol_push_dbl(tmList, &(tm->alpha), 1, "alpha");
-  lol_push_int(tmList, &(tm->nratecats), 1, "nratecats");
-  if (tm->rK != NULL)
-    lol_push_dbl(tmList, tm->rK, tm->nratecats, "rate.consts");
-  if (tm->freqK != NULL)
-    lol_push_dbl(tmList, tm->freqK, tm->nratecats, "rate.weights");
+  if (tm->nratecats > 1) {
+    if (tm->alpha != 0.0) 
+      lol_push_dbl(tmList, &(tm->alpha), 1, "alpha");
+    lol_push_int(tmList, &(tm->nratecats), 1, "nratecats");
+    if (tm->rK != NULL)
+      lol_push_dbl(tmList, tm->rK, tm->nratecats, "rate.consts");
+    if (tm->freqK != NULL)
+      lol_push_dbl(tmList, tm->freqK, tm->nratecats, "rate.weights");
+  }
+  if (tm->selection_idx >= 0)
+    lol_push_dbl(tmList, &(tm->selection), 1, "selection");
   if (tm->tree != NULL) {
     str = tr_to_string(tm->tree, 1);
     lol_push_charvec(tmList, &str, 1, "tree");
-    free(str);
+    sfree(str);
   }
   if (tm->root_leaf_id != -1)
     lol_push_int(tmList, &(tm->root_leaf_id), 1, "root.leaf");
+
+  if (tm->alt_subst_mods != NULL) {
+    altModList = lol_new(lst_size(tm->alt_subst_mods));
+    for (i=0; i < lst_size(tm->alt_subst_mods); i++) {
+      AltSubstMod *altmod = lst_get_ptr(tm->alt_subst_mods, i);
+      currAltMod = lol_new(11);
+      str = copy_charstr(tm_get_subst_mod_string(altmod->subst_mod));
+      lol_push_charvec(currAltMod, &str, 1, "subst.mod");
+      if (altmod->backgd_freqs != NULL) 
+	lol_push_dbl(currAltMod, altmod->backgd_freqs->data, altmod->backgd_freqs->size, "backgd");
+      if (altmod->rate_matrix != NULL && altmod->rate_matrix->matrix != NULL)
+	lol_push_matrix(currAltMod, altmod->rate_matrix->matrix, "rate.matrix");
+      if (altmod->selection_idx >= 0)
+	lol_push_dbl(currAltMod, &(altmod->selection), 1, "selection");
+      if (altmod->bgc_idx >= 0)
+	lol_push_dbl(currAltMod, &(altmod->bgc), 1, "bgc");
+      lol_push_charvec(currAltMod, &(altmod->defString->chars), 1, "defn");
+      lol_push_lol(altModList, currAltMod, NULL);
+    }
+    lol_push_lol(tmList, altModList, "alt.model");
+  }
+
   lol_set_class(tmList, "tm");
   lol_push_lol(lol, tmList, name);
 }
-
 
 void lol_push_gff(ListOfLists *lol, GFF_Set *gff, const char *name) {
   ListOfLists *gffList = lol_new(9);
@@ -224,21 +300,21 @@ void lol_push_gff(ListOfLists *lol, GFF_Set *gff, const char *name) {
   lol_push_lol(lol, gffList, name);
 
   for (i=0; i<gffLen; i++) {
-    free(names[i]);
-    free(src[i]);
-    free(feature[i]);
-    free(strand[i]);
-    free(attribute[i]);
+    sfree(names[i]);
+    sfree(src[i]);
+    sfree(feature[i]);
+    sfree(strand[i]);
+    sfree(attribute[i]);
   }
-  free(names);
-  free(src);
-  free(feature);
-  free(start);
-  free(end);
-  free(score);
-  free(strand);
-  free(frame);
-  free(attribute);
+  sfree(names);
+  sfree(src);
+  sfree(feature);
+  sfree(start);
+  sfree(end);
+  sfree(score);
+  sfree(strand);
+  sfree(frame);
+  sfree(attribute);
 }
 
 
@@ -254,7 +330,7 @@ void lol_free(ListOfLists *lol) {
     currtype = lst_get_int(lol->lstType, i);
     currname = (char*)lst_get_ptr(lol->lstName, i);
     if (currname != NULL)
-      free(currname);
+      sfree(currname);
     if (currtype == LIST_LIST) 
       lol_free((ListOfLists*)currlst);
     else {
@@ -262,7 +338,7 @@ void lol_free(ListOfLists *lol) {
 	for (j=0; j<lst_size(currlst); j++) {
 	  currstr = (char*)lst_get_ptr(currlst, j);
 	  if ((void*)currstr != NULL)
-	    free(currstr);
+	    sfree(currstr);
 	}
       }
       lst_free(currlst);
@@ -271,6 +347,6 @@ void lol_free(ListOfLists *lol) {
   lst_free(lol->lstType);
   lst_free(lol->lstName);
   lst_free(lol->lst);
-  if (lol->class != NULL) free(lol->class);
-  free(lol);
+  if (lol->class != NULL) sfree(lol->class);
+  sfree(lol);
 }

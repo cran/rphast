@@ -1,7 +1,8 @@
 \name{strip.gaps.msa}
 \alias{strip.gaps.msa}
 \title{MSA Strip Gaps}
-\usage{strip.gaps.msa(x, strip.mode=1)}
+\usage{strip.gaps.msa(x, strip.mode=1)
+}
 \description{Strip gaps from an alignment.}
 \details{If strip.mode can be a vector of integers or a vector of character
 strings.  If it is a vector of integers, these are the indices of
@@ -21,7 +22,9 @@ otherwise the return value will be stored in R.}
 \keyword{msa}
 \author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{MSA object}
-\item{strip.mode}{Determines which gaps to strip.  See Details}}
+\item{strip.mode}{Determines which gaps to strip.  See Details}
+}
+
 \examples{
 m <- msa(seqs=c("A--ACGTAT-", "AG-AGGTAA-", "AGGAGGTA--"),
          names=c("human", "mouse", "rat"))

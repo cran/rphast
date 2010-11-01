@@ -1,0 +1,50 @@
+\name{plot.altmodel.tm}
+\alias{plot.altmodel.tm}
+\title{Make a bubble plot of a lineage-specific transition matrix of a...}
+\usage{plot.altmodel.tm(x, i=1, show.eq.freq=TRUE, max.cex=10, eq.freq.max.cex=5,
+    alphabet=NULL, col=NULL, eq.freq.col=NULL, filled=TRUE, add=FALSE,
+    ...)
+}
+\description{Make a bubble plot of a lineage-specific transition matrix of a
+tree model.}
+\author{Melissa J. Hubisz}
+\arguments{\item{x}{An object of type \code{tm}.}
+\item{i}{An integer identifying which element of tm[["alt.mod"]] to
+plot.}
+\item{show.eq.freq}{If \code{TRUE}, show bubbles representing equilibrium
+frequencies along the bottom of plot.}
+\item{max.cex}{A scaling factor which determines the size of the
+largest circle}
+\item{eq.freq.max.cex}{A scaling factor which determines the size
+of the largest circle in the equilibrium frequencies.}
+\item{alphabet}{A character vector representing the state names for
+each row/column of the matrix.  Can either be a vector of size
+\code{nrow(m)} or a single character string with \code{nrow(m)}
+characters.  Can also be \code{NULL} for no row/column labels.}
+\item{col}{If \code{NULL}, all circles will be drawn in black.
+Otherwise, col can be a matrix of the same dimension of \code{m},
+each entry should indicate the color used for the corresponding
+cell in the transition matrix.}
+\item{eq.freq.col}{Should
+be vector of same length as eq.freq, though values will be recycled.
+Values in the vector indicate colors to draw the equilibrium frequency
+bubbles.}
+\item{filled}{If \code{TRUE}, plot filled circles.}
+\item{add}{If \code{TRUE}, add to the existing plot.  Otherwise create
+a new plot.}
+\item{...}{Further arguments to be passed to \code{plot}.}
+}
+
+\examples{
+require("rphast")
+exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
+filename <- "rev.mod"
+unzip(exampleArchive, filename)
+tm <- read.tm(filename)
+tm <- add.alt.mod(tm, branch="mm9", subst.mod="HKY85")
+plot.altmodel.tm(tm, 1)
+tm$alt.model$backgd <- c(0.9, 0.05, 0.03, 0.02)
+plot.altmodel.tm(tm, 1)
+plot.rate.matrix(tm[["rate.matrix"]], eq.freq=tm[["backgd"]], filled=FALSE, alphabet=tm[["alphabet"]])
+unlink(filename)
+}

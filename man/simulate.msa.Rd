@@ -2,7 +2,8 @@
 \alias{simulate.msa}
 \title{Simulate a MSA given a tree model and HMM.}
 \usage{simulate.msa(object, nsim, seed=NULL, hmm=NULL, get.features=FALSE,
-    pointer.only=FALSE, ...)}
+    pointer.only=FALSE, ...)
+}
 \description{Simulate a MSA given a tree model and HMM.}
 \details{Simulates a multiple sequence alignment of specified length.  Deals
 with base-substitution only, not indels.  If one tree model is given,
@@ -16,7 +17,8 @@ length as the number of states in the HMM.}
 \arguments{\item{object}{An object of type \code{tm} (or a list of these objects)
 describing the phylogenetic model from which to simulate.  If it
 is a list of tree models then an HMM should be provided to describe
-transition rates between models.}
+transition rates between models.  Currently only models of order zero
+are supported.}
 \item{nsim}{The number of columns in the simulated alignment.}
 \item{seed}{A random number seed.  Either \code{NULL} (the default;
 do not re-seed random  number generator), or an integer to be sent to
@@ -30,7 +32,9 @@ the phylo-hmm in the simulated alignment.}
 \item{pointer.only}{(Advanced use only). If TRUE, return only a pointer
 to the simulated alignment.  Possibly useful for very (very) large
 alignments.  Cannot be used if \code{get.features==TRUE}.}
-\item{...}{Currently not used (for S3 compatibility)}}
+\item{...}{Currently not used (for S3 compatibility)}
+}
+
 \examples{
 filename <- "rev.mod"
 exampleArchive <- system.file("extdata", "examples.zip", package="rphast")

@@ -31,9 +31,9 @@ Zmatrix *zmat_new(int nrows, int ncols) {
 void zmat_free(Zmatrix *m) {
   int i;
   for (i = 0; i < m->nrows; i++)
-    free(m->data[i]);
-  free(m->data);
-  free(m);
+    sfree(m->data[i]);
+  sfree(m->data);
+  sfree(m);
 }
 
 Zvector *zmat_get_row(Zmatrix *m, int row) {
@@ -115,7 +115,8 @@ void zmat_read(Zmatrix *m, FILE *F) {
   int i, j;
   for (i = 0; i < m->nrows; i++)
     for (j = 0; j < m->ncols; j++)
-      fscanf(F, "%lf %lf ", &m->data[i][j].x, &m->data[i][j].y);
+      if (2 != fscanf(F, "%lf %lf ", &m->data[i][j].x, &m->data[i][j].y))
+	die("ERROR reading complex matrix");
 }
 
 Zmatrix *zmat_new_from_file(FILE *F, int nrows, int ncols) {

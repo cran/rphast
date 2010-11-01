@@ -1,0 +1,14 @@
+\name{bgc.sel.factor}
+\alias{bgc.sel.factor}
+\title{BGC+selection factor...}
+\usage{bgc.sel.factor(x)
+}
+\description{BGC+selection factor}
+\value{x/(1-e^(-x)), the factor to scale the rate matrix entry by.}
+\author{Melissa J. Hubisz}
+\arguments{\item{x}{The cumulative effect of bgc and selection.  If bgc and sel are
+population-scaled parameters describing biased gene conversion and selection,
+then x should be sel+bgc for strong mutations, sel-bgc for weak mutations, a
+and sel for neutral mutations.}
+}
+

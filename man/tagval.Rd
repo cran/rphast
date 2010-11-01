@@ -1,7 +1,8 @@
 \name{tagval}
 \alias{tagval}
 \title{Extract value from tag-value formatted attributes...}
-\usage{tagval(x, tag)}
+\usage{tagval(x, tag)
+}
 \description{Extract value from tag-value formatted attributes}
 \value{If there is at most one value per tag for each element of x,
 a character vector of the same length as x will be returned, containing
@@ -15,7 +16,9 @@ NA for no value).}
 \arguments{\item{x}{A vector of character strings in tag-val format (as
 described in the GFF standard; ie, "tag1 val1a val1b; tag2 val2 ; ...",
 where vals are in quotes if they are strings.}
-\item{tag}{The tag whose values are to be extracted.}}
+\item{tag}{The tag whose values are to be extracted.}
+}
+
 \examples{
 require("rphast")
 tags <- c("tag1 \"val 1a\"; tag2 \"val 2a\" \"val2a.1\" 123; tag3 \"val3a\"",

@@ -1,11 +1,12 @@
 \name{print.msa}
 \alias{print.msa}
 \title{Printing MSA objects}
-\usage{print.msa(x, ..., print.seq=ifelse(ncol.msa(x) * nrow.msa(x) < 500,
-    TRUE, FALSE), format=NULL, pretty.print=FALSE)}
+\usage{print.msa(x, ..., print.seq=ifelse(ncol.msa(x) * nrow.msa(x) < 500, TRUE, FALSE),
+    format=NULL, pretty.print=FALSE)
+}
 \description{Prints an MSA (multiple sequence alignment) object.}
 \details{Valid formats for printing are "FASTA", "PHYLIP", "MPM", and "SS".
-See \code{\link{validFormatStr.msa}} for details on these formats.
+See \code{\link{is.format.msa}} for details on these formats.
 If format is specified, the alignment is printed regardless of
 print.seq.
 
@@ -23,7 +24,9 @@ as a R character vector.  Otherwise, the default format is FASTA.}
 \item{...}{additional arguments sent to \code{print}}
 \item{print.seq}{whether to supress printing of the alignment}
 \item{format}{to print sequence in if printing alignment}
-\item{pretty.print}{whether to pretty.print pretty-print sequence if printing alignment}}
+\item{pretty.print}{whether to pretty.print pretty-print sequence if printing alignment}
+}
+
 \examples{
 # read in an MSA stored in R
 m <- msa(seqs=c("ACGTAT", "AGGTAA", "AGGTAG"),

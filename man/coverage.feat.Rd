@@ -1,8 +1,8 @@
 \name{coverage.feat}
 \alias{coverage.feat}
 \title{Features coverage...}
-\usage{coverage.feat(..., or=FALSE, get.feats=FALSE, not=NULL,
-    region.bounds=NULL)}
+\usage{coverage.feat(..., or=FALSE, not=NULL, get.feats=FALSE, pointer.only=FALSE)
+}
 \description{Features coverage}
 \value{The number of bases covered by the feat arguments, or the
 combined feat object if \code{get.feats==TRUE}.}
@@ -13,20 +13,21 @@ pointer to an object stored in C may be reordered (sorted) by this function.}
 \arguments{\item{...}{objects of type \code{feat}}
 \item{or}{if \code{TRUE}, get the coverage of union of feat arguments.
 or is \code{FALSE} by default, which takes the intersection.}
-\item{get.feats}{if \code{TRUE}, return an object of type \code{feat}
-representing the intersection (or union of \code{or==TRUE}) of the
-features.}
 \item{not}{If not \code{NULL}, a vector of logicals the same length
 as the number of features
-provided.  For each value which is \code{TRUE}, the inverse of the feature
-will be used.  If any element of \code{not} is \code{TRUE}, then
-the region.bounds arg must also be provided.  If \code{NULL}, do not
-take the inverse of any features.}
-\item{region.bounds}{An object of type \code{feat} which defines the
-start and end coordinates of all relevant chromosomes/regions in the
-provided feat objects.  Used for taking inverses of the feat objects as
-required by the argument \code{not}.  If \code{not==NULL} or
-\code{not==FALSE} for all feat objects, then this argument is not used.}}
+provided (or will be recycled to this length).
+For each value which is \code{TRUE}, then any base *not* included in this
+feature will be counted.  (The negation is done before any other operation).
+If \code{NULL}, do not negate any features.  There must be at least one
+feature which is not negated (so that boundaries can be established).}
+\item{get.feats}{if \code{TRUE}, return an object of type \code{feat}
+representing the intersection (or union of \code{or==TRUE}) of the
+features}
+\item{pointer.only}{(Only used if \code{get.feats==TRUE}).  If \code{TRUE},
+the features object returned will be stored as a pointer to an object
+in C.}
+}
+
 \examples{
 require("rphast")
 feat1 <- feat(seqname=c(rep("chr1", 3), rep("chr2", 2)),

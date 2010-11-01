@@ -17,7 +17,6 @@
 */
    
 #include <gff.h>
-#include <string.h>
 #include <time.h>
 #include <hashtable.h>
 #include <misc.h>
@@ -378,7 +377,7 @@ void gff_free_set(GFF_Set *set) {
   str_free(set->source);
   str_free(set->source_version);
   str_free(set->date);
-  free(set);
+  sfree(set);
 }
 
 /** Free resources associated with GFF_Feature object.  */
@@ -387,7 +386,7 @@ void gff_free_feature(GFF_Feature *feat) {
   str_free(feat->source);
   str_free(feat->feature);
   str_free(feat->attribute);
-  free(feat);
+  sfree(feat);
 }
 
 /** Output a GFF_Set to the specified stream in GFF. */
@@ -758,7 +757,7 @@ void gff_group(GFF_Set *set, char *tag) {
   str_re_free(tag_re);
   str_free(nullstr);
   hsh_free(hash);
-  free(tmpstr);
+  sfree(tmpstr);
 }
 
 
@@ -888,7 +887,7 @@ void gff_ungroup(GFF_Set *set) {
     GFF_FeatureGroup *group = lst_get_ptr(set->groups, i);
     str_free(group->name);
     lst_free(group->features);
-    free(group);
+    sfree(group);
   }
   lst_free(set->groups);
   set->groups = NULL;
@@ -959,7 +958,7 @@ void gff_exon_group(GFF_Set *set, /**< Set to process  */
   gff_group(set, tag);
 
   if (dummy != NULL) {
-    free(dummy);
+    sfree(dummy);
     lst_free(groups);
   }
 }
@@ -1232,9 +1231,9 @@ void gff_filter_by_group(GFF_Set *feats, List *groups) {
   lst_free(feats->features);
   feats->features = keepers;
 
-  tag = strdup(feats->group_tag->chars);
+  tag = copy_charstr(feats->group_tag->chars);
   gff_group(feats, tag);        /* old one will have stale pointers */
-  free(tag);
+  sfree(tag);
 
   hsh_free(hash);
 }
@@ -1860,16 +1859,19 @@ GFF_Set *gff_inverse(GFF_Set *gff, GFF_Set *region0) {
 	  lst_push_ptr(notGff->features, newfeat);
 	}
 	regionIdx++;
-	if (regionIdx >= lst_size(gffG->features))
-	  die("gff contains coords (%s, %i, %i) outside region boundaries",
-	      currFeat->seqname->chars, currStart, currEnd);
+	if (regionIdx >= lst_size(regionG->features)) {
+	  regionStart = regionEnd = -1;
+	  break;
+	}
 	regionFeat = lst_get_ptr(regionG->features, regionIdx);
 	regionStart = regionFeat->start;
 	regionEnd = regionFeat->end;
       }
-      if (currEnd > regionEnd)
-	die("gff contains coords (%s, %i, %i) which exceeds region boundaries",
-	    currFeat->seqname->chars, currStart, currEnd);
+      if (regionIdx >= lst_size(regionG->features)) break;
+      if (currStart <= regionStart && currEnd < regionEnd) {
+	regionStart = currEnd + 1;
+	continue;
+      }
       if (currStart > regionStart) {
 	newfeat = gff_new_feature_copy_chars(regionFeat->seqname->chars,
 					     "gff_inverse", "inverse feat",
@@ -1877,10 +1879,21 @@ GFF_Set *gff_inverse(GFF_Set *gff, GFF_Set *region0) {
 					     GFF_NULL_FRAME, ".", TRUE);
 	lst_push_ptr(notGff->features, newfeat);
       }
-      if (regionStart <= currEnd)
+      while (currEnd >= regionEnd) {
+	regionIdx++;
+	if (regionIdx >= lst_size(regionG->features)) {
+	  regionStart = regionEnd = -1;
+	  break;
+	}
+	regionFeat = lst_get_ptr(regionG->features, regionIdx);
+	regionStart = regionFeat->start;
+	regionEnd = regionFeat->end;
+      }
+      if (regionStart == -1) break;
+      if (currEnd >= regionStart)
 	regionStart = currEnd + 1;
     }
-    if (regionStart <= regionEnd) {
+    if (regionStart != -1 && regionStart <= regionEnd) {
       newfeat = gff_new_feature_copy_chars(regionFeat->seqname->chars,
 					   "gff_inverse", "inverse feat",
 					   regionStart, regionEnd, 0, '.',

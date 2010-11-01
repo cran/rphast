@@ -1,17 +1,21 @@
-\name{wig.track}
-\alias{wig.track}
+\name{as.track.wig}
+\alias{as.track.wig}
 \title{Create a wig track...}
-\usage{wig.track(coord, score, name, short.label=NULL, col="black", ylim=NULL,
-    smooth=FALSE, numpoints=250, horiz.line=NULL, horiz.lty=2,
-    horiz.col="black")}
+\usage{as.track.wig(wig=NULL, name, coord=NULL, score=NULL, short.label=NULL, col="black",
+    ylim=NULL, smooth=FALSE, numpoints=250, horiz.line=NULL,
+    horiz.lty=2, horiz.col="black")
+}
 \description{Create a wig track}
 \value{An object of type \code{track} which can be plotted with the plot.track
 function}
 \keyword{plot}
 \author{Melissa J. Hubisz}
-\arguments{\item{coord}{A numeric vector of coordinates (to be used for x-axis)}
-\item{score}{A numeric vector of scores (y-axis coords), should be same length as coord}
+\arguments{\item{wig}{A "wig" object (Must have elements wig$coord and wig$score which should both
+be numeric vectors).  coord/score may be passed directly instead.}
 \item{name}{The name of the track (a character string)}
+\item{coord}{(Alternative to wig) A numeric vector of coordinates (to be used for x-axis)}
+\item{score}{(Alternative to wig) A numeric vector of scores (y-axis coords), should be
+same length as coord.}
 \item{short.label}{An optional character string to be displayed in left
 hand margin of track}
 \item{col}{The color to be used to plot this track.}
@@ -23,4 +27,6 @@ this track}
 points to display in the smoothed wig.}
 \item{horiz.line}{If non-NULL, draw horizontal lines on the display at the given y coordinates}
 \item{horiz.lty}{If horiz.line is defined, use this line type.}
-\item{horiz.col}{If horiz.line is defined, use this color}}
+\item{horiz.col}{If horiz.line is defined, use this color}
+}
+

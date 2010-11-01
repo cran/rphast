@@ -1,7 +1,8 @@
 \name{write.tm}
 \alias{write.tm}
 \title{Wrting Tree Models}
-\usage{write.tm(tm, filename=NULL, append=FALSE)}
+\usage{write.tm(tm, filename=NULL, append=FALSE)
+}
 \description{Write a tree model to a file (or to the terminal)}
 \seealso{\code{\link{tm}}}
 \keyword{tm}
@@ -9,7 +10,9 @@
 \arguments{\item{tm}{An object of class "tm"}
 \item{filename}{The filename to write to (use NULL for output to terminal)}
 \item{append}{Whether to append the tree to the end of the file
-(if FALSE, overwrites file).  Not used if filename is \code{NULL}}}
+(if FALSE, overwrites file).  Not used if filename is \code{NULL}}
+}
+
 \examples{
 exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
 filename <- "rev.mod"

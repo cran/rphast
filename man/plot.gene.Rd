@@ -3,7 +3,8 @@
 \title{Gene plot}
 \usage{plot.gene(x, y=0, height=1, arrow.density=5, angle=30, col="black",
     lty=par("lty"), lwd=par("lwd"), add=FALSE, xlim=range.feat(x),
-    ylim=c(y - height * 3/4, y + height * 3/4), ...)}
+    ylim=c(y - height * 3/4, y + height * 3/4), ...)
+}
 \description{make gene plot}
 \keyword{features}
 \keyword{plot}
@@ -19,7 +20,9 @@
 \item{add}{if \code{TRUE}, add to existing plot}
 \item{xlim}{A numerical vector of length 2 giving the range for the x-axis.}
 \item{ylim}{A numerical vector of length 2 giving the range for the y-axis.}
-\item{...}{graphical parameters to be passed to \code{plot}.}}
+\item{...}{graphical parameters to be passed to \code{plot}.}
+}
+
 \examples{
 exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
 featFile <- "sol1.gp"

@@ -27,7 +27,7 @@ write.tm(tm, NULL)
 write.tm(tm, "test.mod")
 unlink(c(filename, "test.mod"))
 
-#' tm.summary
+#' summary.tm
 exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
 filename <- "rev.mod"
 unzip(exampleArchive, filename)
@@ -44,11 +44,11 @@ is.list(as.list(tm))
 #' subst.mods
 subst.mods()
 
-#' isSubstMod.tm
-isSubstMod.tm(c("JC69", "K80", "F81", "HKY85", "HKY85+Gap",
-                "REV", "SSREV", "REV+GC", "UNREST", "R2", "U2", "R2S",
-                "U2S", "R3", "R3S", "U3", "U3S", "GC", "HB",
-                "bad.model"))
+#' is.subst.mod.tm
+is.subst.mod.tm(c("JC69", "K80", "F81", "HKY85", "HKY85+Gap",
+                  "REV", "SSREV", "REV+GC", "UNREST", "R2", "U2", "R2S",
+                  "U2S", "R3", "R3S", "U3", "U3S", "GC", "HB",
+                  "bad.model"))
 
 
 #' tm
@@ -72,3 +72,36 @@ t <- tm(tree, subst.mod, rate.matrix=rate.mat,
         nratecats=nratecats, alpha=alpha,
         rate.consts=rate.consts, root.leaf=root.leaf)
 t
+
+
+#' plot.tm
+require("rphast")
+exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
+filename <- "rev.mod"
+unzip(exampleArchive, filename)
+tm <- read.tm(filename)
+plot(tm)
+plot(tm, show.eq.freq=FALSE)
+plot(tm, max.cex=20, eq.freq.max.cex=1, col=matrix(1:16, nrow=4), eq.freq.col=c("red", "green"), filled=TRUE, add=TRUE)
+plot.rate.matrix(tm[["rate.matrix"]], eq.freq=tm[["backgd"]], filled=FALSE)
+plot.rate.matrix(tm[["rate.matrix"]], eq.freq=tm[["backgd"]], filled=TRUE, add=TRUE)
+unlink(filename)
+
+
+#' plot.altmodel.tm
+require("rphast")
+exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
+filename <- "rev.mod"
+unzip(exampleArchive, filename)
+tm <- read.tm(filename)
+tm <- add.alt.mod(tm, branch="mm9", subst.mod="HKY85")
+plot.altmodel.tm(tm, 1)
+tm$alt.model$backgd <- c(0.9, 0.05, 0.03, 0.02)
+plot.altmodel.tm(tm, 1)
+plot.rate.matrix(tm[["rate.matrix"]], eq.freq=tm[["backgd"]], filled=FALSE, alphabet=tm[["alphabet"]])
+unlink(filename)
+
+
+rm(list=ls())
+gc()
+

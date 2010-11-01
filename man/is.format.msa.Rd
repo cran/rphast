@@ -1,7 +1,8 @@
-\name{validFormatStr.msa}
-\alias{validFormatStr.msa}
+\name{is.format.msa}
+\alias{is.format.msa}
 \title{Check an MSA Format String}
-\usage{validFormatStr.msa(format)}
+\usage{is.format.msa(format)
+}
 \description{Returns TRUE if the argument is a valid string describing a
 multiple sequence alignment (MSA) format.}
 \details{Valid formats include "FASTA", "PHYLIP", "SS" (Sufficient statistics
@@ -12,8 +13,10 @@ MULTIZ and TBA.}
 input parameter is a valid format string.}
 \keyword{msa}
 \author{Melissa J. Hubisz}
-\arguments{\item{format}{a character vector of strings to test}}
+\arguments{\item{format}{a character vector of strings to test}
+}
+
 \examples{
-validFormatStr.msa(c("MAF", "SS", "PHYLIP", "MPM", "LAV", "FASTA",
-                     "BAD_FORMAT_STRING"))
+is.format.msa(c("MAF", "SS", "PHYLIP", "MPM", "LAV", "FASTA",
+                "BAD_FORMAT_STRING"))
 }

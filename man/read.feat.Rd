@@ -1,7 +1,8 @@
 \name{read.feat}
 \alias{read.feat}
 \title{Read a Feature File (GFF, BED, or GenePred)}
-\usage{read.feat(filename, pointer.only=FALSE)}
+\usage{read.feat(filename, pointer.only=FALSE)
+}
 \description{Read a features object from a file}
 \details{The function will guess the format of the input file automatically.}
 \value{If \code{pointer.only==FALSE}, a data.frame with columns corresponding
@@ -22,9 +23,12 @@ of BED and GenePred formats.}
 \keyword{BED}
 \keyword{features}
 \author{Melissa J. Hubisz and Adam Siepel}
-\arguments{\item{filename}{the name of the file}
+\arguments{\item{filename}{the name of the file (can be GFF, BED, or GenePred: rphast
+will auto-detect)}
 \item{pointer.only}{Whether to store object by reference instead of a
-data.frame}}
+data.frame}
+}
+
 \examples{
 exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
 featFile <- "gencode.ENr334.gff"

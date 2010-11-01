@@ -1,7 +1,9 @@
 \name{[.msa}
 \alias{[.msa}
 \title{Extract, replace, reorder MSA...}
-\usage{\method{[}{msa}(x, rows, cols, pointer.only)}
+\usage{
+\method{[}{msa}(x, rows, cols, pointer.only)
+}
 \description{Extract, replace, reorder MSA}
 \details{Treat multiple sequence alignment as a matrix where each row
 corresponds to a sequence for one species, and each column
@@ -30,7 +32,9 @@ is ignored here.}
 a pointer to a structure stored in C (useful for large alignments;
 advanced use only).  In certain cases when the original alignment
 is stored in R, it may be more efficient return an object in R, in which
-case this argument will be ignored.}}
+case this argument will be ignored.}
+}
+
 \examples{
 require("rphast")
 m <- msa(seqs=c("ACGTAT", "AGGTAA", "AGGTAG"),

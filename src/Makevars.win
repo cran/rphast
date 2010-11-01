@@ -16,6 +16,7 @@ OBJECTS = \
  lists.o\
  matrix.o\
  subst_distrib.o\
+ rph_phylo_hmm.o\
  bed.o\
  eigen.o\
  rph_phyloFit.o\

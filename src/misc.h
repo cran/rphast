@@ -18,6 +18,7 @@
 #include <ctype.h>
 #include <lists.h>
 #include <time.h>
+#include <string.h>
 #include <sys/time.h>
 #include <external_libs.h>
 struct hash_table;
@@ -172,12 +173,16 @@ FILE* fopen_fname(const char *fname, char *mode);
 #include <R.h>
 #define die Rf_error
 #define phast_warning Rf_warning
+#undef printf
 #define printf Rprintf
 int rphast_fprintf(FILE *f, const char *format, ...);
+#undef fprintf
 #define fprintf rphast_fprintf
 #define checkInterrupt() R_CheckUserInterrupt()
 #define checkInterruptN(i, n) if ((i)%(n) == 0) R_CheckUserInterrupt()
+void sfree(void *ptr);
 #else
+#define sfree free
 void phast_warning(const char *warnfmt, ...);
 void die(const char *warnfmt, ...);
 #define checkInterrupt()
@@ -194,6 +199,7 @@ int get_arg_int_bounds(char *arg, int min, int max);
 double get_arg_dbl_bounds(char *arg, double min, double max);
 void *smalloc(size_t size);
 void *srealloc(void *ptr, size_t size);
+void set_static_var(void **ptr);
 char *copy_charstr(const char *word);
 double normalize_probs(double *p, int size);
 int is_transition(char b1, char b2);

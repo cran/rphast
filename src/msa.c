@@ -36,7 +36,6 @@
 */
 
 #include <stdlib.h>
-#include <string.h>
 #include <ctype.h>
 #include <time.h>
 
@@ -53,7 +52,6 @@
 
 /* whether to retain stop codons when cleaning an alignment of coding
    sequences; see msa_coding_clean */
-#define KEEP_STOP_CODONS 0
 
 #define ALPHABET_TAG "ALPHABET:"
 #define NBLOCKS_TAG "BLOCKS:"
@@ -150,14 +148,16 @@ MSA *msa_new_from_file(FILE *F, msa_format_type format, char *alphabet) {
   for (i = 0; i < nseqs; i++) {
     char line[MAX_LINE_LEN];
 
-    if (format == PHYLIP)
-      fscanf(F, "%s", msa->names[i]); 
+    if (format == PHYLIP) {
+      if (1 != fscanf(F, "%s", msa->names[i]))
+	die("ERROR: error reading alignment\n");
                                 /* FIXME: this won't handle the weird
                                  * case in true PHYLIP format in which
                                  * the name is not separated from the
                                  * sequence by whitespace */ 
+    }
     else if (format == FASTA) {
-      fgets(line, MAX_LINE_LEN, F);
+      if (fgets(line, MAX_LINE_LEN, F) == NULL) die("ERROR reading alignment");
       for (j = 0; line[j] != 0 && (line[j] == '>' || isspace(line[j])); j++);
       strcpy(msa->names[i], &line[j]);
     }
@@ -165,7 +165,7 @@ MSA *msa_new_from_file(FILE *F, msa_format_type format, char *alphabet) {
     j = 0;
     while (j < len) {
       checkInterruptN(j, 1000);
-      fgets(line, MAX_LINE_LEN, F);
+      if (fgets(line, MAX_LINE_LEN, F)==NULL) die("ERROR reading alignment");
       for (k = 0; line[k] != '\0'; k++) {
         char base;
         if (isspace(line[k])) continue;
@@ -210,12 +210,12 @@ MSA *msa_create_copy(MSA *msa, int suff_stats_only) {
 
   /* copy names */
   new_names = smalloc(msa->nseqs * sizeof(char*));
-  for (i = 0; i < msa->nseqs; i++) new_names[i] = strdup(msa->names[i]);
+  for (i = 0; i < msa->nseqs; i++) new_names[i] = copy_charstr(msa->names[i]);
 
   /* copy seqs, if necessary */
   if (!suff_stats_only && msa->seqs != NULL) {
     new_seqs = smalloc(msa->nseqs * sizeof(char*));
-    for (i = 0; i < msa->nseqs; i++) new_seqs[i] = strdup(msa->seqs[i]);
+    for (i = 0; i < msa->nseqs; i++) new_seqs[i] = copy_charstr(msa->seqs[i]);
   }
   else new_seqs = NULL;
 
@@ -237,7 +237,7 @@ MSA *msa_create_copy(MSA *msa, int suff_stats_only) {
 
   if (msa->ss != NULL) 
     ss_from_msas(retval, msa->ss->tuple_size, (msa->ss->tuple_idx != NULL),
-                 NULL, msa, NULL, -1); /* will be created from msa->ss */
+                 NULL, msa, NULL, -1, 0); /* will be created from msa->ss */
 
   return retval;
 }
@@ -345,7 +345,7 @@ MSA *msa_read_fasta(FILE *F, char *alphabet) {
 void msa_print(FILE *F, MSA *msa, msa_format_type format, int pretty_print) {
   int i, j, k;
   if (format == SS) {
-    if (msa->ss == NULL) ss_from_msas(msa, 1, 1, NULL, NULL, NULL, -1);
+    if (msa->ss == NULL) ss_from_msas(msa, 1, 1, NULL, NULL, NULL, -1, 0);
     ss_write(msa, F, 1);
     return;
   }
@@ -387,7 +387,7 @@ void msa_print_to_file(const char *filename, MSA *msa, msa_format_type format,
 
 void msa_free_categories(MSA *msa) {
   if (msa->categories != NULL) {
-    free(msa->categories);
+    sfree(msa->categories);
     msa->categories = NULL;
   }
   if (msa->ss != NULL)
@@ -401,9 +401,9 @@ void msa_free_seqs(MSA *msa) {
   if (msa->seqs ==  NULL) return;
   for (i = 0; i < msa->nseqs; i++) {
     if (msa->seqs[i] != NULL) 
-      free(msa->seqs[i]);
+      sfree(msa->seqs[i]);
   }
-  if (msa->seqs != NULL) free(msa->seqs);
+  if (msa->seqs != NULL) sfree(msa->seqs);
   msa->seqs = NULL;
   msa->alloc_len = 0;
 }
@@ -415,17 +415,17 @@ void msa_free(MSA *msa) {
   int i;
   for (i = 0; i < msa->nseqs; i++) {
     if (msa->names != NULL && msa->names[i] != NULL) 
-      free(msa->names[i]);
+      sfree(msa->names[i]);
     if (msa->seqs != NULL && msa->seqs[i] != NULL) 
-      free(msa->seqs[i]);
+      sfree(msa->seqs[i]);
   }
-  if (msa->names != NULL) free(msa->names);
-  if (msa->seqs != NULL) free(msa->seqs);
-  if (msa->alphabet != NULL) free(msa->alphabet);
+  if (msa->names != NULL) sfree(msa->names);
+  if (msa->seqs != NULL) sfree(msa->seqs);
+  if (msa->alphabet != NULL) sfree(msa->alphabet);
   msa_free_categories(msa);
   if (msa->ss != NULL) ss_free(msa->ss);
-  if (msa->is_informative != NULL) free(msa->is_informative);
-  free(msa);
+  if (msa->is_informative != NULL) sfree(msa->is_informative);
+  sfree(msa);
 }
 
 
@@ -451,9 +451,9 @@ void reduce_to_4d(MSA *msa, CategoryMap *cm) {
   if (cat_pos3[0] == 0 || cat_pos3[1] == 0)
     die("ERROR: no match for 'CDSplus' or 'CDSminus' feature type (required with --4d).\n");
 
-  seq = malloc(msa->nseqs*sizeof(char*));
+  seq = smalloc(msa->nseqs*sizeof(char*));
   for (i=0; i<msa->nseqs; i++) 
-    seq[i] = malloc(3*sizeof(char));
+    seq[i] = smalloc(3*sizeof(char));
   temp_msa = msa_new(seq, msa->names, msa->nseqs, 3, msa->alphabet);
   new_msa = msa_new(NULL, msa->names, msa->nseqs, 0, msa->alphabet);
   ss_new(new_msa, tuple_size, msa->length, 0, 0);
@@ -524,13 +524,12 @@ void reduce_to_4d(MSA *msa, CategoryMap *cm) {
   msa_free_categories(msa);
   msa->length = new_msa->length;
   msa->ss = new_msa->ss;
+  msa->ss->msa = msa;
   msa->idx_offset = 0;
   if (msa->is_informative != NULL) {
-    free(msa->is_informative);
+    sfree(msa->is_informative);
     msa->is_informative = NULL;
   }
-
-  msa->ss = new_msa->ss;
   new_msa->ss = NULL;
   new_msa->names = NULL;
   temp_msa->names = NULL;
@@ -690,7 +689,7 @@ MSA* msa_sub_alignment(MSA *msa, List *seqlist, int include, int start_col,
 
   /* copy names */
   for (i = 0; i < lst_size(include_list); i++) 
-    new_names[i] = strdup(msa->names[lst_get_int(include_list, i)]);
+    new_names[i] = copy_charstr(msa->names[lst_get_int(include_list, i)]);
 
   if (msa->seqs != NULL) {      /* have explicit sequences */
     /* copy seqs */
@@ -830,7 +829,7 @@ msa_coord_map* msa_new_coord_map(int size) {
 void msa_map_free(msa_coord_map *map) {
   lst_free(map->msa_list);
   lst_free(map->seq_list);
-  free(map);
+  sfree(map);
 }
 
 /* what to do with overlapping categories? for now, just rely on external code to order them appropriately ... */ 
@@ -1090,13 +1089,15 @@ void msa_map_gff_coords(MSA *msa, GFF_Set *gff, int from_seq, int to_seq,
        category_map.c */
   }
 
-  lst_free(gff->features);
-  gff->features = keepers;
-  if (gff->groups != NULL) gff_ungroup(gff);
+  if (from_seq != to_seq) {
+    lst_free(gff->features);
+    gff->features = keepers;
+    if (gff->groups != NULL) gff_ungroup(gff);
+  }
 
   for (i = 1; i <= msa->nseqs; i++)
     if (maps[i] != NULL) msa_map_free(maps[i]);
-  free(maps);
+  sfree(maps);
 }
 
 /* for convenience when going from one sequence to another.  use map=NULL to
@@ -1157,7 +1158,7 @@ int msa_add_seq(MSA *msa, char *name) {
     if (msa->seqs != NULL) 
       msa->seqs = srealloc(msa->seqs, (seqidx+1)*sizeof(char*));
   }
-  msa->names[seqidx] = strdup(name);
+  msa->names[seqidx] = copy_charstr(name);
   if (msa->alloc_len > 0) {
     msa->seqs[seqidx] = smalloc((msa->alloc_len+1)*sizeof(char));
     for (i=0; i < msa->alloc_len; i++) {
@@ -1260,8 +1261,8 @@ void msa_reverse_compl(MSA *msa) {
     ss_reverse_compl(msa);
 
   /* temporary (recreate SS)  FIXME: check */
-  if (tupsize != -1) 
-    ss_from_msas(msa, tupsize, store_order, NULL, NULL, NULL, -1);      
+  if (tupsize != -1)
+    ss_from_msas(msa, tupsize, store_order, NULL, NULL, NULL, -1, 0);
   /* end temporary */
 }
 
@@ -1425,11 +1426,11 @@ void msa_partition_by_category(MSA *msa, List *submsas, List *cats_to_do,
     }
   }
 
-  free(seqs);
-  free(names);
-  free(count);
-  free(idx);
-  free(do_cat);
+  sfree(seqs);
+  sfree(names);
+  sfree(count);
+  sfree(idx);
+  sfree(do_cat);
   if (cats_to_do == NULL) lst_free(cats);
 }
 
@@ -1793,8 +1794,8 @@ GFF_Set *msa_get_informative_feats(MSA *msa,
 					  0, '.', GFF_NULL_FRAME, ".", 1);
     lst_push_ptr(rv->features, new_feat);
   }
-  free(useSpec);
-  if (is_informative != NULL) free(is_informative);
+  sfree(useSpec);
+  if (is_informative != NULL) sfree(is_informative);
   return rv;
 }
 
@@ -1830,6 +1831,57 @@ String *msa_read_seq_fasta(FILE *F) {
 #define IS_START(seq, i) ( toupper(seq[i]) == 'A' && toupper(seq[i+1]) == 'T' && toupper(seq[i+2]) == 'G' )
 #define IS_STOP(seq, i) ( toupper(seq[i]) == 'T' && ((toupper(seq[i+1]) == 'A' && (toupper(seq[i+2]) == 'A' || toupper(seq[i+2]) == 'G')) || (toupper(seq[i+1]) == 'G' && toupper(seq[i+2]) == 'A')) )
 
+
+
+/* Clean an alignment in preparation for codon-based analysis.
+   First remove all gaps in refseq (unless refseq is NULL).  
+   Returns an error if resulting sequence does not have multiple-of-three length.  If strand == '-',
+   get the reverse complement of entire sequence.  Then go through
+   each sequence and if any stop codons are encountered, mask out
+   the stop codon and the rest of that sequence to the end of the MSA.
+ */
+int msa_codon_clean(MSA *msa, const char *refseq, char strand) {
+  int refseq_idx, newlen=0, i, j, ncodon;
+
+  if (msa->ss != NULL)
+    die("ERROR: msa_codon_clean does not deal with sufficient statistics (yet)\n");
+  if (refseq != NULL) {
+    for (refseq_idx=0; refseq_idx < msa->nseqs; refseq_idx++)
+      if (strcmp(refseq, msa->names[refseq_idx]) == 0) break;
+    if (refseq_idx == msa->nseqs)
+      die("ERROR: msa_codon_clean: no sequence named %s in alignment\n", refseq);
+    msa_strip_gaps(msa, refseq_idx+1);
+  }
+  
+  if (msa->length % 3 != 0)
+    die("ERROR: msa_codon_clean: msa length (%i) not multiple of three after gap removal\n", msa->length);
+
+  ncodon = msa->length / 3;
+
+  if (strand == '-') 
+    msa_reverse_compl(msa);
+
+  for (i=0; i < msa->nseqs; i++) {
+    for (j=0; j < ncodon; j++) 
+      if (IS_STOP(msa->seqs[i], j*3)) break;
+    j *= 3;
+    if (j > newlen) newlen = j;
+    for (j *= 3; j < msa->length; j++)
+      msa->seqs[i][j] = msa->missing[0];
+  }
+  
+  if (msa->length != newlen) {
+    msa->length = newlen;
+    for (i=0; i < msa->nseqs; i++) {
+      msa->seqs[i] = srealloc(msa->seqs[i], (newlen+1)*sizeof(char));
+      msa->seqs[i][newlen] = '\0';
+    }
+  }
+  return 0;
+}
+
+
+
 /* Clean an alignment of coding sequences (CDS exons from genomic DNA
    or mRNAs).  Remove sites with gaps and short blocks of ungapped
    sites, also look for frame shifts.  The parameter 'refseq; should
@@ -1840,10 +1892,8 @@ String *msa_read_seq_fasta(FILE *F) {
    entirely. */
 /* TODO: add special handling of short, incomplete seqs (don't treat
    missing seq as gaps) */
-/* NOTE: KEEP_STOP_CODONS (see top of file) now determines whether
-   stop codons are retained */
 int msa_coding_clean(MSA *msa, int refseq, int min_ncodons, 
-                     String *errstr) {
+                     String *errstr, int keep_stop_codons) {
   List *block_begs = lst_new_int(10);
   List *block_ends = lst_new_int(10);
   char *ref = msa->seqs[refseq]; /* for convenience below */
@@ -1865,10 +1915,10 @@ int msa_coding_clean(MSA *msa, int refseq, int min_ncodons,
     retval = 1;
   }
   i = msa->length - 1;
-  for (pos = 2; pos >= (KEEP_STOP_CODONS ? 0 : -1); pos--) {
+  for (pos = 2; pos >= (keep_stop_codons ? 0 : -1); pos--) {
     for (; i > beg && ref[i] == GAP_CHAR; i--);
     if (i == beg) break;
-    if ((pos == 2 && KEEP_STOP_CODONS) || pos == -1)  
+    if ((pos == 2 && keep_stop_codons) || pos == -1)  
       end = i;
     if (pos >= 0) tmp_codon[pos] = ref[i--];
   }
@@ -1934,7 +1984,7 @@ int msa_coding_clean(MSA *msa, int refseq, int min_ncodons,
         if (j != msa->nseqs) continue;
       }
       /* similarly for stop codons */
-      if (blk_end == end && KEEP_STOP_CODONS) {
+      if (blk_end == end && keep_stop_codons) {
         for (j = 0; j < msa->nseqs && IS_STOP(msa->seqs[j], blk_end-2); j++);
         if (j != msa->nseqs) continue;
                                 /* FIXME: if block sufficiently large,
@@ -1954,10 +2004,10 @@ int msa_coding_clean(MSA *msa, int refseq, int min_ncodons,
 
       /* finally, check all seqs for in-frame stop codons */
       for (j = blk_beg; j <= blk_end - 2 && trunc == 0; j += 3) {
-        if (KEEP_STOP_CODONS && j == end - 2) break;
+        if (keep_stop_codons && j == end - 2) break;
         for (k = 0; k < msa->nseqs && trunc == 0; k++) {
           if (IS_STOP(msa->seqs[k], j)) {
-            trunc = blk_end = (KEEP_STOP_CODONS ? j + 2 : j - 1);
+            trunc = blk_end = (keep_stop_codons ? j + 2 : j - 1);
           }
         }
       }
@@ -2199,7 +2249,7 @@ MSA *msa_concat_from_files(List *fnames, msa_format_type format,
   }
 
   hsh_free(name_hash);
-  free(tmpseqs);
+  sfree(tmpseqs);
   return retval;
 }
 
@@ -2228,7 +2278,7 @@ void msa_concatenate(MSA *aggregate_msa, MSA *source_msa) {
   if (aggregate_msa->alloc_len == 0) {
     aggregate_msa->alloc_len = aggregate_msa->length + source_msa->length;
     if (aggregate_msa->seqs == NULL)
-      aggregate_msa->seqs = malloc(aggregate_msa->nseqs*sizeof(char*));
+      aggregate_msa->seqs = smalloc(aggregate_msa->nseqs*sizeof(char*));
     for (j = 0; j < nseq; j++) {
       aggregate_msa->seqs[j] = 
         (char*)smalloc((aggregate_msa->alloc_len+1) * sizeof(char));
@@ -2263,7 +2313,7 @@ void msa_concatenate(MSA *aggregate_msa, MSA *source_msa) {
     aggregate_msa->seqs[j][aggregate_msa->length] = '\0';
 
   hsh_free(name_hash);
-  free(source_msa_idx);
+  sfree(source_msa_idx);
 }
 
 
@@ -2294,9 +2344,9 @@ void msa_permute(MSA *msa) {
       msa->seqs[i][j] = tmpseq[i][rand_perm[j]];
   }
 
-  for (i = 0; i < msa->nseqs; i++) free(tmpseq[i]);
-  free(tmpseq);
-  free(rand_perm);
+  for (i = 0; i < msa->nseqs; i++) sfree(tmpseq[i]);
+  sfree(tmpseq);
+  sfree(rand_perm);
 }
 
 
@@ -2337,9 +2387,9 @@ void msa_reorder_rows(MSA *msa, List *target_order) {
   new_names = smalloc(lst_size(target_order) * sizeof(char*));
   for (i = 0; i < lst_size(target_order); i++) {
     if (new_to_old[i] >= 0) new_names[i] = msa->names[new_to_old[i]];
-    else new_names[i] = strdup(((String*)lst_get_ptr(target_order, i))->chars);
+    else new_names[i] = copy_charstr(((String*)lst_get_ptr(target_order, i))->chars);
   }
-  free(msa->names);
+  sfree(msa->names);
   msa->names = new_names;
 
   if (msa->seqs != NULL) {      /* explicit seqs only */
@@ -2353,7 +2403,7 @@ void msa_reorder_rows(MSA *msa, List *target_order) {
         new_seqs[i][msa->length] = '\0';
       }
     }
-    free(msa->seqs);
+    sfree(msa->seqs);
     msa->seqs = new_seqs;
   }
   else {                        /* suff stats only */
@@ -2365,8 +2415,8 @@ void msa_reorder_rows(MSA *msa, List *target_order) {
   /* finally, update nseqs */
   msa->nseqs = lst_size(target_order);
 
-  free(new_to_old);
-  free(covered);
+  sfree(new_to_old);
+  sfree(covered);
 }
 
 /* return character for specified sequence and position; provides a
@@ -2544,7 +2594,7 @@ void msa_mask_macro_indels(MSA *msa, int k, int refseq) {
     int tuple_size = msa->ss->tuple_size;
     ss_free(msa->ss);
     msa->ss = NULL;
-    ss_from_msas(msa, tuple_size, TRUE, NULL, NULL, NULL, -1);
+    ss_from_msas(msa, tuple_size, TRUE, NULL, NULL, NULL, -1, 0);
   }
 }
 
@@ -2567,7 +2617,7 @@ void msa_set_informative(MSA *msa, /**< Alignment */
 /* reset alphabet of MSA */
 void msa_reset_alphabet(MSA *msa, char *newalph) {
   int i, nchars = strlen(newalph);
-  free(msa->alphabet);  
+  sfree(msa->alphabet);  
   msa->alphabet = smalloc((nchars + 1) * sizeof(char));
   strcpy(msa->alphabet, newalph); 
   for (i = 0; i < nchars; i++) { 
@@ -2734,4 +2784,27 @@ void msa_realloc(MSA *msa, int new_length, int new_alloclen, int do_cats,
 }
 
 
+double msa_fraction_pairwise_diff(MSA *msa, int idx1, int idx2, 
+				  int ignore_missing,
+				  int ignore_gaps) {
+  int i, numdif=0, total=0;
+  if (msa->seqs == NULL)
+    die("msa_numdiff not implemented for sufficient statistics");
+  if (idx1 < 0 || idx1 >= msa->nseqs || idx2 < 0 || idx2 >= msa->nseqs)
+    die("msa_numdiff got index out of range (idx1=%i idx2=%i, numseq=%i)\n", 
+	idx1, idx2, msa->nseqs);
+  if (idx1 == idx2) return 0;
+  for (i=0; i < msa->length; i++) {
+    if (ignore_missing && (msa->is_missing[(int)msa->seqs[idx1][i]] ||
+			   msa->is_missing[(int)msa->seqs[idx2][i]]))
+      continue;
+    if (ignore_gaps && (msa->seqs[idx1][i] == GAP_CHAR ||
+			msa->seqs[idx2][i] == GAP_CHAR))
+      continue;
+    total++;
+    if (msa->seqs[idx1][i] != msa->seqs[idx2][i]) numdif++;
+  }
+  if (total == 0) return 0.0;
+  return (double)numdif/(double)total;
+}
 

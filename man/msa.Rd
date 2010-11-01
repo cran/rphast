@@ -2,7 +2,8 @@
 \alias{msa}
 \title{MSA Objects}
 \usage{msa(seqs, names=NULL, alphabet="ACGT", is.ordered=TRUE, offset=NULL,
-    pointer.only=FALSE)}
+    pointer.only=FALSE)
+}
 \description{Creates a new MSA object given sequences.}
 \details{Make a new multiple sequence alignment (MSA) object given a vector of
 character strings.  They can be optionally annotated with sample names.
@@ -36,7 +37,7 @@ is altered.  Instead \code{align2 <- copy.msa(align1)} should be used.}
 \author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{seqs}{a character vector containing sequences, one per sample}
 \item{names}{a character vector identifying the sample name for each
-sequence}
+sequence.  If \code{NULL}, use "seq1", "seq2", ...}
 \item{alphabet}{a character string containing valid non-missing character
 states}
 \item{is.ordered}{a logical indicating whether the alignment columns
@@ -46,7 +47,9 @@ reference sequence from the beginning of the chromosome.  The reference
 sequence is assumed to be the first sequence.  Not used
 if is.ordered==FALSE.}
 \item{pointer.only}{a boolean indicating whether returned alignment object
-should be stored by reference (see Details)}}
+should be stored by reference (see Details)}
+}
+
 \examples{
 # Here is an MSA object stored in the default mode
 m1 <- msa(seqs=c("ACGTAT", "AGGTAA", "AGGTAG"),

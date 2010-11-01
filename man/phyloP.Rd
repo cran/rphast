@@ -3,7 +3,8 @@
 \title{phyloP (basewise or by feature)}
 \usage{phyloP(mod, msa, method="LRT", mode="CON", features=NULL, subtree=NULL,
     branches=NULL, ref.idx=1, outfile=NULL, outfile.only=FALSE,
-    outfile.format="default")}
+    outfile.format="default")
+}
 \description{Conservation/acceleration p-values on an alignment and evolutionary model.
 Produces scores for every column in an alignment, or for every element
 in a set of features.}
@@ -50,10 +51,14 @@ considered part of the supertree, and the test considers
 conservation or acceleration in the subtree relative to the supertree.
 This option is currently only available for method="LRT" or "SCORE".}
 \item{ref.idx}{index of reference sequence in the alignment.  If zero,
-use frame of reference of entire alignment.}
+use frame of reference of entire alignment.  If ref.idx==-1 and features
+are provided, try to guess the frame of reference of each individual
+feature based on sequence name.}
 \item{outfile}{Character string.  If given, write results to given file.}
 \item{outfile.only}{Logical.  If \code{TRUE}, do not return any
 results to R (this may be useful if results are very large).}
 \item{outfile.format}{Character string describing format of file
 output.  Possible formats depend on other options (see description below).
-Current options are "default", "gff", or "wig".}}
+Current options are "default", "gff", or "wig".}
+}
+

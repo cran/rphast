@@ -199,7 +199,10 @@ int phastCons(struct phastCons_struct *p) {
 
   if (msa_alph_has_lowercase(msa)) msa_toupper(msa); 
   msa_remove_N_from_alph(msa);  /* for backward compatibility */
-  if (msa->ss == NULL) ss_from_msas(msa, nummod==0 ? 1 : mod[0]->order+1, TRUE, NULL, NULL, NULL, -1);
+  if (msa->ss == NULL) 
+    ss_from_msas(msa, nummod==0 ? 1 : mod[0]->order+1, 
+		 TRUE, NULL, NULL, NULL, -1, 
+		 nummod == 0 ? 0 : subst_mod_is_codon_model(mod[0]->subst_mod));
   if (msa->ss->tuple_idx == NULL)
     die("ERROR: Ordered representation of alignment required.\n");
                                 /* SS assumed below */
@@ -208,8 +211,8 @@ int phastCons(struct phastCons_struct *p) {
   if (alias_hash != NULL) {
     for (i = 0; i < msa->nseqs; i++) {
       if ((newname = hsh_get(alias_hash, msa->names[i])) != (char*)-1) {
-        free(msa->names[i]);
-        msa->names[i] = strdup(newname);
+        sfree(msa->names[i]);
+        msa->names[i] = copy_charstr(newname);
       }
     }
   }
@@ -318,7 +321,7 @@ int phastCons(struct phastCons_struct *p) {
     seqname = "refseq";
 
   /* set up states */
-  if (states == NULL) {
+  if (states == NULL && (two_state || results==NULL)) {
     states = lst_new_ptr(1);
     lst_push_ptr(states, str_new_charstr("0"));
   }
@@ -430,7 +433,7 @@ int phastCons(struct phastCons_struct *p) {
 	  temp[0] = mu;
 	  temp[1] = nu;
 	  lol_push_dbl(results, temp, 2, "transition.rates");
-	  free(temp);
+	  sfree(temp);
 	}
 	if (estim_indels) {
 	  temp = smalloc(6*sizeof(double));
@@ -441,7 +444,7 @@ int phastCons(struct phastCons_struct *p) {
 	  temp[4] = beta_1;
 	  temp[5] = tau_1;
 	  lol_push_dbl(results, temp, 6, "indel.rates");
-	  free(temp);
+	  sfree(temp);
 	}
 	if (estim_rho)
 	  lol_push_dbl(results, &rho, 1, "rho");
@@ -521,55 +524,118 @@ int phastCons(struct phastCons_struct *p) {
 	gff_print_bed(viterbi_f, predictions, FALSE); 
     }
     if (results != NULL)
-      lol_push_gff(results, predictions, "most.conserved");
+      lol_push_gff(results, predictions, two_state ? "most.conserved" :
+		   (states != NULL ? "in.states" : "viterbi"));
     gff_free_set(predictions);
   }
 
   /* posterior probs */
   if (post_probs) {
-    int j, k;
-    double *postprobs, *postprobsNoMissing=NULL;
-    int idx=0, *coord=NULL;
+    int *coord=NULL;
 
     if (!quiet) fprintf(results_f, "Computing posterior probabilities...\n");
 
-    postprobs = phmm_postprobs_cats(phmm, states, &lnl);
-    if (results != NULL) {
-      postprobsNoMissing = smalloc(msa->length*sizeof(double));
-      coord = smalloc(msa->length*sizeof(int));
-    }
-
-    /* print to post_probs_f */
-    last = -INFTY;
-    for (j = 0, k = 0; j < msa->length; j++) {
-      checkInterruptN(j, 1000);
-      if (refidx == 0 || msa_get_char(msa, refidx-1, j) != GAP_CHAR) {
-	if (!msa_missing_col(msa, refidx, j)) {
-	  if (post_probs_f != NULL) {
-	    if (k > last + 1) 
-	      fprintf(post_probs_f, "fixedStep chrom=%s start=%d step=1\n", seqname, 
-		      k + msa->idx_offset + 1);
-	    fprintf(post_probs_f, "%.3f\n", postprobs[j]);
-	  }
-	  if (results != NULL) {
-	    coord[idx] = k + msa->idx_offset + 1;
-	    postprobsNoMissing[idx++] = postprobs[j];
-	  }
-	  last = k;
-	}
-	k++;
+    if (states == NULL) {  //this only happens if two_state==FALSE
+                           //return posterior probabilites for every state
+      double **postprobs = phmm_new_postprobs(phmm), **postprobsNoMissing=NULL;
+      int idx=0, j, k, l;
+      if (results != NULL) {
+	postprobsNoMissing = smalloc(phmm->hmm->nstates * sizeof(double*));
+	for (j=0; j < phmm->hmm->nstates; j++)
+	  postprobsNoMissing[j] = smalloc(msa->length*sizeof(double));
+	coord = smalloc(msa->length*sizeof(int));
       }
+      
+      /* print to post_probs_f */
+      last = -INFTY;
+      for (j = 0, k = 0; j < msa->length; j++) {
+	checkInterruptN(j, 1000);
+	if (refidx == 0 || msa_get_char(msa, refidx-1, j) != GAP_CHAR) {
+	  if (!msa_missing_col(msa, refidx, j)) {
+	    if (post_probs_f != NULL) {
+	      if (k > last + 1) 
+		fprintf(post_probs_f, "fixedStep chrom=%s start=%d step=1\n", seqname, 
+			k + msa->idx_offset + 1);
+	      for (l=0; l < phmm->hmm->nstates; l++) {
+		if (l != 0) fprintf(post_probs_f, "\t");
+		fprintf(post_probs_f, "%.3f%c", postprobs[l][j],
+			l==phmm->hmm->nstates-1 ? '\n' : '\t');
+	      }
+	    }
+	    if (results != NULL) {
+	      coord[idx] = k + msa->idx_offset + 1;
+	      for (l=0; l < phmm->hmm->nstates; l++) 
+		postprobsNoMissing[l][idx] = postprobs[l][j];
+	      idx++;
+	    }
+	    last = k;
+	  }
+	  k++;
+	}
+      }
+      if (results != NULL) {
+	ListOfLists *wigList = lol_new(2);
+	char temp[100];
+	lol_push_int(wigList, coord, idx, "coord");
+	// fix me: can we get actualy state name from category map?  Problem
+        //is some states may have same name.  May need to append strand 
+        // and/or index?
+	for (j=0; j < phmm->hmm->nstates; j++) {
+	  //	  sprintf(temp, "%s", cm_get_feature(cm, state_to_cat(phmm->j)));
+	  sprintf(temp, "state.%i", j);
+	  lol_push_dbl(wigList, postprobsNoMissing[j], idx, temp);
+	}
+	lol_set_class(wigList, "data.frame");
+	lol_push_lol(results, wigList, "post.prob.wig");
+	for (j=0; j < phmm->hmm->nstates; j++) 
+	  sfree(postprobsNoMissing[j]);
+	sfree(postprobsNoMissing);
+	sfree(coord);
+      }
+      for (j=0; j < phmm->hmm->nstates; j++)
+	sfree(postprobs[j]);
+      sfree(postprobs);
+    } else {
+      double *postprobs, *postprobsNoMissing=NULL;
+      int idx=0, j, k;
+      postprobs = phmm_postprobs_cats(phmm, states, &lnl);
+      if (results != NULL) {
+	postprobsNoMissing = smalloc(msa->length*sizeof(double));
+	coord = smalloc(msa->length*sizeof(int));
+      }
+      
+      /* print to post_probs_f */
+      last = -INFTY;
+      for (j = 0, k = 0; j < msa->length; j++) {
+	checkInterruptN(j, 1000);
+	if (refidx == 0 || msa_get_char(msa, refidx-1, j) != GAP_CHAR) {
+	  if (!msa_missing_col(msa, refidx, j)) {
+	    if (post_probs_f != NULL) {
+	      if (k > last + 1) 
+		fprintf(post_probs_f, "fixedStep chrom=%s start=%d step=1\n", seqname, 
+			k + msa->idx_offset + 1);
+	      fprintf(post_probs_f, "%.3f\n", postprobs[j]);
+	    }
+	    if (results != NULL) {
+	      coord[idx] = k + msa->idx_offset + 1;
+	      postprobsNoMissing[idx++] = postprobs[j];
+	    }
+	    last = k;
+	  }
+	  k++;
+	}
+      }
+      if (results != NULL) {
+        ListOfLists *wigList = lol_new(2);
+        lol_push_int(wigList, coord, idx, "coord");
+        lol_push_dbl(wigList, postprobsNoMissing, idx, "post.prob");
+        lol_set_class(wigList, "data.frame");
+        lol_push_lol(results, wigList, "post.prob.wig");
+        sfree(postprobsNoMissing);
+        sfree(coord);
+      }
+      sfree(postprobs);
     }
-    if (results != NULL) {
-      ListOfLists *wigList = lol_new(2);
-      lol_push_int(wigList, coord, idx, "coord");
-      lol_push_dbl(wigList, postprobsNoMissing, idx, "post.prob");
-      lol_set_class(wigList, "data.frame");
-      lol_push_lol(results, wigList, "post.prob.wig");
-      free(postprobsNoMissing);
-      free(coord);
-    }
-    free(postprobs);
   }
 
   if (compute_likelihood) {
@@ -672,7 +738,8 @@ double fit_two_state(PhyloHmm *phmm, MSA *msa, int estim_func, int estim_indels,
   if (estim_trees || estim_rho) {
     msa->ncats = phmm->nmods - 1;   /* ?? */
     if (msa->ss == NULL) 
-      ss_from_msas(msa, phmm->mods[0]->order+1, TRUE, NULL, NULL, NULL, -1);
+      ss_from_msas(msa, phmm->mods[0]->order+1, TRUE, NULL, NULL, NULL, -1,
+		   subst_mod_is_codon_model(phmm->mods[0]->subst_mod));
     else if (msa->ss->cat_counts == NULL)
       ss_realloc(msa, msa->ss->tuple_size, msa->ss->ntuples, TRUE, TRUE);
   }
@@ -789,7 +856,7 @@ void unpack_params_mod(TreeModel *mod, Vector *params_in) {
       if (n->parent == NULL) continue;
 
       if ((n == mod->tree->lchild || n == mod->tree->rchild) && 
-	  tm_is_reversible(mod->subst_mod))
+	  tm_is_reversible(mod))
 	n->dparent = vec_get(params, mod->bl_idx+i)/2.0;
       else 
 	n->dparent = vec_get(params, mod->bl_idx+i);

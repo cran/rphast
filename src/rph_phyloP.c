@@ -17,7 +17,6 @@ Last updated: 4/8/2010
 #include <stdlib.h>
 #include <stdio.h>
 #include <msa.h>
-#include <string.h>
 #include <getopt.h>
 #include <ctype.h>
 #include <misc.h>
@@ -25,18 +24,30 @@ Last updated: 4/8/2010
 #include <local_alignment.h>
 #include <trees.h>
 #include <phylo_p.h>
+#include <rph_util.h>
 
 #include <Rdefines.h>
 
 SEXP rph_listOfLists_to_SEXP(ListOfLists *lol);
 
-SEXP rph_phyloP(SEXP modP, SEXP msaP, SEXP methodP, SEXP modeP,
-		SEXP gffP, SEXP basewiseP, 
-		SEXP subtreeP, SEXP branchesP, 
+SEXP rph_phyloP(SEXP modP, 
+		SEXP msaP, 
+		SEXP methodP, 
+		SEXP modeP,
+		SEXP gffP, 
+		SEXP basewiseP, 
+		SEXP subtreeP, 
+		SEXP branchesP, 
 		SEXP refidxP, 
-		SEXP outfileP, SEXP outfileOnlyP, SEXP outfileFormatP,
-		SEXP priorOnlyP, SEXP nsitesP, SEXP postOnlyP,
-		SEXP fitModelP, SEXP epsilonP, SEXP confIntP,
+		SEXP outfileP, 
+		SEXP outfileOnlyP, 
+		SEXP outfileFormatP,
+		SEXP priorOnlyP, 
+		SEXP nsitesP, 
+		SEXP postOnlyP,
+		SEXP fitModelP, 
+		SEXP epsilonP, 
+		SEXP confIntP,
 		SEXP quantilesP) {
   struct phyloP_struct *p = phyloP_struct_new(1);
   SEXP rv;
@@ -78,17 +89,16 @@ SEXP rph_phyloP(SEXP modP, SEXP msaP, SEXP methodP, SEXP modeP,
     for (i=0; i<LENGTH(branchesP); i++)
       lst_push_ptr(p->branch_name, str_new_charstr(CHAR(STRING_ELT(branchesP, i))));
   }
-  if (refidxP != R_NilValue) {
+  if (gffP != R_NilValue && refidxP != R_NilValue) 
+    p->refidx_feat = INTEGER_VALUE(refidxP);
+  else if (refidxP != R_NilValue) {
     p->refidx = INTEGER_VALUE(refidxP);
-    if (p->msa != NULL && (p->refidx < 0 || p->refidx > p->msa->nseqs)) 
-      die("ref.idx should be in >=0 and <= msa$nseqs (%i)", p->msa->nseqs);
+    if (p->refidx == 0) p->chrom = copy_charstr("align");
   }
-  if (p->refidx == 0) p->chrom = copy_charstr("align");
   else if (p->msa != NULL)
     p->chrom = copy_charstr(p->msa->names[p->refidx-1]);
   if (outfileP != R_NilValue) {
     p->outfile = fopen_fname(CHARACTER_VALUE(outfileP), "w");
-    if (p->outfile == NULL) die("ERROR opening %s\n", CHARACTER_VALUE(outfileP));
   }
   if (outfileOnlyP != R_NilValue && LOGICAL_VALUE(outfileOnlyP)) {
     lol_free(p->results);
@@ -106,7 +116,6 @@ SEXP rph_phyloP(SEXP modP, SEXP msaP, SEXP methodP, SEXP modeP,
       if (p->feats == NULL) die("need features for gff output");
     }
     else die("unknown format string %s", format);
-    free(format);
   }
 
   if (p->method == SPH) {
@@ -130,23 +139,19 @@ SEXP rph_phyloP(SEXP modP, SEXP msaP, SEXP methodP, SEXP modeP,
   GetRNGstate();
   phyloP(p);
   PutRNGstate();
+  if (p->msa != NULL)
+    rph_msa_protect(p->msa);
+  if (p->feats != NULL) 
+    rph_gff_protect(p->feats);
   
-  if (p->subtree_name != NULL) free(p->subtree_name);
-  if (p->branch_name != NULL) {
-    lst_free_strings(p->branch_name);
-    lst_free(p->branch_name);
-  }
-  if (p->outfile != NULL) 
+  if (p->outfile != NULL && p->outfile != stdout && p->outfile != stderr) 
     fclose(p->outfile);
   if (p->results != NULL) {
     PROTECT(rv = rph_listOfLists_to_SEXP(p->results));
     numprotect++;
-    lol_free(p->results);
   }
   else rv = R_NilValue;
   fflush(stdout);
-  if (p->chrom != NULL) free(p->chrom);
-  free(p);
   if (numprotect > 0) UNPROTECT(numprotect);
   return rv;
 }

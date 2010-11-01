@@ -1,8 +1,9 @@
 \name{phyloP.prior}
 \alias{phyloP.prior}
 \title{phyloP prior}
-\usage{phyloP.prior(mod, nsites=100, subtree=NULL, branches=NULL,
-    outfile=NULL, outfile.only=FALSE, quantiles=FALSE, epsilon=1e-10)}
+\usage{phyloP.prior(mod, nsites=100, subtree=NULL, branches=NULL, outfile=NULL,
+    outfile.only=FALSE, quantiles=FALSE, epsilon=1e-10)
+}
 \description{Prior distribution on number of substitutions}
 \value{A data.frame.  If quantiles=FALSE, the columns will be the
 number of substitutions and their probability under the null model.
@@ -26,4 +27,6 @@ to R (this may be useful if results are very large).}
 rather than whole distribution.}
 \item{epsilon}{Numeric value indicating the thhreshold used in truncating
 tails of distributions; tail probabilities less than this value are
-discarded.  This only applies to the right tail.}}
+discarded.  This only applies to the right tail.}
+}
+

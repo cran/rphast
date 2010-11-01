@@ -5,13 +5,12 @@
     alphabet=NULL, features=NULL, do.4d=FALSE, ordered=ifelse(do.4d ||
     !is.null(features), FALSE, TRUE), tuple.size=(if (do.4d) 3 else
     NULL), do.cats=NULL, refseq=NULL, offset=0, seqnames=NULL,
-    discard.seqnames=NULL, pointer.only=FALSE)}
+    discard.seqnames=NULL, pointer.only=FALSE)
+}
 \description{Reads an MSA from a file.}
 \note{If the input is in "MAF" format and features is specified, the
 resulting alignment will be stripped of gaps in the reference (1st)
 sequence.}
-\note{If the features argument is an object stored in C, its values will
-be changed by this function!}
 \value{an MSA object.}
 \keyword{msa}
 \keyword{FASTA}
@@ -40,9 +39,9 @@ the original column order.}
 \item{tuple.size}{Integer.  If given, and if pointer.only is \code{TRUE},
 MSA will be stored in sufficient statistics format, where each tuple
 contains tuple.size consecutive columns of the alignment.}
-\item{do.cats}{Character vector.  If given, and if features is specified,
-then only the types of features named here will be represented in the
-returned alignment.}
+\item{do.cats}{Character vector if features is provided; integer vector
+if cats.cylce is provided.  If given, only the types of features named
+here will be represented in the (unordered) return alignment.}
 \item{refseq}{Character string specifying a FASTA format file with a
 reference sequence.  If given, the reference sequence will be
 "filled in" whereever missing from the alignment.}
@@ -60,7 +59,9 @@ discarded.}
 an external pointer to an object created by C code, rather than
 directly in R memory.  This improves performance and may be necessary
 for large alignments, but reduces functionality.  See
-\code{\link{msa}} for more details on MSA object storage options.}}
+\code{\link{msa}} for more details on MSA object storage options.}
+}
+
 \examples{
 exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
 files <- c("ENr334.maf", "ENr334.fa", "gencode.ENr334.gff")

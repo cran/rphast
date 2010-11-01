@@ -1,11 +1,13 @@
 \name{sub.msa}
 \alias{sub.msa}
 \title{MSA Subset}
-\usage{sub.msa(x, seqs=NULL, keep=TRUE, start.col=NULL, end.col=NULL,
-    refseq=NULL, pointer.only=FALSE)}
+\usage{sub.msa(x, seqs=NULL, keep=TRUE, start.col=NULL, end.col=NULL, refseq=NULL,
+    pointer.only=FALSE)
+}
 \description{Get a subset of an alignment}
 \value{A new MSA object containing a subset of the original MSA.}
-\note{This function will not modify x even if it is stored as a pointer.}
+\note{If x is stored as a pointer and represents an unordered alignment,
+it may be ordered after this call.  Otherwise it will not be changed.}
 \keyword{msa}
 \author{Melissa J. Hubisz and Adam Siepel}
 \arguments{\item{x}{An object of type \code{msa}}
@@ -14,11 +16,14 @@
 \item{keep}{Whether to keep the named sequences or remove them}
 \item{start.col}{the first column to keep (columns indices start at 1)}
 \item{end.col}{the last column to keep (inclusive)}
-\item{refseq}{the sequence in the alignment which determines the
+\item{refseq}{A character string naming the sequence in the alignment
+which determines the
 coordinates for start.col and end.col.  If NULL, start.col and
 end.col are column indices in the multiple alignment.}
 \item{pointer.only}{If \code{TRUE}, return an msa object which is only
-a pointer to a C structure (advanced use only).}}
+a pointer to a C structure (advanced use only).}
+}
+
 \examples{
 m <- msa(seqs=c("ACGT---AT", "AGGTAGTAA", "AGGAAGTAG"),
          names=c("human", "mouse", "rat"))

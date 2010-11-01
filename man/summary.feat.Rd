@@ -1,12 +1,15 @@
 \name{summary.feat}
 \alias{summary.feat}
 \title{Features Summary}
-\usage{summary.feat(object, ...)}
+\usage{summary.feat(object, ...)
+}
 \description{Prints a brief summary of a features object.}
 \keyword{features}
 \author{Melissa J. Hubisz}
 \arguments{\item{object}{an object of type \code{feat}}
-\item{...}{further arguments to be passed to or from other methods}}
+\item{...}{further arguments to be passed to or from other methods}
+}
+
 \examples{
 seq <- rep("hg18.chr6", 10)
 src <- rep("fake_example", 10)

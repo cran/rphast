@@ -12,7 +12,6 @@
 #include "hmm.h"
 #include <math.h>
 #include <misc.h>
-#include <string.h>
 #include "queues.h"
 #include "stacks.h"
 #include <vector.h>
@@ -138,9 +137,9 @@ void hmm_free(HMM *hmm) {
   }
   lst_free(hmm->begin_successors);
   lst_free(hmm->end_predecessors);
-  free(hmm->predecessors);
-  free(hmm->successors);
-  free(hmm);
+  sfree(hmm->predecessors);
+  sfree(hmm->successors);
+  sfree(hmm);
 }
 
 /* Creates a new HMM object from the contents of a file.  File format
@@ -318,11 +317,11 @@ void hmm_viterbi(HMM *hmm, double **emission_scores, int seqlen, int *path) {
   }
 
   for (i = 0; i < hmm->nstates; i++) {
-    free(full_scores[i]);
-    free(backptr[i]);
+    sfree(full_scores[i]);
+    sfree(backptr[i]);
   }
-  free(full_scores);
-  free(backptr);
+  sfree(full_scores);
+  sfree(backptr);
 }
 
 /* Fills matrix of "forward" scores and returns total log probability
@@ -413,11 +412,11 @@ double hmm_posterior_probs(HMM *hmm, double **emission_scores, int seqlen,
   }
 
   for (i = 0; i < hmm->nstates; i++) {
-    free(forward_scores[i]);
-    free(backward_scores[i]);
+    sfree(forward_scores[i]);
+    sfree(backward_scores[i]);
   }
-  free(forward_scores);
-  free(backward_scores);
+  sfree(forward_scores);
+  sfree(backward_scores);
   lst_free(val_list);
 
   return logp_fw;
@@ -496,8 +495,10 @@ double hmm_max_or_sum(HMM *hmm, double **full_scores, double **emission_scores,
   
   static List *l = NULL;
 
-  if (l == NULL)
+  if (l == NULL) {
     l = lst_new_dbl(hmm->nstates);
+    set_static_var((void**)&l);
+  }
 
   if (mode == VITERBI) {
     for (k = 0; k < lst_size(hmm->predecessors[i]); k++) {
@@ -905,9 +906,9 @@ double hmm_score_subset(HMM *hmm, double **emission_scores, List *states,
   hmm_reset(hmm);
 
   for (i = 0; i < hmm->nstates; i++) 
-    free(forward_scores[i]);
-  free(forward_scores);
-  free(dummy_emissions);
+    sfree(forward_scores[i]);
+  sfree(forward_scores);
+  sfree(dummy_emissions);
 
   return retval;
 }
@@ -1127,6 +1128,7 @@ HMM *hmm_reverse_compl(HMM *hmm, List *pivot_states, int *mapping) {
   }
 
   hmm_renormalize(retval);
+  lst_free(effective_pivot_states);
   
   return retval;
 }

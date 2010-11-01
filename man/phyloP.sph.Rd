@@ -1,11 +1,12 @@
 \name{phyloP.sph}
 \alias{phyloP.sph}
 \title{phyloP SPH}
-\usage{phyloP.sph(mod, msa=NULL, mode="CON", features=NULL, basewise=FALSE,
-    subtree=NULL, ref.idx=1, outfile=NULL, outfile.only=FALSE,
+\usage{phyloP.sph(mod, msa=NULL, mode="CON", features=NULL, basewise=FALSE, subtree=NULL,
+    ref.idx=1, outfile=NULL, outfile.only=FALSE,
     outfile.format="default", prior.only=FALSE, nsites=NULL,
     post.only=FALSE, fit.model=FALSE, epsilon=ifelse(basewise, 1e-06,
-    1e-10), confidence.interval=NULL, quantiles=FALSE)}
+    1e-10), confidence.interval=NULL, quantiles=FALSE)
+}
 \description{phyloP in SPH mode}
 \value{Either a list, data frame, or matrix, depending on options.}
 \author{Melissa J. Hubisz and Adam Siepel}
@@ -23,7 +24,8 @@ complementary supertree, and consider conservation/acceleration in the
 subtree given the supertree.  The branch above the specified node is
 included with the subtree.}
 \item{ref.idx}{index of reference sequence in the alignment.  If zero,
-use frame of reference of entire alignment.}
+use frame of reference of entire alignment.  If -1 and features is used,
+try to guess the frame of reference for each feature based on sequence name.}
 \item{outfile}{Character string.  If given, write results to given file.}
 \item{outfile.only}{Logical.  If \code{TRUE}, do not return any
 results to R (this may be useful for saving memory).}
@@ -54,4 +56,6 @@ exactly, but the confidence interval is based on the assumption that
 the combined distribution will be approximately normal (true for
 large numbers of sites by the central limit theorem).}
 \item{quantiles}{Logical.  If \code{TRUE}, report quantiles of distribution
-rather than whole distribution.}}
+rather than whole distribution.}
+}
+

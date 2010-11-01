@@ -3,7 +3,8 @@
 \title{Tree Models}
 \usage{tm(tree, subst.mod, rate.matrix=NULL, backgd=NULL, alphabet="ACGT",
     nratecats=1, alpha=0, rate.consts=NULL, rate.weights=NULL,
-    root.leaf=NULL, likelihood=NULL)}
+    selection=NULL, root.leaf=NULL, likelihood=NULL)
+}
 \description{Make a new tree model}
 \details{Tree models represent a substitution process along a phylogenetic
 tree.  They are stored as a list, with components defined by the
@@ -31,10 +32,18 @@ one category.}
 \item{rate.weights}{Vector of numeric of length nratecats, determining
 the weight of each rate category.  Must sum to 1 (will be normalized
 otherwise).  May be defined implicitly by alpha.}
+\item{selection}{If not NULL, then this is a numeric value giving the
+selection parameter for this model.  If NULL then there is no selection
+in the model.  If selection==0.0, means that selection has no effect
+in the current model, but is part of the model, and by default the
+selection parameter will be optimized by phyloFit.  The rate matrix
+is assumed to already be scaled by the selection parameter, if provided.}
 \item{root.leaf}{Usually NULL, but if set to the name of a leaf
 node in the tree, the tree will be re-rooted at this leaf node.}
 \item{likelihood}{an optional value giving the log likelihood of this
-model for some alignment.}}
+model for some alignment.}
+}
+
 \examples{
 tree <- "((human:0.01, chimp:0.01):0.03, mouse:0.3)"
 subst.mod <- "JC69"

@@ -43,9 +43,9 @@ SEXP rph_msa_copy(SEXP msa);
 SEXP rph_is_msa(SEXP msaP);
 SEXP rph_msa_reduce_to_4d(SEXP msaP, SEXP gffP);
 SEXP rph_msa_extract_feature(SEXP msaP, SEXP gffP);
-SEXP rph_msa_read(SEXP filenameP, SEXP formatP, SEXP gffP, SEXP do4dP, SEXP alphabetP, SEXP tupleSizeP, SEXP refseqP, SEXP orderedP, SEXP docatsP, SEXP idxOffsetP, SEXP seqnamesP, SEXP discardSeqnamesP);
+SEXP rph_msa_read(SEXP filenameP, SEXP formatP, SEXP gffP, SEXP do4dP, SEXP alphabetP, SEXP tupleSizeP, SEXP refseqP, SEXP orderedP, SEXP catsCycleP, SEXP docatsP, SEXP idxOffsetP, SEXP seqnamesP, SEXP discardSeqnamesP);
 SEXP rph_msa_valid_fmt_str(SEXP formatP);
-SEXP rph_msa_printSeq(SEXP msaP, SEXP filenameP, SEXP formatP, SEXP prettyPrintP);
+SEXP rph_msa_printSeq(SEXP msaP, SEXP fileP, SEXP formatP, SEXP prettyPrintP);
 SEXP rph_msa_seqs(SEXP msaP);
 SEXP rph_msa_seqlen(SEXP msaP, SEXP refseqP);
 SEXP rph_msa_ninformative_sites(SEXP msaP);
@@ -57,6 +57,9 @@ SEXP rph_msa_idxOffset(SEXP msaP);
 SEXP rph_msa_square_brackets(SEXP msaP, SEXP rowsP, SEXP colsP);
 SEXP rph_msa_sub_alignment(SEXP msaP, SEXP seqsP, SEXP keepP, SEXP startcolP, SEXP endcolP, SEXP refseqNameP);
 SEXP rph_msa_strip_gaps(SEXP msaP, SEXP stripModeP, SEXP allOrAnyGaps);
+SEXP rph_msa_postprob(SEXP msaP, SEXP tmP);
+SEXP rph_msa_exp_subs(SEXP msaP, SEXP tmP);
+SEXP rph_msa_exp_tot_subs(SEXP msaP, SEXP tmP);
 SEXP rph_msa_likelihood(SEXP msaP, SEXP tmP, SEXP gffP, SEXP byColumnP);
 SEXP rph_msa_base_evolve_struct_get_msa(SEXP lP);
 SEXP rph_msa_base_evolve_struct_get_labels(SEXP lP, SEXP nsitesP);
@@ -66,44 +69,74 @@ SEXP rph_msa_split_by_gff(SEXP msaP, SEXP gffP);
 SEXP rph_msaList_get(SEXP listP, SEXP idxP);
 SEXP rph_msa_reverse_complement(SEXP msaP);
 SEXP rph_msa_informative_feats(SEXP msaP, SEXP minInformativeP, SEXP specP, SEXP refseqP, SEXP gapsAreInformativeP);
-SEXP rph_phastCons(SEXP msaP, SEXP modP, SEXP rhoP, SEXP targetCoverageP, SEXP expectedLengthP, SEXP transitionsP, SEXP estimateRhoP, SEXP estimateExpectedLengthP, SEXP estimateTransitionsP, SEXP estimateTreesP, SEXP viterbiP, SEXP scoreViterbiP, SEXP gcP, SEXP nratesP, SEXP computeLnlP, SEXP suppressProbsP, SEXP refIdxP, SEXP hmmP, SEXP statesP, SEXP reflectStrandP, SEXP quietP);
-SEXP rph_phyloFit_result_num_models(SEXP pfResultP);
-SEXP rph_phyloFit_result_has_names(SEXP pfResultP);
-SEXP rph_phyloFit_result_get_model(SEXP pfResultP, SEXP whichP);
-SEXP rph_phyloFit_result_get_name(SEXP pfResultP, SEXP whichP);
-SEXP rph_phyloFit(SEXP msaP, SEXP treeStrP, SEXP substModP, SEXP scaleOnlyP, SEXP scaleSubtreeP, SEXP nratesP, SEXP alphaP, SEXP rateConstantsP, SEXP initModP, SEXP noFreqsP, SEXP noRatesP, SEXP initRandomP, SEXP initParsimonyP, SEXP clockP, SEXP emP, SEXP precisionP, SEXP gffP, SEXP ninfSitesP, SEXP quietP);
+SEXP rph_msa_codon_clean(SEXP msaP, SEXP refseqP, SEXP strandP);
+SEXP rph_msa_get_base_freqs_tuples(SEXP msaP, SEXP modP);
+SEXP rph_msa_fraction_pairwise_diff(SEXP msaP, SEXP seq1P, SEXP seq2P, SEXP ignoreMissingP, SEXP ignoreGapsP);
+SEXP rph_phastCons(SEXP msaP, SEXP modP, SEXP rhoP, SEXP targetCoverageP, SEXP expectedLengthP, SEXP transitionsP, SEXP estimateRhoP, SEXP estimateExpectedLengthP, SEXP estimateTransitionsP, SEXP estimateTreesP, SEXP viterbiP, SEXP scoreViterbiP, SEXP gcP, SEXP nratesP, SEXP computeLnlP, SEXP suppressProbsP, SEXP refIdxP, SEXP hmmP, SEXP statesP, SEXP reflectStrandP, SEXP quietP, SEXP categoryMapP);
+SEXP rph_phylo_hmm_get_treeModel(SEXP phmmP, SEXP whichP);
+SEXP rph_phylo_hmm_get_hmm(SEXP phmmP);
+SEXP rph_phylo_hmm_get_state_to_mod(SEXP phmmP);
+SEXP rph_phylo_hmm_reflect_strand(SEXP hmmP, SEXP pivotStatesP, SEXP modsP);
+SEXP rph_phyloFit(SEXP msaP, SEXP treeStrP, SEXP substModP, SEXP scaleOnlyP, SEXP scaleSubtreeP, SEXP nratesP, SEXP alphaP, SEXP rateConstantsP, SEXP initModP, SEXP initBackgdFromDataP, SEXP initRandomP, SEXP initParsimonyP, SEXP clockP, SEXP emP, SEXP precisionP, SEXP gffP, SEXP ninfSitesP, SEXP quietP, SEXP noOptP, SEXP boundP, SEXP logFileP, SEXP selectionP);
 SEXP rph_phyloP(SEXP modP, SEXP msaP, SEXP methodP, SEXP modeP, SEXP gffP, SEXP basewiseP, SEXP subtreeP, SEXP branchesP, SEXP refidxP, SEXP outfileP, SEXP outfileOnlyP, SEXP outfileFormatP, SEXP priorOnlyP, SEXP nsitesP, SEXP postOnlyP, SEXP fitModelP, SEXP epsilonP, SEXP confIntP, SEXP quantilesP);
 SEXP rph_subst_mods_is_valid_string(SEXP mod);
 SEXP rph_subst_mods_list_all(SEXP nilvalue);
 SEXP rph_tm_tree(SEXP tmP);
 SEXP rph_tm_alphabet(SEXP tmP);
+SEXP rph_tm_altmodel_backgd(SEXP tmP, SEXP whichmodP);
 SEXP rph_tm_backgd(SEXP tmP);
+SEXP rph_tm_num_altmodel(SEXP tmP);
+SEXP rph_tm_altmodel_sel(SEXP tmP, SEXP whichmodP);
+SEXP rph_tm_altmodel_bgc(SEXP tmP, SEXP whichmodP);
+SEXP rph_tm_altmodel_def(SEXP tmP, SEXP whichmodP);
+SEXP rph_tm_altmodel_rateMatrix(SEXP tmP, SEXP whichmodP);
 SEXP rph_tm_rateMatrix(SEXP tmP);
+SEXP rph_tm_altmodel_substMod(SEXP tmP, SEXP whichmodP);
 SEXP rph_tm_substMod(SEXP tmP);
 SEXP rph_tm_order(SEXP tmP);
 SEXP rph_tm_likelihood(SEXP tmP);
 SEXP rph_tm_empirical_rates(SEXP tmP);
 SEXP rph_tm_alpha(SEXP tmP);
+SEXP rph_tm_selection(SEXP tmP);
 SEXP rph_tm_nratecats(SEXP tmP);
 SEXP rph_tm_rK(SEXP tmP);
 SEXP rph_tm_freqK(SEXP tmP);
 SEXP rph_tm_rootLeaf(SEXP tmP);
-SEXP rph_tm_new(SEXP treeP, SEXP alphabetP, SEXP backgdP, SEXP matrixP, SEXP substModP, SEXP lnlP, SEXP alphaP, SEXP nratecatsP, SEXP rKP, SEXP freqKP, SEXP rootLeafP);
+SEXP rph_tm_new(SEXP treeP, SEXP alphabetP, SEXP backgdP, SEXP matrixP, SEXP substModP, SEXP lnlP, SEXP alphaP, SEXP nratecatsP, SEXP rKP, SEXP freqKP, SEXP rootLeafP, SEXP selectionP);
 SEXP rph_tm_print(SEXP tmP, SEXP filenameP, SEXP appendP);
 SEXP rph_tm_read(SEXP filenameP);
+SEXP rph_tm_add_alt_mod(SEXP tmP, SEXP defStrP);
+SEXP rph_tm_altmod_set_subst_mod(SEXP tmP, SEXP whichModP, SEXP substModP);
+SEXP rph_tm_altmod_set_backgd(SEXP tmP, SEXP whichModP, SEXP backgdP);
+SEXP rph_tm_altmod_set_ratematrix(SEXP tmP, SEXP whichModP, SEXP matrixP);
+SEXP rph_tm_altmod_set_sel_bgc(SEXP tmP, SEXP whichModP, SEXP selP, SEXP bgcP);
+SEXP rph_tree_model_set_matrix(SEXP tmP, SEXP paramsP, SEXP scaleP);
+SEXP rph_tree_model_get_rate_matrix_params(SEXP tmP);
+SEXP rph_tm_apply_selection_bgc(SEXP matrixP, SEXP alphabetP, SEXP selectionP, SEXP bgcP);
+SEXP rph_tm_unapply_selection_bgc(SEXP matrixP, SEXP alphabetP, SEXP selectionP, SEXP bgcP);
 SEXP rph_tree_read(SEXP filename);
 SEXP rph_tree_numnodes(SEXP tree);
 SEXP rph_tree_prune(SEXP treeStr, SEXP seqsP, SEXP allButP);
 SEXP rph_tree_name_ancestors(SEXP treeStr);
 SEXP rph_tree_subtree(SEXP treeStr, SEXP nodeStr);
 SEXP rph_tree_supertree(SEXP treeStr, SEXP nodeStr);
-SEXP rph_tree_scale(SEXP treeStr, SEXP scaleP, SEXP nodeStr);
+SEXP rph_tree_scale(SEXP treeStr, SEXP scaleP, SEXP nodeStr, SEXP includeLeadingP);
 SEXP rph_tree_rename(SEXP treeVec, SEXP oldNamesP, SEXP newNamesP);
 SEXP rph_tree_nodeName(SEXP treeP, SEXP idP);
 SEXP rph_tree_isNode(SEXP treeP, SEXP nodeName);
 SEXP rph_tree_branchlen(SEXP treeP);
 SEXP rph_tree_depth(SEXP treeP, SEXP nodeP);
-SEXP rph_list_len(SEXP listP);
+SEXP rph_tree_label_branches(SEXP treeP, SEXP nodep, SEXP labelP);
+SEXP rph_tree_label_subtree(SEXP treeP, SEXP nodeP, SEXP includeLeadingBranchP, SEXP labelP);
+SEXP rph_tree_summary_nodenames(SEXP treeP);
+SEXP rph_tree_summary_len(SEXP treeP);
+SEXP rph_tree_summary_depth(SEXP treeP);
+SEXP rph_tree_summary_parent(SEXP treeP);
+SEXP rph_tree_summary_lchild(SEXP treeP);
+SEXP rph_tree_summary_rchild(SEXP treeP);
+SEXP rph_tree_summary_label(SEXP treeP);
+SEXP rph_free_all();
+SEXP rph_lst_len(SEXP listP);
 
 void R_init_rphast(DllInfo *info) {
   R_CallMethodDef callMethods[] = {
@@ -147,7 +180,7 @@ void R_init_rphast(DllInfo *info) {
     {"rph_is_msa", (DL_FUNC)&rph_is_msa, 1},
     {"rph_msa_reduce_to_4d", (DL_FUNC)&rph_msa_reduce_to_4d, 2},
     {"rph_msa_extract_feature", (DL_FUNC)&rph_msa_extract_feature, 2},
-    {"rph_msa_read", (DL_FUNC)&rph_msa_read, 12},
+    {"rph_msa_read", (DL_FUNC)&rph_msa_read, 13},
     {"rph_msa_valid_fmt_str", (DL_FUNC)&rph_msa_valid_fmt_str, 1},
     {"rph_msa_printSeq", (DL_FUNC)&rph_msa_printSeq, 4},
     {"rph_msa_seqs", (DL_FUNC)&rph_msa_seqs, 1},
@@ -161,6 +194,9 @@ void R_init_rphast(DllInfo *info) {
     {"rph_msa_square_brackets", (DL_FUNC)&rph_msa_square_brackets, 3},
     {"rph_msa_sub_alignment", (DL_FUNC)&rph_msa_sub_alignment, 6},
     {"rph_msa_strip_gaps", (DL_FUNC)&rph_msa_strip_gaps, 3},
+    {"rph_msa_postprob", (DL_FUNC)&rph_msa_postprob, 2},
+    {"rph_msa_exp_subs", (DL_FUNC)&rph_msa_exp_subs, 2},
+    {"rph_msa_exp_tot_subs", (DL_FUNC)&rph_msa_exp_tot_subs, 2},
     {"rph_msa_likelihood", (DL_FUNC)&rph_msa_likelihood, 4},
     {"rph_msa_base_evolve_struct_get_msa", (DL_FUNC)&rph_msa_base_evolve_struct_get_msa, 1},
     {"rph_msa_base_evolve_struct_get_labels", (DL_FUNC)&rph_msa_base_evolve_struct_get_labels, 2},
@@ -170,44 +206,74 @@ void R_init_rphast(DllInfo *info) {
     {"rph_msaList_get", (DL_FUNC)&rph_msaList_get, 2},
     {"rph_msa_reverse_complement", (DL_FUNC)&rph_msa_reverse_complement, 1},
     {"rph_msa_informative_feats", (DL_FUNC)&rph_msa_informative_feats, 5},
-    {"rph_phastCons", (DL_FUNC)&rph_phastCons, 21},
-    {"rph_phyloFit_result_num_models", (DL_FUNC)&rph_phyloFit_result_num_models, 1},
-    {"rph_phyloFit_result_has_names", (DL_FUNC)&rph_phyloFit_result_has_names, 1},
-    {"rph_phyloFit_result_get_model", (DL_FUNC)&rph_phyloFit_result_get_model, 2},
-    {"rph_phyloFit_result_get_name", (DL_FUNC)&rph_phyloFit_result_get_name, 2},
-    {"rph_phyloFit", (DL_FUNC)&rph_phyloFit, 19},
+    {"rph_msa_codon_clean", (DL_FUNC)&rph_msa_codon_clean, 3},
+    {"rph_msa_get_base_freqs_tuples", (DL_FUNC)&rph_msa_get_base_freqs_tuples, 2},
+    {"rph_msa_fraction_pairwise_diff", (DL_FUNC)&rph_msa_fraction_pairwise_diff, 5},
+    {"rph_phastCons", (DL_FUNC)&rph_phastCons, 22},
+    {"rph_phylo_hmm_get_treeModel", (DL_FUNC)&rph_phylo_hmm_get_treeModel, 2},
+    {"rph_phylo_hmm_get_hmm", (DL_FUNC)&rph_phylo_hmm_get_hmm, 1},
+    {"rph_phylo_hmm_get_state_to_mod", (DL_FUNC)&rph_phylo_hmm_get_state_to_mod, 1},
+    {"rph_phylo_hmm_reflect_strand", (DL_FUNC)&rph_phylo_hmm_reflect_strand, 3},
+    {"rph_phyloFit", (DL_FUNC)&rph_phyloFit, 22},
     {"rph_phyloP", (DL_FUNC)&rph_phyloP, 19},
     {"rph_subst_mods_is_valid_string", (DL_FUNC)&rph_subst_mods_is_valid_string, 1},
     {"rph_subst_mods_list_all", (DL_FUNC)&rph_subst_mods_list_all, 1},
     {"rph_tm_tree", (DL_FUNC)&rph_tm_tree, 1},
     {"rph_tm_alphabet", (DL_FUNC)&rph_tm_alphabet, 1},
+    {"rph_tm_altmodel_backgd", (DL_FUNC)&rph_tm_altmodel_backgd, 2},
     {"rph_tm_backgd", (DL_FUNC)&rph_tm_backgd, 1},
+    {"rph_tm_num_altmodel", (DL_FUNC)&rph_tm_num_altmodel, 1},
+    {"rph_tm_altmodel_sel", (DL_FUNC)&rph_tm_altmodel_sel, 2},
+    {"rph_tm_altmodel_bgc", (DL_FUNC)&rph_tm_altmodel_bgc, 2},
+    {"rph_tm_altmodel_def", (DL_FUNC)&rph_tm_altmodel_def, 2},
+    {"rph_tm_altmodel_rateMatrix", (DL_FUNC)&rph_tm_altmodel_rateMatrix, 2},
     {"rph_tm_rateMatrix", (DL_FUNC)&rph_tm_rateMatrix, 1},
+    {"rph_tm_altmodel_substMod", (DL_FUNC)&rph_tm_altmodel_substMod, 2},
     {"rph_tm_substMod", (DL_FUNC)&rph_tm_substMod, 1},
     {"rph_tm_order", (DL_FUNC)&rph_tm_order, 1},
     {"rph_tm_likelihood", (DL_FUNC)&rph_tm_likelihood, 1},
     {"rph_tm_empirical_rates", (DL_FUNC)&rph_tm_empirical_rates, 1},
     {"rph_tm_alpha", (DL_FUNC)&rph_tm_alpha, 1},
+    {"rph_tm_selection", (DL_FUNC)&rph_tm_selection, 1},
     {"rph_tm_nratecats", (DL_FUNC)&rph_tm_nratecats, 1},
     {"rph_tm_rK", (DL_FUNC)&rph_tm_rK, 1},
     {"rph_tm_freqK", (DL_FUNC)&rph_tm_freqK, 1},
     {"rph_tm_rootLeaf", (DL_FUNC)&rph_tm_rootLeaf, 1},
-    {"rph_tm_new", (DL_FUNC)&rph_tm_new, 11},
+    {"rph_tm_new", (DL_FUNC)&rph_tm_new, 12},
     {"rph_tm_print", (DL_FUNC)&rph_tm_print, 3},
     {"rph_tm_read", (DL_FUNC)&rph_tm_read, 1},
+    {"rph_tm_add_alt_mod", (DL_FUNC)&rph_tm_add_alt_mod, 2},
+    {"rph_tm_altmod_set_subst_mod", (DL_FUNC)&rph_tm_altmod_set_subst_mod, 3},
+    {"rph_tm_altmod_set_backgd", (DL_FUNC)&rph_tm_altmod_set_backgd, 3},
+    {"rph_tm_altmod_set_ratematrix", (DL_FUNC)&rph_tm_altmod_set_ratematrix, 3},
+    {"rph_tm_altmod_set_sel_bgc", (DL_FUNC)&rph_tm_altmod_set_sel_bgc, 4},
+    {"rph_tree_model_set_matrix", (DL_FUNC)&rph_tree_model_set_matrix, 3},
+    {"rph_tree_model_get_rate_matrix_params", (DL_FUNC)&rph_tree_model_get_rate_matrix_params, 1},
+    {"rph_tm_apply_selection_bgc", (DL_FUNC)&rph_tm_apply_selection_bgc, 4},
+    {"rph_tm_unapply_selection_bgc", (DL_FUNC)&rph_tm_unapply_selection_bgc, 4},
     {"rph_tree_read", (DL_FUNC)&rph_tree_read, 1},
     {"rph_tree_numnodes", (DL_FUNC)&rph_tree_numnodes, 1},
     {"rph_tree_prune", (DL_FUNC)&rph_tree_prune, 3},
     {"rph_tree_name_ancestors", (DL_FUNC)&rph_tree_name_ancestors, 1},
     {"rph_tree_subtree", (DL_FUNC)&rph_tree_subtree, 2},
     {"rph_tree_supertree", (DL_FUNC)&rph_tree_supertree, 2},
-    {"rph_tree_scale", (DL_FUNC)&rph_tree_scale, 3},
+    {"rph_tree_scale", (DL_FUNC)&rph_tree_scale, 4},
     {"rph_tree_rename", (DL_FUNC)&rph_tree_rename, 3},
     {"rph_tree_nodeName", (DL_FUNC)&rph_tree_nodeName, 2},
     {"rph_tree_isNode", (DL_FUNC)&rph_tree_isNode, 2},
     {"rph_tree_branchlen", (DL_FUNC)&rph_tree_branchlen, 1},
     {"rph_tree_depth", (DL_FUNC)&rph_tree_depth, 2},
-    {"rph_list_len", (DL_FUNC)&rph_list_len, 1},
+    {"rph_tree_label_branches", (DL_FUNC)&rph_tree_label_branches, 3},
+    {"rph_tree_label_subtree", (DL_FUNC)&rph_tree_label_subtree, 4},
+    {"rph_tree_summary_nodenames", (DL_FUNC)&rph_tree_summary_nodenames, 1},
+    {"rph_tree_summary_len", (DL_FUNC)&rph_tree_summary_len, 1},
+    {"rph_tree_summary_depth", (DL_FUNC)&rph_tree_summary_depth, 1},
+    {"rph_tree_summary_parent", (DL_FUNC)&rph_tree_summary_parent, 1},
+    {"rph_tree_summary_lchild", (DL_FUNC)&rph_tree_summary_lchild, 1},
+    {"rph_tree_summary_rchild", (DL_FUNC)&rph_tree_summary_rchild, 1},
+    {"rph_tree_summary_label", (DL_FUNC)&rph_tree_summary_label, 1},
+    {"rph_free_all", (DL_FUNC)&rph_free_all, 0},
+    {"rph_lst_len", (DL_FUNC)&rph_lst_len, 1},
     {NULL, NULL, 0}
   };
   R_registerRoutines(info, NULL, callMethods, NULL, NULL);

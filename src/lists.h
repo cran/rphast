@@ -35,8 +35,8 @@
 #ifndef LISTS_H
 #define LISTS_H
 
-#include <stdlib.h> 
 #include <string.h>
+#include <stdlib.h> 
 #include <external_libs.h>
 
 /** Basic List object */
@@ -67,6 +67,10 @@ int lst_int_compare_asc(const void* ptr1, const void* ptr2);
 int lst_int_compare_desc(const void* ptr1, const void* ptr2);
 int lst_dbl_compare_asc(const void* ptr1, const void* ptr2);
 int lst_dbl_compare_desc(const void* ptr1, const void* ptr2);
+
+void *srealloc(void *ptr, size_t size);
+
+
 
 static PHAST_INLINE
 void lst_arr_set(List *l, int i, void *o) {
@@ -163,7 +167,7 @@ void lst_cpy(List* dest, List* src);
   @param l Target list.
 */
 static PHAST_INLINE int lst_size(List *l)
-{  return (l->ridx - l->lidx); }
+{ return l->ridx - l->lidx;}
 
 /** Test whether list is empty.
    Returns 1 if empty, 0 otherwise 
@@ -174,7 +178,7 @@ static PHAST_INLINE int lst_size(List *l)
 */
 static PHAST_INLINE
 int lst_empty(List *l) 
-{  return (l->lidx >= l->ridx); }
+{ return (l->lidx >= l->ridx);}
 
 
 /** Free the elements of a list of strings.
@@ -359,6 +363,7 @@ void lst_set_ptr(List *l, int idx, void *ptr)
 {  lst_set(l, idx, &ptr); }
 
 
+
 /** \} */
 
 /** \name List insert & delete operations. */
@@ -436,7 +441,7 @@ void lst_push(List *l,
 
     else {
       l->CAPACITY *= 2;
-      l->array = (void**)realloc(l->array, l->CAPACITY * l->elementsz);
+      l->array = (void**)srealloc(l->array, l->CAPACITY * l->elementsz);
     }
   }
   lst_arr_set(l, l->ridx++, o);

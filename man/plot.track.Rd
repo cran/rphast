@@ -1,15 +1,16 @@
 \name{plot.track}
 \alias{plot.track}
 \title{Make browser-like plot in rphast...}
-\usage{plot.track(x, doLabels=TRUE, cex.axis=1, cex.labels=1,
-    cex.shortLabels=0.75, relWigSize=5, xlim=NULL, xlab="coord",
-    ylab="", blankSpace=0.25, axisDigits=3, labelSpace=min(length(x) *
-    0.05, 0.25), belowLabelSpace=0.2, lmar=4, ...)}
+\usage{plot.track(x, doLabels=TRUE, cex.axis=1, cex.labels=1, cex.shortLabels=0.75,
+    relWigSize=5, relMsaSize=5, xlim=NULL, xlab="coord", ylab="",
+    blankSpace=0.25, axisDigits=3, labelSpace=min(length(x) * 0.05,
+    0.25), belowLabelSpace=0.2, lmar=4, ...)
+}
 \description{Make browser-like plot in rphast}
 \seealso{\code{plotPhast}, which may be easier to use but less flexible}
 \keyword{plot}
 \author{Melissa J. Hubisz}
-\arguments{\item{x}{a list of tracks, created by the wig.track or feat.track}
+\arguments{\item{x}{a list of tracks, created by the as.track.wig or as.track.feat}
 \item{doLabels}{Logical.  Whether to plot the label above each plot.  Will be
 recycled to the length of x.  Does not affect printing of shortLabels.}
 \item{labels}{Labels to appear directly above each plot.}
@@ -17,6 +18,7 @@ recycled to the length of x.  Does not affect printing of shortLabels.}
 \item{cex.labels}{The character expansion factor for the labels}
 \item{cex.shortLabels}{The character expansion factor for the shortLabels}
 \item{relWigSize}{The relative size of wig plots compared to feature plots}
+\item{relMsaSize}{The relative size of msa plots compared to feature plots}
 \item{xlim}{The range of the x coordinate to be plotted.  If \code{NULL} (the default), will
 use the entire range represented in the resultList.}
 \item{xlab}{The label for the x axis}
@@ -28,4 +30,6 @@ value between 0 and 1, representing the total fraction of the plot occupied by b
 \item{belowLabelSpace}{The amount of space between a label and the plot it corresponds to,
 in fractions of a character width.}
 \item{lmar}{The size of the left margin (in number of lines)}
-\item{...}{Other options to be passed to \code{plot}.  See \link{par}.}}
+\item{...}{Other options to be passed to \code{plot}.  See \link{par}.}
+}
+

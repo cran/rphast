@@ -21,6 +21,7 @@
 #include <sufficient_stats.h>
 #include <gap_patterns.h>
 #include <tree_likelihoods.h>
+#include <subst_mods.h>
 #include <em.h>
 
 /* initial values for alpha, beta, tau; possibly should be passed in instead */
@@ -273,7 +274,7 @@ void phmm_reflect_hmm(PhyloHmm *phmm, List *pivot_cats) {
     phmm->reverse_compl[i] = (new_to_old[i] < 0);
   }
 
-  free(new_to_old);
+  sfree(new_to_old);
   lst_free(pivot_states);
 }
 
@@ -455,11 +456,11 @@ void phmm_rates_cross(PhyloHmm *phmm,
   /* free memory */
   for (mod = 0; mod < phmm->nmods; mod++)
     if (phmm->mods[mod]->tree != NULL) tm_free(phmm->mods[mod]);
-  free(phmm->mods);
+  sfree(phmm->mods);
   phmm->mods = new_mods;
   phmm->nmods = thismod_new;
-  free(old_mod_to_new_base);
-  free(old_cat_to_new);
+  sfree(old_mod_to_new_base);
+  sfree(old_cat_to_new);
 }
 
 /* update cross product HMM using new value of lambda */
@@ -471,51 +472,51 @@ void phmm_update_cross_prod(PhyloHmm *phmm, double lambda) {
 void phmm_free(PhyloHmm *phmm) {
   int i;
   for (i = 0; i < phmm->nmods; i++) tm_free(phmm->mods[i]);
-  free(phmm->mods);
+  sfree(phmm->mods);
 
   if (phmm->emissions != NULL) {
     for (i = 0; i < phmm->hmm->nstates; i++) 
       if (phmm->state_pos[phmm->state_to_mod[i]] == i ||
           phmm->state_neg[phmm->state_to_mod[i]] == i || 
           phmm->state_to_pattern[i] >= 0)
-        free(phmm->emissions[i]);
-    free(phmm->emissions); free(phmm->state_pos); free(phmm->state_neg);
+        sfree(phmm->emissions[i]);
+    sfree(phmm->emissions); sfree(phmm->state_pos); sfree(phmm->state_neg);
   }
 
   if (phmm->forward != NULL) {
-    for (i = 0; i < phmm->hmm->nstates; i++) free(phmm->forward[i]);
-    free(phmm->forward);
+    for (i = 0; i < phmm->hmm->nstates; i++) sfree(phmm->forward[i]);
+    sfree(phmm->forward);
   }
 
-  free(phmm->state_to_mod);
-  free(phmm->state_to_cat);
-  free(phmm->state_to_pattern);
-  free(phmm->reverse_compl);
+  sfree(phmm->state_to_mod);
+  sfree(phmm->state_to_cat);
+  sfree(phmm->state_to_pattern);
+  sfree(phmm->reverse_compl);
   for (i = 0; i <= phmm->cm->ncats; i++)
     lst_free(phmm->cat_to_states[i]);
-  free(phmm->cat_to_states);
+  sfree(phmm->cat_to_states);
   cm_free(phmm->cm);
   if (phmm->T != NULL) {
     for (i = 0; i < phmm->functional_hmm->nstates; i++) {
-      free(phmm->T[i]);
-      free(phmm->t[i]);
+      sfree(phmm->T[i]);
+      sfree(phmm->t[i]);
     }
-    free(phmm->T);
-    free(phmm->t);
+    sfree(phmm->T);
+    sfree(phmm->t);
   }
   if (phmm->gpm != NULL) gp_free_map(phmm->gpm);
   if (phmm->functional_hmm != phmm->hmm) hmm_free(phmm->functional_hmm);
   if (phmm->autocorr_hmm != NULL) hmm_free(phmm->autocorr_hmm);
-  if (phmm->alpha != NULL) free(phmm->alpha);
-  if (phmm->beta != NULL) free(phmm->beta);
-  if (phmm->tau != NULL) free(phmm->tau);
+  if (phmm->alpha != NULL) sfree(phmm->alpha);
+  if (phmm->beta != NULL) sfree(phmm->beta);
+  if (phmm->tau != NULL) sfree(phmm->tau);
   if (phmm->em_data != NULL) {
     if (phmm->em_data->H != NULL) 
       mat_free(phmm->em_data->H);
-    free(phmm->em_data);
+    sfree(phmm->em_data);
   }
   hmm_free(phmm->hmm);
-  free(phmm);
+  sfree(phmm);
 }
 
 /** Compute emissions for given PhyloHmm and MSA.  Preprocessor for
@@ -562,8 +563,8 @@ void phmm_compute_emissions(PhyloHmm *phmm,
 
     /* get rid of the sequences! they'll be wrong! */
     if (msa_compl->seqs != NULL) {
-      for (i = 0; i < msa_compl->nseqs; i++) free(msa_compl->seqs[i]);
-      free(msa_compl->seqs);
+      for (i = 0; i < msa_compl->nseqs; i++) sfree(msa_compl->seqs[i]);
+      sfree(msa_compl->seqs);
       msa_compl->seqs = NULL;
     }
   }
@@ -636,7 +637,7 @@ void phmm_compute_emissions(PhyloHmm *phmm,
             (matches[msa->ss->tuple_idx[j]] ? orig_emissions[j] : NEGINFTY);
       }
     }
-    free(matches);
+    sfree(matches);
   }
 }
 
@@ -671,7 +672,7 @@ GFF_Set* phmm_predict_viterbi(PhyloHmm *phmm,
                               phmm->state_to_cat, 
                               phmm->reverse_compl, seqname, "PHAST",  
                               frame, grouptag, idpref);
-  free(path);
+  sfree(path);
 
   return retval;
 }
@@ -710,6 +711,7 @@ GFF_Set* phmm_predict_viterbi_cats(PhyloHmm *phmm,
   List *types, *keepers, *catnos;
   GFF_Set *retval = phmm_predict_viterbi(phmm, seqname, grouptag, 
                                          idpref, frame);
+  if (cats == NULL) return retval;
 
   /* do this way to allow input to be numbers or names */
   catnos = cm_get_category_list(phmm->cm, cats, 1);
@@ -754,8 +756,8 @@ double phmm_lnl(PhyloHmm *phmm) {
     forward[i] = (double*)smalloc(phmm->alloc_len * sizeof(double));
   logl = hmm_forward(phmm->hmm, phmm->emissions, 
                      phmm->alloc_len, forward);
-  for (i = 0; i < phmm->hmm->nstates; i++) free(forward[i]);
-  free(forward);
+  for (i = 0; i < phmm->hmm->nstates; i++) sfree(forward[i]);
+  sfree(forward);
   return logl * log(2); /* convert to natural log */
 }
 
@@ -770,6 +772,17 @@ double phmm_postprobs(PhyloHmm *phmm, double **post_probs) {
                              post_probs) * log(2);
                                 /* convert to natural log */          
 }
+
+
+double **phmm_new_postprobs(PhyloHmm *phmm) {
+  double **rv = smalloc(phmm->hmm->nstates * sizeof(double*));
+  int i;
+  for (i=0; i < phmm->hmm->nstates; i++)
+    rv[i] = smalloc(phmm->alloc_len * sizeof(double));
+  phmm_postprobs(phmm, rv);
+  return rv;
+}
+
 
 /** Computes and returns an array of length phmm->alloc_len
     representing the marginal posterior prob at every site, summed
@@ -797,6 +810,7 @@ double* phmm_postprobs_cats(PhyloHmm *phmm,
   catnos = cm_get_category_list(phmm->cm, cats, 1);
   for (i = 0; i <= phmm->cm->ncats; i++) docat[i] = 0;
   for (i = 0; i < lst_size(catnos); i++) docat[lst_get_int(catnos, i)] = 1;
+  lst_free(catnos);
   for (i = 0; i < phmm->hmm->nstates; i++)
     if (docat[phmm->state_to_cat[i]]) lst_push_int(states, i);
                                                
@@ -818,6 +832,7 @@ double* phmm_postprobs_cats(PhyloHmm *phmm,
   }
       
   if (lnl != NULL) *lnl = l;
+  lst_free(states);
 
   return retval;
 }
@@ -981,8 +996,8 @@ void phmm_score_predictions(PhyloHmm *phmm,
   lst_free(null_states);
   lst_free(score_types);
   for (i = 0; i < ncats; i++) lst_free(cat_to_states[i]);
-  free(cat_to_states);
-  free(is_scored);
+  sfree(cat_to_states);
+  sfree(is_scored);
 }
 
 /** Add specified "bias" to log transition probabilities from
@@ -1076,7 +1091,8 @@ void phmm_estim_mods_em(void **models, int nmodels, void *data,
   if (phmm->em_data->msa->ss == NULL) {
     phmm->em_data->msa->ncats = phmm->nmods - 1;   /* ?? */
     ss_from_msas(phmm->em_data->msa, phmm->mods[0]->order+1, TRUE, 
-                 NULL, NULL, NULL, -1);
+                 NULL, NULL, NULL, -1, 
+		 subst_mod_is_codon_model(phmm->mods[0]->subst_mod));
   }
   else if (phmm->em_data->msa->ncats != phmm->nmods - 1 ||
            phmm->em_data->msa->ss->cat_counts == NULL) {
@@ -1096,7 +1112,7 @@ void phmm_estim_mods_em(void **models, int nmodels, void *data,
 
     /* FIXME: need to use state_to_cat, etc. in deciding which categories to use */
 
-    tm_fit(phmm->mods[k], phmm->em_data->msa, params, k, OPT_HIGH_PREC, logf);
+    tm_fit(phmm->mods[k], phmm->em_data->msa, params, k, OPT_HIGH_PREC, logf, 1);
     vec_free(params); 
   }
 
@@ -1475,18 +1491,18 @@ void phmm_free_ied(IndelEstimData *ied) {
   int i;
   if (!ied->phmm->em_data->fix_functional) {
     for (i = 0; i < ied->phmm->functional_hmm->nstates; i++) 
-      free(ied->fcounts[i]);
-    free(ied->fcounts);
+      sfree(ied->fcounts[i]);
+    sfree(ied->fcounts);
   }
   if (!ied->phmm->em_data->fix_indel) {
     for (i = 0; i < ied->phmm->functional_hmm->nstates; i++) 
-      free(ied->u_self[i]);
-    free(ied->u_alpha);
-    free(ied->u_beta);
-    free(ied->u_tau);
-    free(ied->u_self);
+      sfree(ied->u_self[i]);
+    sfree(ied->u_alpha);
+    sfree(ied->u_beta);
+    sfree(ied->u_tau);
+    sfree(ied->u_self);
   }
-  free(ied);
+  sfree(ied);
 }
 
 /* for E step of EM: estimate indel params using a multi-dimensional

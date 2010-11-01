@@ -16,7 +16,6 @@
 #include <subst_mods.h>
 #include <tree_model.h>
 #include <stringsplus.h>
-#include <string.h>
 #include <ctype.h>
 #include <misc.h>
 
@@ -38,12 +37,13 @@ void tm_set_R3S_matrix(TreeModel *mod, Vector *params, int start_idx);
 void tm_set_U3_matrix(TreeModel *mod, Vector *params, int start_idx);
 void tm_set_U3S_matrix(TreeModel *mod, Vector *params, int start_idx);
 void tm_set_GC_matrix(TreeModel *mod, double kappa, int kappa_idx, double alpha);
-void tm_set_REV_GC_matrix(TreeModel *mod, Vector *params, int start_idx);
+void tm_set_HKY_CODON_matrix(TreeModel *mod, double kappa, int kappa_idx);
+void tm_set_REV_CODON_matrix(TreeModel *mod, Vector *params, int start_idx);
+void tm_set_SSREV_CODON_matrix(TreeModel *mod, Vector *params, int start_idx);
 void tm_init_mat_REV(TreeModel *mod, Vector *params, int nbranches, 
                      double kappa);
 void tm_init_mat_SSREV(TreeModel *mod, Vector *params, int nbranches,
 		       double kappa);
-void tm_init_mat_REV_GC(TreeModel *mod, Vector *params, int nbranches, double kappa);
 void tm_init_mat_UNREST(TreeModel *mod, Vector *params, int nbranches, 
                         double kappa);
 void tm_init_mat_R2(TreeModel *mod, Vector *params, 
@@ -66,8 +66,6 @@ void tm_init_mat_from_model_REV(TreeModel *mod, Vector *params,
                                 int start_idx);
 void tm_init_mat_from_model_SSREV(TreeModel *mod, Vector *params, 
                                 int start_idx);
-void tm_init_mat_from_model_REV_GC(TreeModel *mod, Vector *params, 
-				    int start_idx);
 void tm_init_mat_from_model_UNREST(TreeModel *mod, Vector *params, 
                                    int start_idx);
 void tm_init_mat_from_model_R2(TreeModel *mod, Vector *params, 
@@ -86,6 +84,12 @@ void tm_init_mat_from_model_U3(TreeModel *mod, Vector *params,
                                int start_idx);
 void tm_init_mat_from_model_U3S(TreeModel *mod, Vector *params, 
                                 int start_idx);
+void tm_init_mat_from_model_HKY_CODON(TreeModel *mod, Vector *params,
+				      int start_idx);
+void tm_init_mat_from_model_REV_CODON(TreeModel *mod, Vector *params,
+				      int start_idx);
+void tm_init_mat_from_model_SSREV_CODON(TreeModel *mod, Vector *params,
+					int start_idx);
 int tm_flag_subst_param_pos(TreeModel *mod, int *flag, 
 			    String *param_name);
 
@@ -109,8 +113,6 @@ subst_mod_type tm_get_subst_mod_type(const char *str) {
     retval = REV;
   else if (str_equals_nocase_charstr(subst_mod_str, "SSREV"))
     retval = SSREV;
-  else if (str_equals_nocase_charstr(subst_mod_str, "REV+GC"))
-    retval = REV_GC;
   else if (str_equals_nocase_charstr(subst_mod_str, "UNREST"))
     retval = UNREST;
   else if (str_equals_nocase_charstr(subst_mod_str, "R2"))
@@ -131,8 +133,12 @@ subst_mod_type tm_get_subst_mod_type(const char *str) {
     retval = U3S;
   else if (str_equals_nocase_charstr(subst_mod_str, "GC"))
     retval = GC;
-  else if (str_equals_nocase_charstr(subst_mod_str, "HB"))
-    retval = HB;
+  else if (str_equals_nocase_charstr(subst_mod_str, "HKY_CODON"))
+    retval = HKY_CODON;
+  else if (str_equals_nocase_charstr(subst_mod_str, "REV_CODON"))
+    retval = REV_CODON;
+  else if (str_equals_nocase_charstr(subst_mod_str, "SSREV_CODON"))
+    retval = SSREV_CODON;
   str_free(subst_mod_str);
   return retval;
 }
@@ -154,8 +160,6 @@ char *tm_get_subst_mod_string(subst_mod_type type) {
     return "REV";
   case SSREV:
     return "SSREV";
-  case REV_GC:
-    return "REV+GC";
   case UNREST:
     return "UNREST";
   case R2:
@@ -176,19 +180,22 @@ char *tm_get_subst_mod_string(subst_mod_type type) {
     return "U3S";
   case GC:
     return "GC";
-  case HB:
-    return "HB";
+  case HKY_CODON:
+    return "HKY_CODON";
+  case REV_CODON:
+    return "REV_CODON";
+  case SSREV_CODON:
+    return "SSREV_CODON";
   default:
     return "(unknown model)";
   }
 }
 
 
+
 /* number of rate matrix params (not counting eq. freqs) */
 int tm_get_nratematparams(TreeModel *mod) {
-
-  //  if (mod->estimate_ratemat == FALSE) return 0;
-
+  int n;
   switch (mod->subst_mod) {
   case JC69:
   case F81:
@@ -210,9 +217,6 @@ int tm_get_nratematparams(TreeModel *mod) {
     /* subtract mod->rate_matrix->size/2 assuming that all but possibly one
        of the characters (ie, gap) has a complement.  The last line adds 2 
        if there is an odd number of bases*/
-  case REV_GC:
-    return (mod->rate_matrix->size * mod->rate_matrix->size
-	    - mod->rate_matrix->size)/2 + 1;
   case UNREST:
     return (mod->rate_matrix->size * mod->rate_matrix->size 
             - mod->rate_matrix->size);     
@@ -239,25 +243,41 @@ int tm_get_nratematparams(TreeModel *mod) {
     return 288;
   case GC:
     return 2;
-  case HB:
-    return 0;
+  case HKY_CODON:
+    return 1;
+  case REV_CODON:
+    n = strlen(mod->rate_matrix->states);
+    return (n*n-n)/2;
+  case SSREV_CODON:
+    n = strlen(mod->rate_matrix->states);
+    return (n*n-n)/2 - n/2 - 2*((n/2*2)!=n);
   default:
     die("ERROR: tm_get_nrateparams unknown substitution model\n");
   }
   return -1;
 }
 
-int tm_is_reversible(int subst_mod) {
+int subst_mod_is_reversible(int subst_mod) {
   return !(subst_mod == UNREST || subst_mod == U2 || subst_mod == U2S || 
            subst_mod == U3 || subst_mod == U3S || subst_mod == GC);
 }
+
+
+int subst_mod_is_codon_model(int subst_mod) {
+  return (subst_mod == HKY_CODON ||
+	  subst_mod == REV_CODON ||
+	  subst_mod == SSREV_CODON);
+}
+
 
 int tm_order(int subst_mod) {
   if (subst_mod == R2 || subst_mod == U2 || 
       subst_mod == R2S || subst_mod == U2S)
     return 1; 
   else if (subst_mod == R3 || subst_mod == R3S || 
-           subst_mod == U3 || subst_mod == U3S) 
+           subst_mod == U3 || subst_mod == U3S ||
+	   subst_mod == HKY_CODON || subst_mod == REV_CODON ||
+	   subst_mod == SSREV_CODON) 
     return 2;
 
   return 0;
@@ -287,9 +307,6 @@ void tm_set_rate_matrix(TreeModel *mod, Vector *params, int i) {
     break;
   case SSREV:
     tm_set_SSREV_matrix(mod, params, i);
-    break;
-  case REV_GC:
-    tm_set_REV_GC_matrix(mod, params, i);
     break;
   case UNREST:
     tm_set_UNREST_matrix(mod, params, i);
@@ -321,16 +338,32 @@ void tm_set_rate_matrix(TreeModel *mod, Vector *params, int i) {
   case GC:
     tm_set_GC_matrix(mod, vec_get(params, i), i, vec_get(params, i+1));
     break;
+  case HKY_CODON:
+    tm_set_HKY_CODON_matrix(mod, vec_get(params, i), i);
+    break;
+  case REV_CODON:
+    tm_set_REV_CODON_matrix(mod, params, i);
+    break;
+  case SSREV_CODON:
+    tm_set_SSREV_CODON_matrix(mod, params, i);
+    break;
   default:
     die("ERROR tm_set_rate_matrix: unknown substitution model\n");
   }
 
   if (mod->scale_during_opt && mod->subst_mod!=JC69 && mod->subst_mod != F81)
     tm_scale_rate_matrix(mod);
-
-  /* NOTE: used to scale rate matrices here, but have removed scaling
-     for more well-behaved derivatives.  */
 }
+
+
+
+void tm_set_rate_matrix_sel_bgc(TreeModel *mod, Vector *params, int i,
+				double selection, double bgc) {
+  tm_set_rate_matrix(mod, params, i);
+  if (selection != 0.0 || bgc != 0.0)
+    tm_apply_selection_bgc(mod->rate_matrix, selection, bgc);
+}
+
 
 /* initialize rate-matrix parameters in parameter vector, using an
    HKY-like strategy (with 'kappa' defining transition/transversion
@@ -343,6 +376,7 @@ void tm_rate_params_init(TreeModel *mod, Vector *params,
     break;                      /* do nothing */
   case K80:
   case HKY85:
+  case HKY_CODON:
     vec_set(params, params_idx, kappa);
     break;      
   case HKY85G:
@@ -356,14 +390,13 @@ void tm_rate_params_init(TreeModel *mod, Vector *params,
     vec_set(params, params_idx+1, 1);
     break;    
   case REV:
+  case REV_CODON:
     tm_init_mat_REV(mod, params, params_idx, kappa);
     break;      
   case SSREV:
+  case SSREV_CODON:
     tm_init_mat_SSREV(mod, params, params_idx, kappa);
     break; 
-  case REV_GC:
-    tm_init_mat_REV_GC(mod, params, params_idx, kappa);
-    break;
   case UNREST:
     tm_init_mat_UNREST(mod, params, params_idx, kappa);
     break;      
@@ -399,8 +432,12 @@ void tm_rate_params_init(TreeModel *mod, Vector *params,
 /* initialize rate-matrix parameters in parameter vector, based on an
    existing model.  Starting index is 'params_idx'. */
 void tm_rate_params_init_from_model(TreeModel *mod, Vector *params, 
-                                    int params_idx) {
+                                    int params_idx,
+				    double selection, double bgc) {
   double kappa, alpha;
+
+  if (selection != 0.0 || bgc != 0.0)
+    tm_unapply_selection_bgc(mod->rate_matrix, selection, bgc);
 
   switch(mod->subst_mod) {
   case JC69:
@@ -408,6 +445,7 @@ void tm_rate_params_init_from_model(TreeModel *mod, Vector *params,
     break;                      /* do nothing */
   case K80:
   case HKY85:
+  case HKY_CODON:
     /* infer kappa from rate matrix */
     kappa = 
       mm_get(mod->rate_matrix, 
@@ -450,8 +488,6 @@ void tm_rate_params_init_from_model(TreeModel *mod, Vector *params,
 	     mod->rate_matrix->inv_states['C']);
     vec_set(params, params_idx+1, alpha); /* just use a 1 for gamma */
     break;
-  case REV_GC:
-    vec_set(params, params_idx++, 1.0);
   case REV:
     tm_init_mat_from_model_REV(mod, params, params_idx);
     break;      
@@ -481,10 +517,20 @@ void tm_rate_params_init_from_model(TreeModel *mod, Vector *params,
     break;      
   case U3S:
     tm_init_mat_from_model_U3S(mod, params, params_idx);
-    break;      
+    break;
+  case REV_CODON:
+    tm_init_mat_from_model_REV_CODON(mod, params, params_idx);
+    break;
+  case SSREV_CODON:
+    tm_init_mat_from_model_SSREV_CODON(mod, params, params_idx);
+    break;
   default:
     die("ERROR tm_rate_params_init_from_model: unknown substitution model\n");
   }
+
+  if (selection != 0.0 || bgc != 0.0)
+    tm_apply_selection_bgc(mod->rate_matrix, selection, bgc);
+
 }
 
 /* functions to compute subst. probability matrices directly (without
@@ -569,7 +615,8 @@ void tm_set_K80_matrix(TreeModel *mod, double kappa) {
 void tm_set_HKY_matrix(TreeModel *mod, double kappa, int kappa_idx) {
   int i, j;
   int setup_mapping = 
-    (kappa_idx >= 0 && lst_size(mod->rate_matrix_param_row[kappa_idx]) == 0);
+    (kappa_idx >= 0 && mod->rate_matrix_param_row != NULL && 
+     lst_size(mod->rate_matrix_param_row[kappa_idx]) == 0);
   for (i = 0; i < mod->rate_matrix->size; i++) {
     double rowsum = 0;
     for (j = 0; j < mod->rate_matrix->size; j++) {
@@ -595,7 +642,7 @@ void tm_set_HKY_matrix(TreeModel *mod, double kappa, int kappa_idx) {
 
 void tm_set_HKYG_matrix(TreeModel *mod, Vector *params, int start_idx ) {
   int i, j;
-  int setup_mapping = lst_size(mod->rate_matrix_param_row[start_idx]) == 0;
+  int setup_mapping = mod->rate_matrix_param_row != NULL && lst_size(mod->rate_matrix_param_row[start_idx]) == 0;
   int kappa_idx = start_idx;
   int sigma_idx = start_idx + 1;
   double kappa = vec_get(params, kappa_idx);
@@ -634,7 +681,8 @@ void tm_set_GC_matrix(TreeModel *mod, double kappa, int kappa_idx, double alpha)
   char c;
   double sum = 0.0;
   int setup_mapping = 
-    (kappa_idx >= 0 && lst_size(mod->rate_matrix_param_row[kappa_idx]) == 0);
+    (kappa_idx >= 0 && mod->rate_matrix_param_row != NULL && 
+     lst_size(mod->rate_matrix_param_row[kappa_idx]) == 0);
 
   //first scale eq frequencies
   for (i=0; i<mod->rate_matrix->size; i++) {
@@ -685,7 +733,7 @@ void tm_set_GC_matrix(TreeModel *mod, double kappa, int kappa_idx, double alpha)
 
 void tm_set_REV_matrix(TreeModel *mod, Vector *params, int start_idx) {
   int i, j;
-  int setup_mapping = (lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
+  int setup_mapping = (mod->rate_matrix_param_row != NULL && lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
   for (i = 0; i < mod->rate_matrix->size; i++) {
     double rowsum = 0;
     for (j = i+1; j < mod->rate_matrix->size; j++) {
@@ -715,7 +763,8 @@ void tm_set_REV_matrix(TreeModel *mod, Vector *params, int start_idx) {
 
 void tm_set_SSREV_matrix(TreeModel *mod, Vector *params, int start_idx) {
   int i, j, compi, compj;
-  int setup_mapping = (lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
+  int setup_mapping = (mod->rate_matrix_param_row != NULL && 
+		       lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
   int count=0;  //testing
 
   for (i = 0; i < mod->rate_matrix->size; i++) {
@@ -770,63 +819,10 @@ void tm_set_SSREV_matrix(TreeModel *mod, Vector *params, int start_idx) {
 }
 
 
-void tm_set_REV_GC_matrix(TreeModel *mod, Vector *params, int start_idx) {
-  int i, j, gamma_idx = start_idx;
-  int setup_mapping = (lst_size(mod->rate_matrix_param_row[start_idx])==0);
-  double gamma, sum=0.0;
-  char c1, c2;
-
-  gamma = vec_get(params, start_idx++);
-
-  //first scale the eq frequencies
-  for (i=0; i<mod->rate_matrix->size; i++) {
-    c1 = toupper(mod->rate_matrix->states[i]);
-    if (c1 == 'C' || c1 == 'G')
-      vec_set(mod->backgd_freqs, i, vec_get(mod->backgd_freqs, i)*gamma);
-    sum += vec_get(mod->backgd_freqs, i);
-  }
-  for (i=0; i<mod->rate_matrix->size; i++)
-    vec_set(mod->backgd_freqs, i, vec_get(mod->backgd_freqs, i)/sum);
-
-  for (i = 0; i < mod->rate_matrix->size; i++) {
-    double rowsum = 0;
-    c1 = toupper(mod->rate_matrix->states[i]);
-    for (j = i+1; j<mod->rate_matrix->size; j++) {
-      double val;
-      //set val to alpha{i,j}
-      val = vec_get(params, start_idx);
-      c2 = toupper(mod->rate_matrix->states[j]);
-      if ((c1=='C' && c2=='G') ||
-	  (c1=='G' && c2=='C')) {
-	val *= sum/gamma;
-	if (setup_mapping) {
-	  lst_push_int(mod->rate_matrix_param_row[gamma_idx], i);
-	  lst_push_int(mod->rate_matrix_param_col[gamma_idx], j);
-	  lst_push_int(mod->rate_matrix_param_row[gamma_idx], j);
-	  lst_push_int(mod->rate_matrix_param_col[gamma_idx], i);
-	}
-      }
-      mm_set(mod->rate_matrix, i, j, val*vec_get(mod->backgd_freqs, j));
-      mm_set(mod->rate_matrix, j, i, val*vec_get(mod->backgd_freqs, i));
-      rowsum += (val * vec_get(mod->backgd_freqs, j));
-      if (setup_mapping) {
-        lst_push_int(mod->rate_matrix_param_row[start_idx], i);
-        lst_push_int(mod->rate_matrix_param_col[start_idx], j);
-        lst_push_int(mod->rate_matrix_param_row[start_idx], j);
-        lst_push_int(mod->rate_matrix_param_col[start_idx], i);
-      }
-      start_idx++;
-    }
-    for (j=0; j<i; j++)
-      rowsum += mm_get(mod->rate_matrix, i, j);
-    mm_set(mod->rate_matrix, i, i, -1.0*rowsum);
-  }
-}
-
-
 void tm_set_UNREST_matrix(TreeModel *mod, Vector *params, int start_idx) {
   int i, j;
-  int setup_mapping = (lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
+  int setup_mapping = (mod->rate_matrix_param_row != NULL && 
+		       lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
   mat_zero(mod->rate_matrix->matrix);
   for (i = 0; i < mod->rate_matrix->size; i++) {
     double rowsum = 0;
@@ -885,7 +881,8 @@ void tm_set_UNREST_matrix(TreeModel *mod, Vector *params, int start_idx) {
 void tm_set_R2_matrix(TreeModel *mod, Vector *params, int start_idx) {
   int i, j;
   int alph_size = strlen(mod->rate_matrix->states);
-  int setup_mapping = (lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
+  int setup_mapping = (mod->rate_matrix_param_row != NULL && 
+		       lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
   mat_zero(mod->rate_matrix->matrix);
 
   for (i = 0; i < mod->rate_matrix->size; i++) {
@@ -931,7 +928,8 @@ void tm_set_R2S_matrix(TreeModel *mod, Vector *params,
   int alph_size = strlen(mod->rate_matrix->states);
   int nstates = mod->rate_matrix->size;
   int done_row[nstates];
-  int setup_mapping = (lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
+  int setup_mapping = (mod->rate_matrix_param_row != NULL && 
+		       lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
   double rowsum;
   mat_zero(mod->rate_matrix->matrix);
   
@@ -1019,7 +1017,8 @@ void tm_set_R2S_matrix(TreeModel *mod, Vector *params,
 void tm_set_U2_matrix(TreeModel *mod, Vector *params, int start_idx) {
   int i, j;
   int alph_size = strlen(mod->rate_matrix->states);
-  int setup_mapping = (lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
+  int setup_mapping = (mod->rate_matrix_param_row != NULL && 
+		       lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
   mat_zero(mod->rate_matrix->matrix);
   for (i = 0; i < mod->rate_matrix->size; i++) {
     double rowsum = 0, val;
@@ -1058,7 +1057,7 @@ void tm_set_U2S_matrix(TreeModel *mod, Vector *params,
   int alph_size = strlen(mod->rate_matrix->states);
   int nstates = mod->rate_matrix->size;
   int done_row[nstates];
-  int setup_mapping = (lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
+  int setup_mapping = (mod->rate_matrix_param_row != NULL && lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
   double rowsum;
   mat_zero(mod->rate_matrix->matrix);
   
@@ -1137,7 +1136,8 @@ void tm_set_U2S_matrix(TreeModel *mod, Vector *params,
 void tm_set_R3_matrix(TreeModel *mod, Vector *params, int start_idx) {
   int i, j;
   int alph_size = strlen(mod->rate_matrix->states);
-  int setup_mapping = (lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
+  int setup_mapping = (mod->rate_matrix_param_row != NULL && 
+		       lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
   mat_zero(mod->rate_matrix->matrix);
 
   for (i = 0; i < mod->rate_matrix->size; i++) {
@@ -1184,7 +1184,8 @@ void tm_set_R3S_matrix(TreeModel *mod, Vector *params, int start_idx) {
   int i, j;
   int alph_size = strlen(mod->rate_matrix->states);
   int nstates = mod->rate_matrix->size;
-  int setup_mapping = (lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
+  int setup_mapping = (mod->rate_matrix_param_row != NULL && 
+		       lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
   int done_row[nstates];
   double rowsum;
   mat_zero(mod->rate_matrix->matrix);
@@ -1282,7 +1283,8 @@ void tm_set_R3S_matrix(TreeModel *mod, Vector *params, int start_idx) {
 void tm_set_U3_matrix(TreeModel *mod, Vector *params, int start_idx) {
   int i, j;
   int alph_size = strlen(mod->rate_matrix->states);
-  int setup_mapping = (lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
+  int setup_mapping = (mod->rate_matrix_param_row != NULL && 
+		       lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
   mat_zero(mod->rate_matrix->matrix);
 
   for (i = 0; i < mod->rate_matrix->size; i++) {
@@ -1325,7 +1327,8 @@ void tm_set_U3S_matrix(TreeModel *mod, Vector *params,
   int alph_size = strlen(mod->rate_matrix->states);
   int nstates = mod->rate_matrix->size;
   int done_row[nstates];
-  int setup_mapping = (lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
+  int setup_mapping = (mod->rate_matrix_param_row != NULL && 
+		       lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
   double rowsum;
   mat_zero(mod->rate_matrix->matrix);
   
@@ -1411,6 +1414,211 @@ void tm_set_U3S_matrix(TreeModel *mod, Vector *params,
 	start_idx, params->size);
 }
 
+
+
+void tm_set_HKY_CODON_matrix(TreeModel *mod, double kappa, int kappa_idx) {
+  int i, j, k, alph_size = strlen(mod->rate_matrix->states), codi[3], codj[3],
+    whichdif;
+  double val1, val2;
+  int setup_mapping = 
+    (kappa_idx >= 0 && mod->rate_matrix_param_row != NULL && 
+     lst_size(mod->rate_matrix_param_row[kappa_idx]) == 0);
+  mat_zero(mod->rate_matrix->matrix);
+
+
+  for (i = 0; i < mod->rate_matrix->size; i++) {
+    double rowsum = 0;
+    codi[0] = i / (alph_size*alph_size);
+    codi[1] = (i % (alph_size*alph_size)) / alph_size;
+    codi[2] = i % alph_size;
+    
+    for (j=0; j < i; j++)
+      rowsum += mm_get(mod->rate_matrix, i, j);  //these have already been set
+
+    for (j = i + 1; j < mod->rate_matrix->size; j++) {
+      codj[0] = j / (alph_size*alph_size);
+      codj[1] = (j % (alph_size*alph_size)) / alph_size;
+      codj[2] = j % alph_size;
+
+      whichdif = -1;
+      for (k=0; k<3; k++) {
+	if (codi[k] != codj[k]) {
+	  if (whichdif != -1) break;
+	  whichdif = k;
+	}
+      }
+      if (k != 3) continue;  //more than one diff between codi and codj
+
+      val1 = vec_get(mod->backgd_freqs, j); 
+      val2 = vec_get(mod->backgd_freqs, i);
+      if (is_transition(mod->rate_matrix->states[codi[whichdif]], 
+			mod->rate_matrix->states[codj[whichdif]])) {
+        val1 *= kappa;
+	val2 *= kappa;
+	
+        if (setup_mapping) {
+          lst_push_int(mod->rate_matrix_param_row[kappa_idx], i);
+          lst_push_int(mod->rate_matrix_param_col[kappa_idx], j);
+	  lst_push_int(mod->rate_matrix_param_row[kappa_idx], j);
+	  lst_push_int(mod->rate_matrix_param_col[kappa_idx], i);
+        }
+      }
+      
+      mm_set(mod->rate_matrix, i, j, val1);
+      mm_set(mod->rate_matrix, j, i, val2);
+      rowsum += val1;
+    }
+    mm_set(mod->rate_matrix, i, i, -1 * rowsum);
+  }
+}
+
+
+void tm_set_REV_CODON_matrix(TreeModel *mod, Vector *params, int start_idx) {
+  int i, j, k, codi[3], codj[3], ni, nj, whichdif;
+  int setup_mapping = (mod->rate_matrix_param_row != NULL && 
+		       lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
+  double val;
+  static char *states;
+  static int alph_size=-1;
+  static int **revmat = NULL;
+
+  if (revmat != NULL && strcmp(states, mod->rate_matrix->states)!=0) {
+    for (i=0; i < alph_size; i++) 
+      sfree(revmat[i]);
+    sfree(revmat);
+    revmat = NULL;
+    sfree(states);
+  }
+  if (revmat == NULL) {
+    int idx=0;
+    states = copy_charstr(mod->rate_matrix->states);
+    alph_size = strlen(states);
+    revmat = smalloc(alph_size*sizeof(double*));
+    set_static_var((void**)&revmat);
+    for (i=0; i < alph_size; i++) 
+      revmat[i] = smalloc(alph_size*sizeof(double));
+    for (i=0; i < alph_size; i++)
+      for (j=i+1; j < alph_size; j++) {
+	revmat[i][j] = revmat[j][i] = start_idx + idx++;
+      }
+  }
+
+  mat_zero(mod->rate_matrix->matrix);
+
+  for (i=0; i < mod->rate_matrix->size; i++) {
+    double rowsum = 0.0;
+    codi[0] = i / (alph_size*alph_size);
+    codi[1] = (i % (alph_size*alph_size)) / alph_size;
+    codi[2] = i % alph_size;
+    
+    for (j = 0; j < mod->rate_matrix->size; j++) {
+      if (i == j) continue;
+      codj[0] = j / (alph_size*alph_size);
+      codj[1] = (j % (alph_size*alph_size)) / alph_size;
+      codj[2] = j % alph_size;
+
+      whichdif = -1;
+      for (k=0; k<3; k++) {
+	if (codi[k] != codj[k]) {
+	  if (whichdif != -1) break;
+	  whichdif = k;
+	}
+      }
+      if (k != 3) continue;
+      ni = codi[whichdif];
+      nj = codj[whichdif];
+      val = vec_get(mod->backgd_freqs, j)*vec_get(params, revmat[ni][nj]);
+      mm_set(mod->rate_matrix, i, j, val);
+      rowsum += val;
+      if (setup_mapping) {
+	lst_push_int(mod->rate_matrix_param_row[revmat[ni][nj]], i);
+	lst_push_int(mod->rate_matrix_param_col[revmat[ni][nj]], j);
+      }
+    }
+    mm_set(mod->rate_matrix, i, i, -rowsum);
+  }
+}
+
+
+
+void tm_set_SSREV_CODON_matrix(TreeModel *mod, Vector *params, int start_idx) {
+  int i, j, k, codi[3], codj[3], ni, nj, whichdif, compi, compj;
+  int setup_mapping = (mod->rate_matrix_param_row != NULL && 
+		       lst_size(mod->rate_matrix_param_row[start_idx]) == 0);
+  double val;
+  static char *states;
+  static int alph_size=-1;
+  static int **revmat = NULL;
+
+  if (revmat != NULL && strcmp(states, mod->rate_matrix->states) != 0) {
+    for (i=0; i < alph_size; i++) 
+      sfree(revmat[i]);
+    sfree(revmat);
+    sfree(states);
+    revmat = NULL;
+  }
+  if (revmat == NULL) {
+    int idx=0;
+    states = copy_charstr(mod->rate_matrix->states);
+    alph_size = strlen(states);
+    revmat = smalloc(alph_size*sizeof(double*));
+    set_static_var((void**)&revmat);
+    for (i=0; i < alph_size; i++) 
+      revmat[i] = smalloc(alph_size*sizeof(double));
+    for (i=0; i < alph_size; i++)  {
+      compi = mod->rate_matrix->inv_states[(int)msa_compl_char(mod->rate_matrix->states[i])];
+      for (j=i+1; j < alph_size; j++) {
+	compj = mod->rate_matrix->inv_states[(int)msa_compl_char(mod->rate_matrix->states[j])];
+	if ((compi < compj && compi < i) ||
+	    (compj < compi && compj < i)) continue;
+	revmat[i][j] = start_idx + idx++;
+	revmat[j][i] = revmat[i][j];
+	if (compi != j) {
+	  revmat[compi][compj] = revmat[i][j];
+	  revmat[compj][compi] = revmat[i][j];
+	}
+      }
+    }
+  }
+
+  mat_zero(mod->rate_matrix->matrix);
+
+  for (i=0; i < mod->rate_matrix->size; i++) {
+    double rowsum = 0.0;
+    codi[0] = i / (alph_size*alph_size);
+    codi[1] = (i % (alph_size*alph_size)) / alph_size;
+    codi[2] = i % alph_size;
+    
+    for (j = 0; j < mod->rate_matrix->size; j++) {
+      if (j == i) continue;
+      codj[0] = j / (alph_size*alph_size);
+      codj[1] = (j % (alph_size*alph_size)) / alph_size;
+      codj[2] = j % alph_size;
+
+      whichdif = -1;
+      for (k=0; k<3; k++) {
+	if (codi[k] != codj[k]) {
+	  if (whichdif != -1) break;
+	  whichdif = k;
+	}
+      }
+      if (k != 3) continue;
+      ni = codi[whichdif];
+      nj = codj[whichdif];
+      val = vec_get(mod->backgd_freqs, j)*vec_get(params, revmat[ni][nj]);
+      mm_set(mod->rate_matrix, i, j, val);
+      rowsum += val;
+      if (setup_mapping) {
+	lst_push_int(mod->rate_matrix_param_row[revmat[ni][nj]], i);
+	lst_push_int(mod->rate_matrix_param_col[revmat[ni][nj]], j);
+      }
+    }
+    mm_set(mod->rate_matrix, i, i, -rowsum);
+  }
+}
+
+
+
 /* void tm_set_GY_matrix(TreeModel *mod, double kappa, double omega) { */
 /*   int i, j; */
 /*   int alph_size = strlen(mod->rate_matrix->states); */
@@ -1457,7 +1665,7 @@ void tm_set_U3S_matrix(TreeModel *mod, Vector *params,
 /*  if (start_idx != params_size) */
 /*    die("ERROR tm_set_GY_matrix start_idx (%i) != params->size (%i)\n", */
 /*	start_idx, params->size); */
-/*   free(aa); */
+/*   sfree(aa); */
 /* } */
 
 /***************************************************************************/
@@ -1494,7 +1702,7 @@ void tm_init_mat_REV(TreeModel *mod, Vector *params, int parm_idx,
 /* initialize SSREV as if HKY */
 void tm_init_mat_SSREV(TreeModel *mod, Vector *params, int parm_idx, 
 		       double kappa) {
-  int i, j, compi, compj;
+  int i, j, compi=-1, compj;
   int count=0;  //testing
   for (i = 0; i < mod->rate_matrix->size; i++) {
     compi=mod->rate_matrix->inv_states[(int)msa_compl_char(mod->rate_matrix->states[i])];
@@ -1519,13 +1727,6 @@ void tm_init_mat_SSREV(TreeModel *mod, Vector *params, int parm_idx,
   if (count != tm_get_nratematparams(mod))
     die("ERROR tm_init_mat_SSERV count (%i) != tm_get_nratematparams(mod) (%i)\n",
 	count, tm_get_nratematparams(mod));
-}
-
-
-void tm_init_mat_REV_GC(TreeModel *mod, Vector *params, int parm_idx,
-			 double kappa) {
-  vec_set(params, parm_idx, 2.0);  //init GC to 1?
-  tm_init_mat_REV(mod, params, parm_idx+1, kappa);
 }
 
 
@@ -1943,6 +2144,7 @@ void tm_init_mat_U3S(TreeModel *mod, Vector *params,
 	parm_idx, params->size);
 }
 
+
 void tm_init_mat_GY(TreeModel *mod, double kappa, double omega) {
   int i, j;
   int alph_size = strlen(mod->rate_matrix->states);
@@ -1971,7 +2173,7 @@ void tm_init_mat_GY(TreeModel *mod, double kappa, double omega) {
       if (aa[i] != aa[j]) val *= omega;
     }
   }    
-  free(aa);
+  sfree(aa);
 }
 
 void tm_init_mat_from_model_REV(TreeModel *mod, Vector *params, 
@@ -2130,8 +2332,7 @@ void tm_init_mat_from_model_U2S(TreeModel *mod, Vector *params,
   int done_row[nstates];
 
   for (i = 0; i < nstates; i++) done_row[i] = 0;
-  for (i = 0; i < nstates; i++) {
-    double val;
+  for (i = 0; i < nstates; i++) {    double val;
     int j, b1_i, b2_i, b1_j, b2_j, b1_comp_i, b2_comp_i, i_comp, b1_comp_j, 
       b2_comp_j, j_comp;
 
@@ -2359,7 +2560,36 @@ void tm_init_mat_from_model_U3S(TreeModel *mod, Vector *params,
 	start_idx, params->size);
 }
 
+void tm_init_mat_from_model_REV_CODON(TreeModel *mod, Vector *params,
+				      int start_idx) {
+  char *states = mod->rate_matrix->states;
+  int i, j, nstate = strlen(states);
+  for (i=0; i < nstate; i++) {
+    for (j=i+1; j < nstate; j++) {
+      vec_set(params, start_idx++, safediv(mm_get(mod->rate_matrix, i, j),
+					   vec_get(mod->backgd_freqs, j)));
+    }
+  }
+}
 
+
+void tm_init_mat_from_model_SSREV_CODON(TreeModel *mod, Vector *params,
+					int start_idx) {
+  char *states = mod->rate_matrix->states;
+  int i, j, compi, compj, nstate = strlen(states);
+  for (i=0; i < nstate; i++) {
+    compi = mod->rate_matrix->inv_states[(int)msa_compl_char(mod->rate_matrix->states[i])];
+    for (j=i+1; j < nstate; j++) {
+      compj=mod->rate_matrix->inv_states[(int)msa_compl_char(mod->rate_matrix->states[j])];
+      if ((compi < compj && compi < i) ||
+	  (compj < compi && compj < i)) continue;
+      //this takes the rate from state 0-0-i to state 0-0-j divided by
+      //equilibrium frequency of state 0-0-j
+      vec_set(params, start_idx++, safediv(mm_get(mod->rate_matrix, i, j),
+					   vec_get(mod->backgd_freqs, j)));
+    }
+  }
+}
 
 
 int tm_flag_subst_param_pos(TreeModel *mod, int *flag, 
@@ -2369,8 +2599,10 @@ int tm_flag_subst_param_pos(TreeModel *mod, int *flag,
     numpar = tm_get_nratematparams(mod);
     if (numpar==0) return 0;
 
-    for (i=0; i<numpar; i++)
-      flag[i] = 1;
+    if (flag != NULL) {
+      for (i=0; i<numpar; i++)
+	flag[i] = 1;
+    }
     return 1;
   }
   switch(mod->subst_mod) {
@@ -2379,56 +2611,293 @@ int tm_flag_subst_param_pos(TreeModel *mod, int *flag,
     return (param_name == NULL);
   case K80:
   case HKY85:
+  case HKY_CODON:
     if (str_equals_nocase_charstr(param_name, "kappa")) {
-      flag[0] = 1;
+      if (flag != NULL) flag[0] = 1;
       return 1;
     }
     return 0;
   case HKY85G:
     if (str_equals_nocase_charstr(param_name, "kappa")) {
-      flag[0] = 1;
+      if (flag != NULL) flag[0] = 1;
       return 1;
     }
     else if (str_equals_nocase_charstr(param_name, "gap_param")) {
-      flag[1] = 1;
+      if (flag != NULL) flag[1] = 1;
       return 1;
     }
-    return 0;
-  case REV:
-  case  R2:
-  case R2S:
-  case R3:
-  case R3S:
-    return 0;
-  case REV_GC:
-    if (str_equals_nocase_charstr(param_name, "gc_param")) {
-      flag[0] = 1;
-      return 1;
-    }
-    else if (str_equals_nocase_charstr(param_name, "alphas")) {
-      numpar = mod->rate_matrix->size*(mod->rate_matrix->size-1)/2;
-      for (i=1; i<=numpar; i++)
-	flag[i] = 1;
-      return 1;
-    }
-    return 0;
-  case UNREST:
-  case U2:
-  case U2S:
-  case U3:
-  case U3S:
     return 0;
   case GC:
     if (str_equals_nocase_charstr(param_name, "kappa")) {
-      flag[0] = 1;
+      if (flag != NULL) flag[0] = 1;
       return 1;
     }
     if (str_equals_nocase_charstr(param_name, "gc_param")) {
-      flag[1] = 1;
+      if (flag != NULL) flag[1] = 1;
       return 1;
     }
     return 0;
   default:
     return 0;
+  }
+}
+
+
+// return (x/(1-e^(-x))) which is multiplication factor for transition rate (i,j) with
+// s + Bij = x
+double tm_sel_bgc_factor(double x) {
+  if (fabs(x) < 1.0e-10)   //use taylor expansion beyond this point
+    return 1.0 + x/2.0 + x*x/12.0;
+  return x/(1.0-exp(-x));
+}
+
+
+//sets factor[0] to the bgc+sel factor for weak mutations
+//factor[1] to the bgc+sel factor for neutral mutations
+//factor[2] to the bgc+sel factor for strong mutations
+void tm_set_bgc_sel_factors(double factor[3], double sel, double bgc) {
+  factor[0] = tm_sel_bgc_factor(sel - bgc);
+  factor[1] = tm_sel_bgc_factor(sel);
+  factor[2] = tm_sel_bgc_factor(sel + bgc);
+}
+
+
+//set factor[i][j] to the selection factor to use when 
+//i==0 indicates neutral mutation (s=0)
+//i==1 indicates selected mutation (s=sel)
+//j==0 indicates bgc strong to weak mutation  (b = -bgc)
+//j==1 indicates bgc neutral mutation (b = 0)
+//j==2 indicates bgc weak to strong mutation (b = bgc)
+void tm_set_bgc_sel_factors_codon(double factor[2][3], double sel, double bgc) {
+  double s, b; 
+  int i, j;
+  for (i=0; i < 2; i++) {
+    s = sel * (double)i;
+    for (j=0; j<3; j++) {
+      b = bgc * (double)(j-1);
+      factor[i][j] = tm_sel_bgc_factor(s+b);
+    }
+  }
+}
+
+
+//sets chartype[i] to 0 if state[i] is a weak state, 1 if it is a strong
+//state, or -1 otherwise
+void tm_bgc_assign_chartype(int* chartype, char *states) {
+  int i, nstate = strlen(states);
+  char c;
+  for (i=0; i < nstate; i++) {
+    c = toupper(states[i]);
+    if (c == 'C' || c== 'G') chartype[i] = 1; //"strong" state
+    else if (c=='A' || c=='T') chartype[i] = 0; //"weak" state
+    else chartype[i] = -1;  //gap or unknown state
+  }
+}
+
+
+//assumes that transitions which require more than one mutation have rate 0.
+//called internally by tm_apply_selection_bgc
+void tm_apply_selection_bgc_codon(MarkovMatrix *mm, 
+				  double selection, double bgc,
+				  int *chartype) {
+  int i, j, k, ni, nj, codi[3], codj[3], whichdif, bgc_idx, 
+    alph_size = strlen(mm->states);
+  double sum, val, sbfactor[2][3], factor;
+  static char *codon_mapping, *alphabet=NULL;
+
+  if (alphabet != NULL && strcmp(alphabet, mm->states) != 0) {
+    sfree(alphabet);
+    sfree(codon_mapping);
+    alphabet = NULL;
+  }
+  if (alphabet == NULL) {
+    alphabet = smalloc(strlen(mm->states+1)*sizeof(char));
+    set_static_var((void**)&alphabet);
+    strcpy(alphabet, mm->states);
+    codon_mapping = get_codon_mapping(alphabet);
+  }
+  tm_set_bgc_sel_factors_codon(sbfactor, selection, bgc);
+
+  for (i=0; i < mm->size; i++) {
+    sum = 0.0;
+    codi[0] = i / (alph_size*alph_size);
+    codi[1] = (i % (alph_size*alph_size)) / alph_size;
+    codi[2] = i % alph_size;
+
+    for (j=0; j < mm->size; j++) {
+      if (i==j) continue;
+      codj[0] = j / (alph_size*alph_size);
+      codj[1] = (j % (alph_size*alph_size)) / alph_size;
+      codj[2] = j % alph_size;
+
+      whichdif = -1;
+      for (k=0; k<3; k++) {
+	if (codi[k] != codj[k]) {
+	  if (whichdif != -1) break;
+	  whichdif = k;
+	}
+      }
+      if (k != 3) continue;
+      
+      ni = codi[whichdif];
+      nj = codj[whichdif];
+      
+      if (chartype[ni] == chartype[nj] || 
+	  chartype[ni] == -1 || chartype[nj] == -1)
+	bgc_idx = 1;  //neutral
+      else if (chartype[ni]==0 && chartype[nj] == 1) 
+	bgc_idx = 2;  //strong
+      else bgc_idx = 0; //weak
+
+      //IS THIS THE BEST WAY TO DEAL WITH STOP CODONS?
+      if (codon_mapping[i] == '$' || codon_mapping[j] == '$') factor = 1.0;
+      else if (codon_mapping[i] == codon_mapping[j])
+	factor = sbfactor[0][bgc_idx];
+      else factor = sbfactor[1][bgc_idx];
+
+      sum += (val = mm_get(mm, i, j)*factor);
+      mm_set(mm, i, j, val);
+    }
+    mm_set(mm, i, i, -sum);
+  }
+}
+
+
+void tm_apply_selection_bgc(MarkovMatrix *mm, double sel, double bgc) {
+  int i, j, chartype[5], idx;
+  double b[3], sum, val;
+
+  tm_bgc_assign_chartype(chartype, mm->states);
+
+  if (mm->size == 64) {
+    tm_apply_selection_bgc_codon(mm, sel, bgc, chartype);
+    return;
+  }
+
+  tm_set_bgc_sel_factors(b, sel, bgc);
+
+  if (mm->size != 4) 
+    die("sel+bgc not implemented for %i states\n", mm->size);
+
+  for (i=0; i < mm->size; i++) {
+    sum = 0.0;
+    for (j=0; j < mm->size; j++) {
+      if (j != i) {
+	if (chartype[i] == chartype[j] || chartype[i] == -1 || chartype[j] == -1)
+	  idx = 1;
+	else if (chartype[i]==0 && chartype[j] == 1)
+	  idx=2;  //weak to strong
+	else idx=0;  //strong to weak
+	
+	sum += (val = mm_get(mm, i, j)*b[idx]);
+	mm_set(mm, i, j, val);
+      }
+    }
+    mm_set(mm, i, i, -sum);
+  }
+
+  if (mm->eigentype == REAL_NUM && bgc != 0.0)
+    mm_set_eigentype(mm, COMPLEX_NUM);
+}
+
+
+void tm_unapply_selection_bgc_codon(MarkovMatrix *mm, 
+				    double selection, double bgc,
+				    int *chartype) {
+  int i, j, k, whichdif, ni, nj, bgc_idx, codi[3], codj[3], alph_size;
+  double sum, val, sbfactor[2][3], factor;
+  static char *codon_mapping, *alphabet=NULL;
+
+  if (alphabet != NULL && strcmp(alphabet, mm->states) != 0) {
+    sfree(alphabet);
+    sfree(codon_mapping);
+    alphabet = NULL;
+  }
+  if (alphabet == NULL) {
+    alphabet = smalloc(strlen(mm->states+1)*sizeof(char));
+    set_static_var((void**)&alphabet);
+    strcpy(alphabet, mm->states);
+    codon_mapping = get_codon_mapping(alphabet);
+  }
+  tm_set_bgc_sel_factors_codon(sbfactor, selection, bgc);
+
+
+  alph_size = strlen(mm->states);
+  for (i=0; i < mm->size; i++) {
+    sum = 0.0;
+    codi[0] = i / (alph_size*alph_size);
+    codi[1] = (i % (alph_size*alph_size)) / alph_size;
+    codi[2] = i % alph_size;
+    
+    for (j=0; j < mm->size; j++) {
+      if (i==j) continue;
+      codj[0] = j / (alph_size*alph_size);
+      codj[1] = (j % (alph_size*alph_size)) / alph_size;
+      codj[2] = j % alph_size;
+
+      whichdif = -1;
+      for (k=0; k<3; k++) {
+	if (codi[k] != codj[k]) {
+	  if (whichdif != -1) break;
+	  whichdif = k;
+	}
+      }
+      if (k != 3) continue;
+      
+      ni = codi[whichdif];
+      nj = codj[whichdif];
+      
+      if (chartype[ni] == chartype[nj] || chartype[ni] == -1 || chartype[nj] == -1)
+	bgc_idx = 1; //neutral
+      else if (chartype[ni] == 0 && chartype[nj] == 1)
+	bgc_idx = 2;  //strong
+      else bgc_idx = 0;  //weak
+
+      if (codon_mapping[i] == '$' || codon_mapping[j] == '$')
+	factor = 1.0;
+      else if (codon_mapping[i] == codon_mapping[j])
+	factor = sbfactor[0][bgc_idx];
+      else factor = sbfactor[1][bgc_idx];
+
+      sum += (val = mm_get(mm, i, j)/factor);
+      mm_set(mm, i, j, val);
+    }
+    mm_set(mm, i, i, -sum);
+  }
+}
+
+
+//here we want to get the matrix back after sel+bgc is applied (for inference of
+// rate matrix parameters)
+void tm_unapply_selection_bgc(MarkovMatrix *mm, double sel, double bgc) {
+  int i, j, chartype[5], idx;
+  double b[3], sum, val;
+
+  tm_bgc_assign_chartype(chartype, mm->states);
+
+  if (mm->size == 64) {
+    tm_unapply_selection_bgc_codon(mm, sel, bgc, chartype);
+    return;
+  }
+
+  tm_set_bgc_sel_factors(b, sel, bgc);
+  
+  if (mm->size != 4)
+    die("sel+bgc not implemented for %i states\n", mm->size);
+
+  for (i=0; i < mm->size; i++) {
+    sum = 0.0;
+    for (j=0; j < mm->size; j++) {
+      if (i==j) continue;
+      if (chartype[i] == chartype[j] || chartype[i] == -1 || chartype[j] == -1)
+	idx = 1;
+      else if (chartype[i]==0 && chartype[j] == 1)
+	idx=2;  //weak to strong
+      else idx=0;  //strong to weak
+      
+      sum += (val = mm_get(mm, i, j)/b[idx]);
+      mm_set(mm, i, j, val);
+    }
+    mm_set(mm, i, i, -sum);
   }
 }

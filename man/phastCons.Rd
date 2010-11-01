@@ -5,7 +5,8 @@
     transitions=NULL, estimate.rho=FALSE,
     estimate.expected.length=FALSE, estimate.transitions=FALSE,
     estimate.trees=FALSE, viterbi=TRUE, gc=NULL, nrates=NULL,
-    ref.idx=1, quiet=FALSE)}
+    ref.idx=1, quiet=FALSE)
+}
 \description{Produce conservation scores and identify conserved elements,
 given a multiple alignment and a phylo-HMM.}
 \details{A phylo-HMM consisting of two states is assumed: a "conserved"
@@ -96,7 +97,9 @@ using the Viterbi algorithm.}
 \item{ref.idx}{An integer value.  Use the coordinate frame of the given sequence.
 Default is 1, indicating the first sequence in the alignment.
 A value of 0 indicates the coordinate frame of the entire alignment.}
-\item{quiet}{If \code{TRUE}, suppress printing of progress information.}}
+\item{quiet}{If \code{TRUE}, suppress printing of progress information.}
+}
+
 \examples{
 require("rphast")
 exampleArchive <- system.file("extdata", "examples.zip", package="rphast")

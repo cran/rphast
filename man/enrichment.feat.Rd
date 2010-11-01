@@ -1,7 +1,8 @@
 \name{enrichment.feat}
 \alias{enrichment.feat}
 \title{Enrichment of features with respect to annotation types...}
-\usage{enrichment.feat(x, annotations, region.bounds)}
+\usage{enrichment.feat(x, annotations, region.bounds)
+}
 \description{Enrichment of features with respect to annotation types}
 \value{A data frame with two columns and a row for each type of
 element in the annotations.  The second column gives the 
@@ -21,4 +22,6 @@ some annotations.}
 \item{region.bounds}{An object of type \code{feat} representing
 the boundary coordinates of the regions of interest (such as chromosome
 boundaries).  All elements from the first two arguments should fall
-entirely within region.bounds.}}
+entirely within region.bounds.}
+}
+
