@@ -5,7 +5,7 @@
   read.msa(filename,
     format = c(guess.format.msa(filename), "FASTA")[1],
     alphabet = NULL, features = NULL, do.4d = FALSE,
-    ordered = ifelse(do.4d || (!is.null(features) && nrow.feat(features) > 1), FALSE, TRUE),
+    ordered = (do.4d == FALSE && is.null(features)),
     tuple.size = (if (do.4d) 3 else NULL), do.cats = NULL,
     refseq = NULL, offset = 0, seqnames = NULL,
     discard.seqnames = NULL, pointer.only = FALSE)

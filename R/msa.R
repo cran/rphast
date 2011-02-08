@@ -459,7 +459,7 @@ write.msa <- function(x, file=NULL,
 ##' @example inst/examples/summary-msa.R
 ##' @author Melissa J. Hubisz
 summary.msa <- function(object, ...,
-                        print.seq=ifelse(ncol.msa(object)*nrow.msa(object) < 500, TRUE, FALSE),
+                        print.seq=ncol.msa(object)<100 && nrow.msa(object)<30,
                         format="FASTA",
                         pretty.print=FALSE) {
   msa <- object
@@ -603,13 +603,21 @@ read.msa <- function(filename,
                      alphabet=NULL,                     
                      features=NULL,
                      do.4d=FALSE,
-                     ordered=ifelse(do.4d || (!is.null(features) && nrow.feat(features) > 1), FALSE, TRUE),
+                     ordered=(do.4d==FALSE && is.null(features)),
                      tuple.size=(if(do.4d) 3 else NULL),
                      do.cats=NULL,
                      refseq=NULL,
                      offset=0,
                      seqnames=NULL, discard.seqnames=NULL,
                      pointer.only=FALSE) {
+  if (ordered && do.4d) {
+    warning("cannot keep order when reading 4d sites; returning un-ordered alignment")
+    ordered = FALSE
+  }
+  if (ordered && !is.null(features) && nrow.feat(features) > 1) {
+    warning("cannot keep order when subsetting by feature with more than one row; returning un-ordered alignment")
+    ordered = FALSE
+  }
 
   cats.cycle <- NULL  
   check.arg(filename, "filename", "character", null.OK=FALSE)
@@ -1675,7 +1683,7 @@ pairwise.diff.msa <- function(x, seq1=NULL, seq2=NULL, ignore.missing=TRUE,
 ##' occur.  In this case, the length of the seqeunces returned may not all be the
 ##' same.
 ##' @param frame An integer specifying an offset from the first column of the
-##' alignment where the coding region starts.  The default 0 means start at
+##' alignment where the coding region starts.  The default 1 means start at
 ##' the beginning.  If \code{one.frame==FALSE}, frame can be a vector of integers,
 ##' one for each species.  Otherwise it should be a single value.
 ##' @return A vector of character strings representing the translated alignment.
@@ -1683,18 +1691,19 @@ pairwise.diff.msa <- function(x, seq1=NULL, seq2=NULL, ignore.missing=TRUE,
 ##' and '*' denoting missing data or a codon with 1 or 2 gaps, and '-' denoting
 ##' a codon with all gaps.
 ##' @author Melissa J. Hubisz
+##' @example inst/examples/translate-msa.R
 ##' @export
-translate.msa <- function(m, one.frame=TRUE, frame=0) {
+translate.msa <- function(m, one.frame=TRUE, frame=1) {
   if (!is.msa(m)) stop("m is not MSA object")
   one.frame <- check.arg(one.frame, "one.frame", "logical", null.OK=FALSE)
   frame <- check.arg(frame, "frame", "integer", null.OK=FALSE, min.length=1L,
             max.length=ifelse(one.frame, 1, nrow.msa(m)))
-  if (sum(frame < 0 || frame >= ncol.msa(m)) > 0L)
-      stop("frame should only contain values between 0 and ncol.msa(m)-1")
+  if (sum(frame <= 0 | frame >= ncol.msa(m)) > 0L)
+      stop("frame should only contain values between 1 and ncol.msa(m)-1")
   if (!one.frame) frame <- rep(frame, length.out=nrow.msa(m))
   if (is.null(m$externalPtr))
     m <- as.pointer.msa(m)
-  .Call.rphast("rph_msa_translate", m$externalPtr, one.frame, frame)
+  .Call.rphast("rph_msa_translate", m$externalPtr, one.frame, as.integer(frame-1))
 }
 
 

@@ -7,7 +7,7 @@
     bgc.expected.length = 1000,
     estimate.bgc.expected.length = FALSE,
     bgc.target.coverage = 0.01,
-    estimate.bgc.target.coverage = TRUE, rho = 0.31,
+    estimate.bgc.target.coverage = TRUE, sel = -2.01483,
     cons.expected.length = 45, cons.target.coverage = 0.3,
     estimate.scale = FALSE, post.probs = TRUE)
 }
@@ -46,8 +46,11 @@
   constrain the rates into and out of gBGC state so that
   bgc.target.coverage does not change.}
 
-  \item{rho}{Set the scaling factor for the conserved
-  state.}
+  \item{sel}{Set the scaling factor for the conserved
+  state. This is a population genetic parameter which
+  translates to a scaling factor of sel/(1-exp(-sel)). The
+  default value of s=-2.01483 translates to a scaling
+  factor of 0.31 in the background branches.}
 
   \item{cons.expected.length}{Set the expected length of
   conserved elements.}

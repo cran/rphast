@@ -29,7 +29,10 @@
 ##' coverage of gBGC tracts (as a fraction between 0 and 1).
 ##' @param estimate.bgc.target.coverage If \code{FALSE}, constrain the rates
 ##' into and out of gBGC state so that bgc.target.coverage does not change.
-##' @param rho Set the scaling factor for the conserved state.
+##' @param sel Set the scaling factor for the conserved state. This is a
+##' population genetic parameter which translates to a scaling factor of
+##' sel/(1-exp(-sel)). The default value of s=-2.01483 translates to a
+##' scaling factor of 0.31 in the background branches.
 ##' @param cons.expected.length Set the expected length of conserved
 ##' elements.
 ##' @param cons.target.coverage Set the target coverage for conserved
@@ -55,7 +58,7 @@ phastBias <- function(align,
                       estimate.bgc.expected.length=FALSE,
                       bgc.target.coverage=0.01,
                       estimate.bgc.target.coverage=TRUE,
-                      rho=0.31,
+                      sel=-2.01483,
                       cons.expected.length=45,
                       cons.target.coverage=0.3,
                       estimate.scale=FALSE,
@@ -74,8 +77,7 @@ phastBias <- function(align,
     if (bgc.target.coverage <= 0 || bgc.target.coverage >= 1)
       stop("bgc.target.coverage should be in the range (0,1), got ", bgc.target.coverage)
   }
-  rho <- check.arg(rho, "rho", "numeric", FALSE)
-  if (rho <= 0) stop("rho should be > 0, got ", rho)
+  sel <- check.arg(sel, "sel", "numeric", FALSE)
   cons.expected.length <- check.arg(cons.expected.length, "cons.expected.length", "numeric", FALSE)
   if (cons.expected.length <= 0) stop("cons.expected.length should be > 0, got ", cons.expected.length)
   cons.target.coverage <- check.arg(cons.target.coverage, "cons.target.coverage", "numeric", FALSE)
@@ -96,7 +98,7 @@ rv <-  rphast.simplify.list(.Call.rphast("rph_bgc_hmm",
                                     estimate.bgc.expected.length,
                                     bgc.target.coverage,
                                     estimate.bgc.target.coverage,
-                                    rho,
+                                    sel,
                                     cons.expected.length,
                                     cons.target.coverage,
                                     estimate.scale,
@@ -123,10 +125,12 @@ print.phastBiasResult <- function(x, ...) {
                         "mu",
                         "nu",
                         "scale",
+                        "sel",
                         "rho",
                         "tracts",
                         "post.prob",
-                        "not.informative")
+                        "not.informative",
+                        "informative")
   elementDescriptions <- c("branch tested for gBGC",
                            "total posterior likelihood",
                            "gBGC strength parameter B",
@@ -135,11 +139,13 @@ print.phastBiasResult <- function(x, ...) {
                            "rate out of conserved state",
                            "rate into conserved state",
                            "overall tree scale",
+                           "population genetic parameter describing selection in conserved state",
                            "conserved state tree scale",
                            "features object with gBGC tracts",
                            "posterior probability for each state in each column",
-                           "features object with regions of alignment not informative for gBGC on foreground branch")
-  isTwoD <- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1)
+                           "features object with regions of alignment not informative for gBGC on foreground branch",
+                           "features object with regions of alignment informative for gBGC on foreground branch")
+  isTwoD <- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1)
 
   for (i in 1:length(possibleElements)) {
     w <- which(names(x) == possibleElements[i])
@@ -203,40 +209,23 @@ bgc.informative <- function(align, foreground, tree, not.informative=FALSE) {
   if (is.null(foreground))
     stop("foreground cannot be NULL")
   align <- as.pointer.msa(align)
-  if (!is.tm(tree)) 
+  if (!is.tm(tree)) {
+    if ((!is.character(tree)) || length(tree) != 1) {
+      stop("stop: bgc.informative expects tree to be newick formatted character string or tree model")
+    }
     tree <- tm(tree, "REV", backgd=rep(0.25, 4))
+  }
   tree <- as.pointer.tm(tree)
-  rv <- rphast.simplify.list(.Call.rphast("rph_bgc_hmm",
+  rv <- rphast.simplify.list(.Call.rphast("rph_bgc_hmm_get_informative",
                                           align$externalPtr,
                                           tree$externalPtr,
-                                          foreground,
-                                          NULL,
-                                          TRUE,
-                                          TRUE,
-                                          TRUE,
-                                          TRUE,
-                                          TRUE,
-					  TRUE,  #estimate.bgc.trans
-                                          NULL,  #bgc.expected.length
-                                          NULL,  #bgc.target.coverage
-                                          1.0,  #initbgc
-                                          1.0, #initSelPos
-                                          -1.0,  #initSelNeg
-                                          c(0.5, 0.5), #initWeights
-                                          0.0001,  #initBgcIn
-                                          0.001,  #initBgcOut
-					  1.0,   #initScaleP
-                                          1.0,   #initRhoP
-                                          FALSE, #postProbsP
-                                          FALSE, #randomPathP
-                                          FALSE, #getLikelihoodP
-                                          informative.only=TRUE))
-  if (not.informative) return(rv)
+                                          foreground))
+  if (!not.informative) return(rv)
   refseq <- names.msa(align[1])
   region.feat <- feat(refseq, start=1+offset.msa(align),
                       end=ncol.msa(align, refseq=refseq)+offset.msa(align))
   rv <- inverse.feat(rv, region.feat)
-  rv$feature <- "informative"
+  rv$feature <- "not.informative"
   rv$srv <- "bgcHmm"
   rv
 }

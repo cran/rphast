@@ -3,7 +3,7 @@
 \title{MSA Summary}
 \usage{
   \method{summary}{msa} (object, ...,
-    print.seq = ifelse(ncol.msa(object) * nrow.msa(object) < 500, TRUE, FALSE),
+    print.seq = ncol.msa(object) < 100 && nrow.msa(object) < 30,
     format = "FASTA", pretty.print = FALSE)
 }
 \arguments{

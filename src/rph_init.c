@@ -3,7 +3,8 @@
 #include <Rdefines.h>
 #include <R_ext/Rdynload.h>
 
-SEXP rph_bgc_hmm(SEXP msaP, SEXP modP, SEXP foregroundP, SEXP doBgcP, SEXP bgcP, SEXP estimateBgcP, SEXP bgcExpectedLengthP, SEXP estimateBgcExpectedLengthP, SEXP bgcTargetCoverageP, SEXP estimateBgcTargetCoverageP, SEXP rhoP, SEXP consExpectedLengthP, SEXP consTargetCoverageP, SEXP estimateScaleP, SEXP postProbsP);
+SEXP rph_bgc_hmm(SEXP msaP, SEXP modP, SEXP foregroundP, SEXP doBgcP, SEXP bgcP, SEXP estimateBgcP, SEXP bgcExpectedLengthP, SEXP estimateBgcExpectedLengthP, SEXP bgcTargetCoverageP, SEXP estimateBgcTargetCoverageP, SEXP selP, SEXP consExpectedLengthP, SEXP consTargetCoverageP, SEXP estimateScaleP, SEXP postProbsP);
+SEXP rph_bgc_hmm_get_informative(SEXP msaP, SEXP modP, SEXP foregroundP);
 SEXP rph_cm_new_from_gff(SEXP gff);
 SEXP rph_cm_new_from_str(SEXP str);
 SEXP rph_gff_copy(SEXP gffP);
@@ -33,6 +34,7 @@ SEXP rph_gff_split(SEXP gffP, SEXP maxLengthP, SEXP dropP, SEXP splitFromRightP)
 SEXP rph_gff_sort(SEXP gffP);
 SEXP rph_gff_nonOverlapping_genes(SEXP gffP);
 SEXP rph_gff_flatten(SEXP gffP);
+SEXP rph_gff_convert_coords(SEXP gffP, SEXP msaP, SEXP toP);
 SEXP rph_hmm_new(SEXP matrixP, SEXP eqFreqP, SEXP beginFreqP, SEXP endFreqP);
 SEXP rph_hmm_new_from_file(SEXP filenameP);
 SEXP rph_hmm_print(SEXP hmmP, SEXP filenameP, SEXP appendP);
@@ -100,6 +102,7 @@ SEXP rph_ms_printSeq(SEXP msP);
 SEXP rph_ms_split_gff(SEXP sequencesP, SEXP featuresP);
 SEXP rph_pwm_read(SEXP filenameP);
 SEXP rph_ms_nseq(SEXP msP);
+SEXP rph_ms_posterior(SEXP inputMSP, SEXP pwmP, SEXP markovModelP, SEXP nOrderP, SEXP conservativeP);
 SEXP rph_ms_score(SEXP inputMSP, SEXP pwmP, SEXP markovModelP, SEXP nOrderP, SEXP conservativeP, SEXP thresholdP, SEXP strandP);
 SEXP rph_ms_simulate(SEXP mmP, SEXP norderP, SEXP alph_sizeP, SEXP lengthP);
 SEXP rph_ms_seqs(SEXP msP);
@@ -174,6 +177,7 @@ SEXP rph_wig_print(SEXP gffP, SEXP filename, SEXP append);
 void R_init_rphast(DllInfo *info) {
   R_CallMethodDef callMethods[] = {
     {"rph_bgc_hmm", (DL_FUNC)&rph_bgc_hmm, 15},
+    {"rph_bgc_hmm_get_informative", (DL_FUNC)&rph_bgc_hmm_get_informative, 3},
     {"rph_cm_new_from_gff", (DL_FUNC)&rph_cm_new_from_gff, 1},
     {"rph_cm_new_from_str", (DL_FUNC)&rph_cm_new_from_str, 1},
     {"rph_gff_copy", (DL_FUNC)&rph_gff_copy, 1},
@@ -203,6 +207,7 @@ void R_init_rphast(DllInfo *info) {
     {"rph_gff_sort", (DL_FUNC)&rph_gff_sort, 1},
     {"rph_gff_nonOverlapping_genes", (DL_FUNC)&rph_gff_nonOverlapping_genes, 1},
     {"rph_gff_flatten", (DL_FUNC)&rph_gff_flatten, 1},
+    {"rph_gff_convert_coords", (DL_FUNC)&rph_gff_convert_coords, 3},
     {"rph_hmm_new", (DL_FUNC)&rph_hmm_new, 4},
     {"rph_hmm_new_from_file", (DL_FUNC)&rph_hmm_new_from_file, 1},
     {"rph_hmm_print", (DL_FUNC)&rph_hmm_print, 3},
@@ -270,6 +275,7 @@ void R_init_rphast(DllInfo *info) {
     {"rph_ms_split_gff", (DL_FUNC)&rph_ms_split_gff, 2},
     {"rph_pwm_read", (DL_FUNC)&rph_pwm_read, 1},
     {"rph_ms_nseq", (DL_FUNC)&rph_ms_nseq, 1},
+    {"rph_ms_posterior", (DL_FUNC)&rph_ms_posterior, 5},
     {"rph_ms_score", (DL_FUNC)&rph_ms_score, 7},
     {"rph_ms_simulate", (DL_FUNC)&rph_ms_simulate, 4},
     {"rph_ms_seqs", (DL_FUNC)&rph_ms_seqs, 1},

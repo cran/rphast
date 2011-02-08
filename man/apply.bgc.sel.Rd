@@ -10,7 +10,7 @@
   \item{bgc}{The bgc (biased gene conversion) parameter,
   population-scaled.}
 
-  \item{sel}{The selection parameter (population-scaled0}
+  \item{sel}{The selection parameter (population-scaled)}
 
   \item{alphabet}{The alphabet used for nucleotide states}
 }

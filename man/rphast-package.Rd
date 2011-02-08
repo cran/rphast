@@ -21,8 +21,8 @@ Copyright: \tab The code in src/pcre is Copyright (c) 1997-2010 University\cr
 \tab of Cambridge.  All other code is Copyright (c) 2002-2010 University\cr
 \tab of California, Cornell University.\cr
 Package: \tab rphast\cr
-License: \tab BSD\cr
-Version: \tab 1.4\cr
+License: \tab BSD_3_clause + file LICENSE\cr
+Version: \tab 1.5\cr
 URL: \tab http://compgen.bscb.cornell.edu/rphast\cr
 Date: \tab 2011-02-08\cr
 Depends: \tab \cr
@@ -46,7 +46,7 @@ Collate: \tab \cr
 \tab 'treeModel.R'\cr
 \tab 'trees.R'\cr
 \tab 'zzz.R'\cr
-Built: \tab R 2.15.1; x86_64-pc-linux-gnu; 2013-03-28 17:17:56 UTC; unix\cr
+Built: \tab R 3.0.2; x86_64-pc-linux-gnu; 2013-12-12 21:19:54 UTC; unix\cr
 }
 
 Index:
@@ -85,6 +85,8 @@ complement              complement
 composition.feat        Composition of features with respect to
                         annotations
 concat.msa              Concatenate msa objects
+convert.coords.feat     Convert coordinates from one frame of reference
+                        to another
 coord.range.msa         Obtain the range of coordinates in a MSA
                         objects
 copy.feat               Features copy
@@ -232,14 +234,6 @@ write.msa               Writing MSA Objects to Files
 write.tm                Wrting Tree Models
 write.wig               Writing a wig file
 write.wig.feat          Write a features object in fixedStep wig format
-}
-
-Further information is available in the following vignettes:
-\tabular{ll}{
-\code{vignette1} \tab vignette1 (source)\cr
-\code{vignette2} \tab vignette2 (source)\cr
-\code{vignette3} \tab vignette3 (source)\cr
-\code{vignette4} \tab vignette1 (source)\cr
 }
 }
 \author{

@@ -2,7 +2,7 @@
 \alias{coverage.feat}
 \title{Features coverage}
 \usage{
-  coverage.feat(..., or = FALSE, not = NULL,
+  coverage.feat(..., or = FALSE, not = FALSE,
     get.feats = FALSE, pointer.only = FALSE)
 }
 \arguments{
