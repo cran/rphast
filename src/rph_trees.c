@@ -28,28 +28,6 @@ Last updated: 1/5/2010
 #include <Rdefines.h>
 
 
-void rph_tree_protect(TreeNode *tr) {
-  TreeNode *n;
-  int i;
-  if (tr == NULL) return;
-  rph_mem_protect(tr);
-  for (i=0; i < tr->nnodes; i++) {
-    n = (TreeNode*)lst_get_ptr(tr->nodes, i);
-    rph_mem_protect(n);
-    if (n->nodes != NULL) 
-      rph_lst_protect(n->nodes);
-    if (n->preorder != NULL)
-      rph_lst_protect(n->preorder);
-    if (n->postorder != NULL)
-      rph_lst_protect(n->postorder);
-    if (n->inorder != NULL)
-      rph_lst_protect(n->inorder);
-    if (n->label != NULL)
-      rph_mem_protect(n->label);
-  }
-}
-
-
 TreeNode* rph_tree_new(SEXP treeStr) {
   TreeNode *tree = tr_new_from_string(CHARACTER_VALUE(treeStr));
   return tree;
@@ -64,9 +42,8 @@ SEXP rph_tree_read(SEXP filename) {
   SEXP result;
   char *currStr, **strvec;
   int i, pos=0, currLen=10000, numparen=0, numtrees_alloc=1000, numtrees=0;
-  TreeNode *tempTree;
 
-  infile = fopen_fname(CHARACTER_VALUE(filename), "r");
+  infile = phast_fopen(CHARACTER_VALUE(filename), "r");
   currStr = smalloc((currLen+2)*sizeof(char));
   strvec = smalloc(numtrees_alloc*sizeof(char*));
   while (1) {
@@ -98,13 +75,11 @@ SEXP rph_tree_read(SEXP filename) {
       strvec[numtrees] = smalloc((strlen(currStr)+1)*sizeof(char));
       strcpy(strvec[numtrees], currStr);
 
-      //check to make sure phast can read this tree
-      tempTree = tr_new_from_string(strvec[numtrees]);
       numtrees++;
     }
     else break;
   }
-  fclose(infile);
+  phast_fclose(infile);
   PROTECT(result = NEW_CHARACTER(numtrees));
   for (i=0; i<numtrees; i++) 
     SET_STRING_ELT(result, i, mkChar(strvec[i]));
@@ -135,7 +110,7 @@ SEXP rph_tree_prune(SEXP treeStr, SEXP seqsP, SEXP allButP) {
     tempStr = str_new_charstr(CHAR(STRING_ELT(seqsP, i)));
     lst_push_ptr(names, tempStr);
   }
-  tr_prune(&tr, names, INTEGER_VALUE(allButP));
+  tr_prune(&tr, names, INTEGER_VALUE(allButP), NULL);
   temp = tr_to_string(tr, 1);
   PROTECT(result = NEW_CHARACTER(1));
   SET_STRING_ELT(result, 0, mkChar(temp));

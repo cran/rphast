@@ -7,11 +7,8 @@
  * file LICENSE.txt for details.
  ***************************************************************************/
 
-/* $Id: vector.h,v 1.4 2008-11-12 02:07:59 acs Exp $ */
-
 /** \file vector.h
-    Vectors of doubles.  Very simple implementation -- essentially
-    just an array.
+    Functions and structures to hold, manipulate, and normalize a vector of type double.
     \ingroup base
 */
 
@@ -74,6 +71,15 @@ Vector *vec_new_from_file(FILE *F, int size);
   @param src Vector to be copied.
 */
 Vector* vec_create_copy(Vector *src);
+
+/** Change the size of a vector
+
+    @param v vector to be resized
+    @param new_size New vector length
+    @return v.  v->data has been reallocated and v->size updated.
+    @note This behaves like regular realloc, in that it will not affect elements 0..min(old_size, new_size)-1.  If new_size > old_size, elements with indices [old_size, ..., new_size-1] will not be initialized.
+*/
+Vector *vec_realloc(Vector *v, int new_size);
 
 /** Release memory used by vector.
   

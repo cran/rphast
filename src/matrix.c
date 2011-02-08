@@ -303,7 +303,16 @@ void mat_mult_diag(Matrix *A, Matrix *B, Vector *C, Matrix *D) {
   }
 }
 
+int mat_equal(Matrix *A, Matrix *B) {
+  int i, j;
+  if (A->nrows != B->nrows || A->ncols != B->ncols) return 0;
+  for (i=0; i < A->nrows; i++) 
+    for (j=0; j < A->ncols; j++)
+      if (A->data[i][j] != B->data[i][j]) return 0;
+  return 1;
+}
 
+#ifndef SKIP_LAPACK
 void mat_to_lapack(Matrix *m, LAPACK_DOUBLE *arr) {
   int i, j, pos=0;
   for (j=0; j<m->ncols; j++)
@@ -317,3 +326,5 @@ void mat_from_lapack(Matrix *m, LAPACK_DOUBLE *arr) {
     for (i=0; i < m->nrows; i++)
       m->data[i][j] = (double)arr[pos++];
 }
+
+#endif

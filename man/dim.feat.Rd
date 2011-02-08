@@ -1,16 +1,19 @@
 \name{dim.feat}
 \alias{dim.feat}
 \title{Feature dimensions}
-\usage{dim.feat(x)
+\usage{
+  \method{dim}{feat} (x)
 }
-\description{Get the dimensions of a features object}
-\value{An integer vector of length two containing the number of
-rows and number of columns in the features object.}
-\keyword{features}
-\author{Melissa J. Hubisz}
-\arguments{\item{x}{an object of type \code{feat}}
+\arguments{
+  \item{x}{an object of type \code{feat}}
 }
-
+\value{
+  An integer vector of length two containing the number of
+  rows and number of columns in the features object.
+}
+\description{
+  Get the dimensions of a features object
+}
 \examples{
 seq <- rep("hg18.chr6", 10)
 src <- rep("fake_example", 10)
@@ -24,3 +27,8 @@ f2 <- as.pointer.feat(f1)
 dim(f2)
 dim.feat(f2)
 }
+\author{
+  Melissa J. Hubisz
+}
+\keyword{features}
+

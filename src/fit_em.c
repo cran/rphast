@@ -11,7 +11,9 @@
 
 /* Functions for fitting tree models by EM */
 
+
 #include <fit_em.h>
+#include <misc.h>
 #include <tree_model.h>
 #include <stringsplus.h>
 #include <ctype.h>
@@ -34,6 +36,7 @@
 /* internal functions */
 double tm_partial_ll_wrapper(Vector *params, void *data);
 double tm_partial_ll_wrapper_fast(Vector *params, void *data);
+double tm_likelihood_wrapper(Vector *params, void *data);
 void tm_log_em(FILE *logf, int header_only, double val, Vector *params);
 void compute_grad_em_approx(Vector *grad, Vector *params, void *data, 
                             Vector *lb, Vector *ub);
@@ -42,13 +45,15 @@ void compute_grad_em_exact(Vector *grad, Vector *params, void *data,
 void get_neighbors(int *neighbors, int state, int order, int alph_size);
 
 
+void remove_ratevar_from_param_map(TreeModel *mod, Vector *params);
+
 /* fit a tree model using EM */
 int tm_fit_em(TreeModel *mod, MSA *msa, Vector *params, int cat, 
-              opt_precision_type precision, FILE *logf) {
+              opt_precision_type precision, int max_its, FILE *logf,
+	      FILE *error_file) {
   double ll, improvement;
   Vector *lower_bounds, *upper_bounds, *opt_params;
-  int retval = 0, it, i, home_stretch = 0, nratecats, nratevarparams,
-    *old_param_map = NULL, npar;
+  int retval = 0, it, i, home_stretch = 0, nratecats, npar;
   double lastll = NEGINFTY, alpha=0, rK0=0, freqK0=0, branchlen_scale;
   struct timeval start_time, end_time, post_prob_start, post_prob_end;
   TreeModel *proj_mod = NULL;
@@ -56,7 +61,9 @@ int tm_fit_em(TreeModel *mod, MSA *msa, Vector *params, int cat,
   FILE *F;
   void (*grad_func)(Vector*, Vector*, void*, Vector*, 
                     Vector*);
+  double (*likelihood_func)(Vector *, void*);
   Matrix *H;
+  int opt_ratevar_freqs=0;
   opt_precision_type bfgs_prec = OPT_LOW_PREC;
                                 /* will be adjusted as necessary */
 
@@ -68,18 +75,14 @@ int tm_fit_em(TreeModel *mod, MSA *msa, Vector *params, int cat,
 		 subst_mod_is_codon_model(mod->subst_mod));
   }
 
-  if (mod->backgd_freqs == NULL) { 
-    mod->backgd_freqs = vec_new(mod->rate_matrix->size);
-    if (mod->subst_mod == JC69 || mod->subst_mod == K80)
-      vec_set_all(mod->backgd_freqs, 1.0/mod->backgd_freqs->size);
-    else
-      msa_get_base_freqs_tuples(msa, mod->backgd_freqs, mod->order + 1, cat);
+  if (mod->backgd_freqs == NULL) {
+    tm_init_backgd(mod, msa, cat);
     for (i=0; i<mod->backgd_freqs->size; i++)
       vec_set(params, mod->backgd_idx+i, vec_get(mod->backgd_freqs, i));
   }
 
   if (mod->tree == NULL) {      /* weight matrix */
-    mod->lnL = tl_compute_log_likelihood(mod, msa, NULL, cat, NULL) * 
+    mod->lnL = tl_compute_log_likelihood(mod, msa, NULL, NULL, cat, NULL) * 
       log(2);
     return 0;
   }
@@ -102,27 +105,21 @@ int tm_fit_em(TreeModel *mod, MSA *msa, Vector *params, int cat,
                                                 mod->empirical_rates ? 1 : 0);
   mod->category = cat;
 
-  /* routines for derivative computation assume complex numbers */
-  mm_set_eigentype(mod->rate_matrix, COMPLEX_NUM);
-
   /* in the case of rate variation, start by ignoring then reinstate
      when close to convergence */
   nratecats = mod->nratecats;
-  if (nratecats > 1) {
-    old_param_map = smalloc(params->size*sizeof(int));
-    for (i=0; i<params->size; i++)
-      old_param_map[i] = mod->param_map[i];
-    nratevarparams = tm_get_nratevarparams(mod);
-    for (i=0; i<nratevarparams; i++) 
-      mod->param_map[mod->ratevar_idx + i] = -1;
-    alpha = mod->alpha;
-    mod->alpha = -nratecats;    /* code to ignore rate variation
-                                   temporarily */
-    mod->nratecats = 1;
-    freqK0 = mod->freqK[0];
-    rK0 = mod->rK[0];
-    mod->freqK[0] = mod->rK[0] = 1;
-    
+  if (nratecats > 1 && mod->param_map[mod->ratevar_idx] != -1) {
+    remove_ratevar_from_param_map(mod, params);
+    opt_ratevar_freqs = 1;
+    if (mod->alt_subst_mods == NULL) {
+      alpha = mod->alpha;
+      mod->alpha = -nratecats;    /* code to ignore rate variation
+  				   temporarily */
+      mod->nratecats = 1;
+      freqK0 = mod->freqK[0];
+      rK0 = mod->rK[0];
+      mod->freqK[0] = mod->rK[0] = 1;
+    }
   }
 
   if (logf != NULL) tm_log_em(logf, 1, 0, params);
@@ -137,36 +134,46 @@ int tm_fit_em(TreeModel *mod, MSA *msa, Vector *params, int cat,
                                    scale or backgd freqs, also require
                                    diagonalization  */
 
+  /* routines for derivative computation assume complex numbers */
+  if (grad_func != NULL)
+    mm_set_eigentype(mod->rate_matrix, COMPLEX_NUM);
+
+  if (mod->estimate_backgd)
+    likelihood_func = tm_likelihood_wrapper;
+  else likelihood_func = tm_partial_ll_wrapper;
+
   npar=0;
   for (i=0; i<params->size; i++) 
     if (mod->param_map[i] >= npar) 
       npar = mod->param_map[i]+1;
   opt_params = vec_new(npar);
-  for (i=0; i<npar; i++) vec_set(opt_params, i, 0);  // in some cases some parameters are not used but need to be initialized
+  for (i=0; i<npar; i++) 
+    vec_set(opt_params, i, 0);  // in some cases some parameters are not used but need to be initialized
   for (i=0; i<params->size; i++) {
     if (mod->param_map[i] >= 0) 
       vec_set(opt_params, mod->param_map[i], vec_get(params, i));
     vec_set(mod->all_params, i, vec_get(params, i));
   }
 
-  /* most params have lower bound of zero and no upper bound */
-  /*  lower_bounds = vec_new(npar);
-  vec_zero(lower_bounds);
-  upper_bounds = NULL;*/
-
-  /* however, in this case we don't want the eq freqs to go to zero */
-  /*  if (mod->estimate_backgd) {
-    for (i = 0; i < mod->backgd_freqs->size; i++)
-      if (mod->param_map[mod->backgd_idx+i] >= 0)  //this should be true since mod->estimate_backgd
-	vec_set(lower_bounds, mod->param_map[mod->backgd_idx + i], 0.001);
-	}*/
-  tm_set_boundaries(&lower_bounds, &upper_bounds, npar, mod);
-
+  tm_new_boundaries(&lower_bounds, &upper_bounds, npar, mod, 0);
 
   H = mat_new(npar, npar);
   mat_set_identity(H);
 
-  for (it = 1; ; it++) {
+  if (mod->estimate_branchlens == TM_BRANCHLENS_NONE ||
+      mod->alt_subst_mods != NULL ||
+      mod->selection_idx >= 0)
+    mod->scale_during_opt = 1;
+  if (mod->estimate_branchlens == TM_BRANCHLENS_ALL) {
+    for (i=0; i < mod->tree->nnodes; i++) {
+      TreeNode *n = lst_get_ptr(mod->tree->nodes, i);
+      if (n != mod->tree && n->hold_constant)
+	mod->scale_during_opt = 1;
+    }
+  }
+
+
+  for (it = 1;  ; it++) {
     double tmp;
     checkInterrupt();
 
@@ -174,14 +181,14 @@ int tm_fit_em(TreeModel *mod, MSA *msa, Vector *params, int cat,
     
     /* if appropriate, dump intermediate version of model for inspection */
     if (mod->order >= 2) {
-      F = fopen(tmp_mod_fname, "w+"); tm_print(F, mod); fclose(F);
+      F = phast_fopen(tmp_mod_fname, "w+"); tm_print(F, mod); phast_fclose(F);
     }
 
     /* obtain posterior probabilities and likelihood */
     if (logf != NULL) 
       gettimeofday(&post_prob_start, NULL);
 
-    ll = tl_compute_log_likelihood(mod, msa, NULL, cat, mod->tree_posteriors) 
+    ll = tl_compute_log_likelihood(mod, msa, NULL, NULL, cat, mod->tree_posteriors) 
       * log(2); 
 
     if (logf != NULL) {
@@ -196,8 +203,9 @@ int tm_fit_em(TreeModel *mod, MSA *msa, Vector *params, int cat,
     lastll = ll;
 
     /* check convergence */
-    if (improvement < TM_EM_CONV(precision) &&
-        bfgs_prec == precision && mod->nratecats == nratecats) 
+    if ((max_its > 0 && it > max_its) || 
+	(improvement < TM_EM_CONV(precision) &&
+	 bfgs_prec == precision && mod->nratecats == nratecats))
                                 /* don't exit unless precision is
                                    already at its max and rate
                                    variation has been reintroduced (if
@@ -231,58 +239,67 @@ int tm_fit_em(TreeModel *mod, MSA *msa, Vector *params, int cat,
        post probs is expensive).  Will require some testing and tuning to
        get it right.  Probably try with U2S, R2, U2. */
     
-
-    opt_bfgs(tm_partial_ll_wrapper, opt_params, (void*)mod, &tmp, lower_bounds,
-             upper_bounds, logf, grad_func, bfgs_prec, H); 
-
-    /* in case of empirical rate variation, also reestimate mixing
+   /* in case of empirical rate variation, also reestimate mixing
        proportions (rate weights).  The m.l.e. for these is a simple
        function of the posterior probs. of the rate categories and the
        rate constants (the maximization step of EM decomposes into two
        separate problems) */
-    if (mod->nratecats > 1 && mod->empirical_rates) {
-      double sum = 0;
-      for (i = 0; i < mod->nratecats; i++) 
-        sum += mod->tree_posteriors->rcat_expected_nsites[i];
-      for (i = 0; i < mod->nratecats; i++) {
-	if (mod->param_map[mod->ratevar_idx + i] >= 0)
-	  vec_set(opt_params, mod->param_map[mod->ratevar_idx + i],
+    if (mod->nratecats > 1 && mod->empirical_rates && opt_ratevar_freqs) {
+      if (mod->site_model) {
+	tm_site_model_set_ml_weights(mod, params, mod->tree_posteriors->rcat_expected_nsites);
+      } else {
+	double sum = 0;
+	for (i = 0; i < mod->nratecats; i++) 
+	  sum += mod->tree_posteriors->rcat_expected_nsites[i];
+	for (i = 0; i < mod->nratecats; i++) {
+	  vec_set(params, mod->ratevar_idx+i, 
 		  mod->tree_posteriors->rcat_expected_nsites[i] / sum);
+	}
       }
-      
-      /* NOTE: currently, the rate weights are part of the parameter
-         vector optimized by BFGS, but are given partial derivatives
-         of zero.  This is mathematically okay, but computationally
-         inefficient, because it causes a lot of zeroes to have to be
-         propagated through the manipulations of the gradient vector
-         and Hessian.  One simple workaround would be to put these
-         parameters at the end of the vector, rather than in the
-         middle, and to fool BFGS into ignoring them by reducing the
-         dimension of the vector before calling opt_bfgs (would then
-         change the vector back when opt_bfgs returned) */
+      for (i=0; i < tm_get_nratevarparams(mod); i++)
+	vec_set(mod->all_params, mod->ratevar_idx+i, vec_get(params, mod->ratevar_idx+i));
     }
+
+    opt_bfgs(likelihood_func, opt_params, (void*)mod, &tmp, lower_bounds,
+             upper_bounds, logf, grad_func, bfgs_prec, H, NULL); 
 
     if (mod->nratecats != nratecats && 
         improvement < TM_EM_CONV(OPT_CRUDE_PREC) && home_stretch) {
+      int nrateparams = tm_get_nratevarparams(mod);
+      int old_npar = npar;
       if (logf != NULL) fprintf(logf, "Introducing rate variation.\n");
       mod->nratecats = nratecats;
       mod->alpha  = alpha;
       mod->rK[0] = rK0;
       mod->freqK[0] = freqK0;
-      for (i=0; i<params->size; i++) {
-	if (mod->param_map[i] == -1 && old_param_map[i] >= 0) {
-	  vec_set(opt_params, old_param_map[i], vec_get(mod->all_params, i));
-	  mod->param_map[i] = old_param_map[i];
+      if (opt_ratevar_freqs && !mod->empirical_rates) {
+	npar += nrateparams;
+	vec_realloc(opt_params, npar);
+	for (i=0; i < nrateparams; i++) {
+	  mod->param_map[mod->ratevar_idx+i] = i + old_npar;
+	  vec_set(opt_params, i + old_npar, 
+		  vec_get(mod->all_params, mod->ratevar_idx + i));
+	  
 	}
+	if (lower_bounds != NULL) vec_free(lower_bounds);
+	if (upper_bounds != NULL) vec_free(upper_bounds);
+	tm_new_boundaries(&lower_bounds, &upper_bounds, npar, mod, 0);
+	mat_free(H);
+	H = mat_new(npar, npar);
+	mat_set_identity(H);
       }
     }
   }
 
   mod->lnL = ll;
 
+  if (error_file != NULL)
+    tm_variance(error_file, mod, msa, mod->all_params, cat);
+
   /* take care of final scaling of rate matrix and branch lengths */
   branchlen_scale = 1;
-  if (mod->subst_mod != JC69 && mod->subst_mod != F81) {
+  if (mod->scale_during_opt == 0 && mod->subst_mod != JC69 && 
+      mod->subst_mod != F81) {
     branchlen_scale *= tm_scale_rate_matrix(mod); 
     tm_scale_params(mod, params, branchlen_scale); 
     /* FIXME: this inserted so params reflect model on exit, but won't
@@ -313,10 +330,24 @@ int tm_fit_em(TreeModel *mod, MSA *msa, Vector *params, int cat,
   vec_free(lower_bounds);
   tl_free_tree_posteriors(mod, msa, mod->tree_posteriors);
   mod->tree_posteriors = NULL;
-  if (old_param_map != NULL) sfree(old_param_map);
 
   vec_free(opt_params);
   return retval;
+}
+
+
+void remove_ratevar_from_param_map(TreeModel *mod, Vector *params) {
+  int i, j;
+  if (mod->nratecats == 1) return;
+
+  for (i=mod->ratevar_idx; i < mod->ratevar_idx + tm_get_nratevarparams(mod); i++) {
+    if (mod->param_map[i] >= 0) {
+      for (j=0; j < params->size; j++)
+	if (mod->param_map[j] > mod->param_map[i])
+	  mod->param_map[j]--;
+      mod->param_map[i] = -1;
+    }
+  }
 }
 
 
@@ -383,7 +414,7 @@ void compute_grad_em_approx(Vector *grad, Vector *params, void *data,
 
   TreeModel *mod = (TreeModel*)data;
   MarkovMatrix *P, *Q = mod->rate_matrix;
-  int alph_size = strlen(mod->rate_matrix->states);
+  int alph_size = (int)strlen(mod->rate_matrix->states);
   int nstates = mod->rate_matrix->size;
   int ndigits = mod->order + 1;
   int nneighbors = ((alph_size-1) * ndigits + 1);
@@ -656,7 +687,7 @@ void compute_grad_em_approx(Vector *grad, Vector *params, void *data,
                                    wrt rate weights (they're already
                                    incorporated into the post
                                    probs) */
-    int nrc = mod->nratecats > 1 ? mod->nratecats : -mod->alpha;
+    int nrc = mod->nratecats > 1 ? mod->nratecats : -(int)mod->alpha;
     for (; nrc >= 1; nrc--) {
       grad_idx = mod->param_map[mod->ratevar_idx + nrc - 1];
       if (grad_idx >= 0)
@@ -1091,7 +1122,7 @@ void compute_grad_em_exact(Vector *grad, Vector *params, void *data,
                                    wrt rate weights (they're already
                                    incorporated into the post
                                    probs) */
-    int nrc = mod->nratecats > 1 ? mod->nratecats : -mod->alpha;
+    int nrc = mod->nratecats > 1 ? mod->nratecats : -(int)mod->alpha;
     for (; nrc >= 1; nrc--) {
       grad_idx = mod->param_map[mod->ratevar_idx + nrc - 1];
       if (grad_idx >= 0)

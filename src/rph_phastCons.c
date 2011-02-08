@@ -64,6 +64,7 @@ SEXP rph_phastCons(SEXP msaP,
   p->mod = (TreeModel**)smalloc(p->nummod*sizeof(TreeModel*));
   for (i=0; i<p->nummod; i++) {
     p->mod[i]=(TreeModel*)EXTPTR_PTR(VECTOR_ELT(modP, i));
+    p->mod[i]->use_conditionals = 1;
   }
   if (rhoP != R_NilValue) 
     p->rho = NUMERIC_VALUE(rhoP);
@@ -121,7 +122,7 @@ SEXP rph_phastCons(SEXP msaP,
     p->hmm = (HMM*)EXTPTR_PTR(hmmP);
     p->two_state = FALSE;
     p->nummod = p->hmm->nstates;
-    rph_hmm_register_protect(p->hmm);
+    hmm_register_protect(p->hmm);
   }
   
   if (statesP != R_NilValue) {
@@ -149,9 +150,9 @@ SEXP rph_phastCons(SEXP msaP,
   if (categoryMapP != R_NilValue)
     p->cm = cm_new_string_or_file(CHARACTER_VALUE(categoryMapP));
 
-  rph_msa_register_protect(p->msa);
+  msa_register_protect(p->msa);
   for (i=0; i < LENGTH(modP); i++)
-    rph_tm_register_protect((TreeModel*)EXTPTR_PTR(VECTOR_ELT(modP, i)));
+    tm_register_protect((TreeModel*)EXTPTR_PTR(VECTOR_ELT(modP, i)));
 
   phastCons(p);
 

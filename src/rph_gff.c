@@ -26,61 +26,23 @@ Last updated: 1/5/2010
 #include <misc.h>
 #include <list_of_lists.h>
 #include <rph_util.h>
+#include <limits.h>
 
 #include <Rdefines.h>
 
 
 void rph_gff_free(SEXP gffPtr) {
   GFF_Set *gff = (GFF_Set*)EXTPTR_PTR(gffPtr);
-  rph_unregister_protected(gff);
+  phast_unregister_protected(gff);
   gff_free_set(gff);
 }
 
-
-void rph_gff_feat_protect(GFF_Feature *feat) {
-  rph_mem_protect(feat);
-  rph_str_protect(feat->seqname);
-  rph_str_protect(feat->source);
-  rph_str_protect(feat->feature);
-  rph_str_protect(feat->attribute);
-}
-
-
-void rph_gff_protect(GFF_Set *gff) {
-  int i;
-  rph_mem_protect(gff);
-  if (gff->features != NULL) {
-    rph_lst_protect(gff->features);
-    for (i=0; i < lst_size(gff->features); i++) {
-      rph_gff_feat_protect(lst_get_ptr(gff->features, i));
-    }
-  }
-  rph_str_protect(gff->gff_version);
-  rph_str_protect(gff->source);
-  rph_str_protect(gff->source_version);
-  rph_str_protect(gff->date);
-  if (gff->groups != NULL) {
-    rph_lst_protect(gff->groups);
-    for (i=0; i < lst_size(gff->groups); i++) {
-      GFF_FeatureGroup *g = lst_get_ptr(gff->groups, i);
-      rph_mem_protect(g);
-      rph_str_protect(g->name);
-      rph_lst_protect(g->features);
-    }
-  }
-  rph_str_protect(gff->group_tag);
-}
-
-
-void rph_gff_register_protect(GFF_Set *gff) {
-  rph_register_protected_object(gff, (void (*)(void *))rph_gff_protect);
-}
 
 SEXP rph_gff_new_extptr(GFF_Set *gff) {
   SEXP result;
   PROTECT(result=R_MakeExternalPtr((void*)gff, R_NilValue, R_NilValue));
   R_RegisterCFinalizerEx(result, rph_gff_free, 1);
-  rph_gff_register_protect(gff);
+  gff_register_protect(gff);
   UNPROTECT(1);
   return result;
 }
@@ -92,10 +54,10 @@ SEXP rph_gff_copy(SEXP gffP) {
 
 
 SEXP rph_gff_read(SEXP filename) {
-  FILE *infile = fopen_fname(CHARACTER_VALUE(filename), "r");
+  FILE *infile = phast_fopen(CHARACTER_VALUE(filename), "r");
   SEXP rv;
   PROTECT(rv = rph_gff_new_extptr(gff_read_set(infile)));
-  fclose(infile);
+  phast_fclose(infile);
   UNPROTECT(1);
   return rv;
 }
@@ -116,7 +78,7 @@ SEXP rph_gff_dataframe(SEXP gffPtr) {
 
 
   gff = (GFF_Set*)EXTPTR_PTR(gffPtr);
-  rph_gff_register_protect(gff);
+  gff_register_protect(gff);
 
   len = lst_size(gff->features);
 
@@ -250,10 +212,10 @@ SEXP rph_gff_print(SEXP filename, SEXP gff) {
   FILE *outfile;
   if (filename == R_NilValue)
     outfile = stdout;
-  else outfile = fopen_fname(CHARACTER_VALUE(filename), "w");
+  else outfile = phast_fopen(CHARACTER_VALUE(filename), "w");
   
   gff_print_set(outfile, (GFF_Set*)EXTPTR_PTR(gff));
-  if (outfile != stdout) fclose(outfile);
+  if (outfile != stdout) phast_fclose(outfile);
   return R_NilValue;
 }
 
@@ -489,14 +451,14 @@ SEXP rph_gff_one_attribute(SEXP gffP, SEXP tagP) {
   ListOfLists *lol;
   List *l1, *l2;
   int numtag, numval, i, j, k, resultLen, maxResultLen=10;
-  String *currStr, *tag;
+  String *currStr, *tag, *currTag;
   char **result;
   SEXP rv;
   SEXP rph_listOfLists_to_SEXP(ListOfLists *lol);
 
-
+  
   if (lst_size(gff->features) == 0) return R_NilValue;
-  rph_gff_register_protect(gff);
+  gff_register_protect(gff);
   result = smalloc(maxResultLen*sizeof(char*));    
   tag = str_new_charstr(CHARACTER_VALUE(tagP));
   str_double_trim(tag);
@@ -511,15 +473,19 @@ SEXP rph_gff_one_attribute(SEXP gffP, SEXP tagP) {
     for (j=0; j < numtag; j++) {
       currStr = (String*)lst_get_ptr(l1, j);
       str_double_trim(currStr);
-
-      //split into tag val val ... by whitespace unless enclosed in quotes
-      numval =  str_split_with_quotes(currStr, NULL, l2);
-      if (numval > 1) {
-	currStr = (String*)lst_get_ptr(l2, 0);
-	str_double_trim(currStr);
-	if (str_equals(tag, currStr)) {  //tag matches target, add all values to list
-	  for (k=1; k < numval; k++) {
-	    currStr = (String*)lst_get_ptr(l2, k);
+      
+      //first try gff version 3, see if we have tag=val format
+      numval = str_split_with_quotes(currStr, "=", l2);
+      if (numval == 2) {
+	currTag = (String*)lst_get_ptr(l2, 0);
+	str_double_trim(currTag);
+	if (str_equals(tag, currTag)) {  // tag matches target, add all values to list
+	  currStr = str_new_charstr(((String*)lst_get_ptr(l2, 1))->chars);
+	  lst_free_strings(l2);
+	  numval = str_split_with_quotes(currStr, ",", l2);
+	  str_free(currStr);
+	  for (k=0; k < numval; k++) {
+	    currStr = lst_get_ptr(l2, k);
 	    str_double_trim(currStr);
 	    str_remove_quotes(currStr);
 	    if (resultLen > maxResultLen) {
@@ -529,6 +495,29 @@ SEXP rph_gff_one_attribute(SEXP gffP, SEXP tagP) {
 	    result[resultLen++] = copy_charstr(currStr->chars);
 	  }
 	}
+      } else {
+	lst_free_strings(l2);
+	
+	//gff version 2
+	//split into tag val val ... by whitespace unless enclosed in quotes
+	numval =  str_split_with_quotes(currStr, NULL, l2);
+	if (numval > 1) {
+	  currStr = (String*)lst_get_ptr(l2, 0);
+	  str_double_trim(currStr);
+	  if (str_equals(tag, currStr)) {  //tag matches target, add all values to list
+	    for (k=1; k < numval; k++) {
+	      currStr = (String*)lst_get_ptr(l2, k);
+	      str_double_trim(currStr);
+	      str_remove_quotes(currStr);
+	      if (resultLen > maxResultLen) {
+		maxResultLen += 100;
+		result = srealloc(result, maxResultLen*sizeof(char*));
+	      }
+	      result[resultLen++] = copy_charstr(currStr->chars);
+	    }
+	  }
+	}
+	lst_free_strings(l2);
       }
     }
     if (resultLen == 0) 
@@ -547,12 +536,12 @@ SEXP rph_gff_overlapSelect(SEXP gffP, SEXP filter_gffP,
 			   SEXP percentOverlapP,
 			   SEXP nonOverlappingP,
 			   SEXP overlappingFragmentsP) {
-  GFF_Set *gff, *filter_gff;
+  GFF_Set *gff, *filter_gff, *overlapping_gff=NULL;
   int numbaseOverlap, nonOverlapping;
   double percentOverlap, overlappingFragments;
 
   gff = (GFF_Set*)EXTPTR_PTR(gffP);
-  rph_gff_register_protect(gff);
+  gff_register_protect(gff);
   filter_gff = (GFF_Set*)EXTPTR_PTR(filter_gffP);
   if (percentOverlapP == R_NilValue)
     percentOverlap = -1.0;
@@ -566,10 +555,18 @@ SEXP rph_gff_overlapSelect(SEXP gffP, SEXP filter_gffP,
   if (overlappingFragmentsP == R_NilValue)
     overlappingFragments = FALSE;
   else overlappingFragments = LOGICAL_VALUE(overlappingFragmentsP);
+  
+  if (overlappingFragments) overlapping_gff = gff_new_set();
 
   filter_gff = gff_overlap_gff(gff, filter_gff,
 			       numbaseOverlap, percentOverlap, nonOverlapping,
-			       overlappingFragments);
+			       overlappingFragments, overlapping_gff);
+  if (overlappingFragments) {
+    ListOfLists *rv = lol_new(2);
+    lol_push_gff_ptr(rv, filter_gff, "frags");
+    lol_push_gff_ptr(rv, overlapping_gff, "filter.frags");
+    return rph_listOfLists_to_SEXP(rv);
+  }
   return rph_gff_new_extptr(filter_gff);
 }
 
@@ -577,7 +574,7 @@ SEXP rph_gff_overlapSelect(SEXP gffP, SEXP filter_gffP,
 SEXP rph_gff_add_UTRs(SEXP gffP) {
   GFF_Set *gff;
   gff = (GFF_Set*)EXTPTR_PTR(gffP);
-  rph_gff_register_protect(gff);
+  gff_register_protect(gff);
   gff_group(gff, "transcript_id");
   gff_create_utrs(gff);
   return gffP;
@@ -587,7 +584,7 @@ SEXP rph_gff_add_UTRs(SEXP gffP) {
 SEXP rph_gff_add_introns(SEXP gffP) {
   GFF_Set *gff;
   gff = (GFF_Set*)EXTPTR_PTR(gffP);
-  rph_gff_register_protect(gff);
+  gff_register_protect(gff);
   gff_group(gff, "transcript_id");
   gff_create_introns(gff);
   return gffP;
@@ -597,7 +594,7 @@ SEXP rph_gff_add_introns(SEXP gffP) {
 SEXP rph_gff_add_signals(SEXP gffP) {
   GFF_Set *gff;
   gff = (GFF_Set*)EXTPTR_PTR(gffP);
-  rph_gff_register_protect(gff);
+  gff_register_protect(gff);
   gff_group(gff, "transcript_id");
   gff_create_signals(gff);
   return gffP;
@@ -607,7 +604,7 @@ SEXP rph_gff_add_signals(SEXP gffP) {
 SEXP rph_gff_fix_start_stop(SEXP gffP) {
   GFF_Set *gff;
   gff = (GFF_Set*)EXTPTR_PTR(gffP);
-  rph_gff_register_protect(gff);
+  gff_register_protect(gff);
   gff_group(gff, "transcript_id");
   gff_fix_start_stop(gff);
   return gffP;
@@ -619,15 +616,17 @@ SEXP rph_gff_fix_start_stop(SEXP gffP) {
 SEXP rph_gff_inverse(SEXP gffP, SEXP regionP) {
   GFF_Set *gff, *region, *notgff;
   gff = (GFF_Set*)EXTPTR_PTR(gffP);
-  rph_gff_register_protect(gff);
+  gff_register_protect(gff);
   region = (GFF_Set*)EXTPTR_PTR(regionP);  
+  gff_register_protect(region);
   notgff = gff_inverse(gff, region);
   return rph_gff_new_extptr(notgff);
 }
 
 
 SEXP rph_gff_featureBits(SEXP gffListP, SEXP orP, SEXP returnGffP) {
-  int numGff, i, j, or, returnGff, numbit=0;
+  int numGff, i, j, or, returnGff;
+  long numbit = 0;
   List *gfflist;
   GFF_Set *gff, *newgff=NULL;
   GFF_Feature *feat, *newfeat;
@@ -639,20 +638,20 @@ SEXP rph_gff_featureBits(SEXP gffListP, SEXP orP, SEXP returnGffP) {
   for (i = 0; i < numGff; i++) {
     gff = (GFF_Set*)EXTPTR_PTR(VECTOR_ELT(gffListP, i));
     lst_push_ptr(gfflist, gff);
-    rph_gff_register_protect(gff);
+    gff_register_protect(gff);
   }
   or = LOGICAL_VALUE(orP);
   returnGff = LOGICAL_VALUE(returnGffP);
   if (!or && numGff >= 2) {
     newgff = gff_overlap_gff(lst_get_ptr(gfflist, 0),
 			     lst_get_ptr(gfflist, 1),
-			     1, -1.0, FALSE, TRUE);
+			     1, -1.0, FALSE, TRUE, NULL);
     numbit = gff_flatten_mergeAll(newgff);
     for (i=2; i < numGff; i++) {
       checkInterrupt();
       gff = gff_overlap_gff(newgff,
 			    lst_get_ptr(gfflist, i),
-			    1, -1.0, FALSE, TRUE);
+			    1, -1.0, FALSE, TRUE, NULL);
       numbit = gff_flatten_mergeAll(gff);
       gff_free_set(newgff);
       newgff = gff;
@@ -672,8 +671,14 @@ SEXP rph_gff_featureBits(SEXP gffListP, SEXP orP, SEXP returnGffP) {
   }
   if (returnGff) 
     return rph_gff_new_extptr(newgff);
-  PROTECT(rv = allocVector(INTSXP, 1));
-  INTEGER(rv)[0] = numbit;
+  
+  if (numbit > INT_MAX) {
+    PROTECT(rv = allocVector(REALSXP, 1));
+    REAL(rv)[0] = numbit;
+  } else {
+    PROTECT(rv = allocVector(INTSXP, 1));
+    INTEGER(rv)[0] = numbit;
+  }
   UNPROTECT(1);
   return rv;
 }
@@ -684,7 +689,7 @@ SEXP rph_gff_append(SEXP gffListP) {
   int i, j;
   for (i=0 ; i<length(gffListP); i++) {
     gff = (GFF_Set*)EXTPTR_PTR(VECTOR_ELT(gffListP, i));
-    rph_gff_register_protect(gff);
+    gff_register_protect(gff);
     for (j=0; j < lst_size(gff->features); j++) {
       checkInterruptN(j, 1000);
       lst_push_ptr(newgff->features, 
@@ -699,7 +704,7 @@ SEXP rph_gff_split(SEXP gffP, SEXP maxLengthP, SEXP dropP, SEXP splitFromRightP)
   GFF_Set *gff, *newgff;
   int *maxlen, maxlen_size, *splitFromRight, splitFrom_size, drop;
   gff = (GFF_Set*)EXTPTR_PTR(gffP);
-  rph_gff_register_protect(gff);
+  gff_register_protect(gff);
   drop = LOGICAL_VALUE(dropP);
   PROTECT(maxLengthP = AS_INTEGER(maxLengthP));
   maxlen = INTEGER_POINTER(maxLengthP);
@@ -716,7 +721,8 @@ SEXP rph_gff_split(SEXP gffP, SEXP maxLengthP, SEXP dropP, SEXP splitFromRightP)
 
 SEXP rph_gff_sort(SEXP gffP) {
   GFF_Set *gff = (GFF_Set*)EXTPTR_PTR(gffP);
-  rph_gff_register_protect(gff);
+  gff_register_protect(gff);
+  gff_group_by_seqname(gff);
   gff_sort(gff);
   return gffP;
 }
@@ -725,8 +731,17 @@ SEXP rph_gff_sort(SEXP gffP) {
 SEXP rph_gff_nonOverlapping_genes(SEXP gffP) {
   GFF_Set *gff = (GFF_Set*)EXTPTR_PTR(gffP);
   if (lst_size(gff->features) == 0) return gffP;
-  rph_gff_register_protect(gff);
+  gff_register_protect(gff);
   gff_group(gff, "transcript_id");
   gff_remove_overlaps(gff, NULL);
+  return gffP;
+}
+
+
+SEXP rph_gff_flatten(SEXP gffP) {
+  GFF_Set *gff = (GFF_Set*)EXTPTR_PTR(gffP);
+  gff_register_protect(gff);
+  gff_group_by_seqname(gff);
+  gff_flatten_within_groups(gff);
   return gffP;
 }

@@ -25,6 +25,7 @@ Last updated: 4/8/2010
 #include <trees.h>
 #include <phylo_p.h>
 #include <rph_util.h>
+#include <memory_handler.h>
 
 #include <Rdefines.h>
 
@@ -55,10 +56,10 @@ SEXP rph_phyloP(SEXP modP,
   int i, numprotect=0;
 
   p->mod = (TreeModel*)EXTPTR_PTR(modP);
-  rph_tm_register_protect(p->mod);
+  tm_register_protect(p->mod);
   if (msaP != R_NilValue) {
     p->msa = (MSA*)EXTPTR_PTR(msaP);
-    rph_msa_register_protect(p->msa);
+    msa_register_protect(p->msa);
   }
   if (methodP != R_NilValue) {
     strcpy(tempstr, CHARACTER_VALUE(methodP));
@@ -80,7 +81,7 @@ SEXP rph_phyloP(SEXP modP,
   }
   if (gffP != R_NilValue) {
     p->feats = (GFF_Set*)EXTPTR_PTR(gffP);
-    rph_gff_register_protect(p->feats);
+    gff_register_protect(p->feats);
   }
 
   if (basewiseP != R_NilValue)
@@ -103,7 +104,7 @@ SEXP rph_phyloP(SEXP modP,
   else if (p->msa != NULL)
     p->chrom = copy_charstr(p->msa->names[p->refidx-1]);
   if (outfileP != R_NilValue) {
-    p->outfile = fopen_fname(CHARACTER_VALUE(outfileP), "w");
+    p->outfile = phast_fopen(CHARACTER_VALUE(outfileP), "w");
   }
   if (outfileOnlyP != R_NilValue && LOGICAL_VALUE(outfileOnlyP)) {
     lol_free(p->results);
@@ -146,7 +147,7 @@ SEXP rph_phyloP(SEXP modP,
   PutRNGstate();
   
   if (p->outfile != NULL && p->outfile != stdout && p->outfile != stderr) 
-    fclose(p->outfile);
+    phast_fclose(p->outfile);
   if (p->results != NULL) {
     PROTECT(rv = rph_listOfLists_to_SEXP(p->results));
     numprotect++;

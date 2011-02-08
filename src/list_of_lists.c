@@ -2,6 +2,7 @@
 #include <misc.h>
 #include <tree_likelihoods.h>
 #include <list_of_lists.h>
+#include <ms.h>
 
 //make a new list of lists (LOL)
 ListOfLists *lol_new(int approx_size) {
@@ -199,6 +200,8 @@ void lol_push_treeModel(ListOfLists *lol, TreeModel *tm,
       lol_push_dbl(tmList, tm->rK, tm->nratecats, "rate.consts");
     if (tm->freqK != NULL)
       lol_push_dbl(tmList, tm->freqK, tm->nratecats, "rate.weights");
+    if (tm->site_model)
+      lol_push_int(tmList, &tm->site_model, 1, "site.model");
   }
   if (tm->selection_idx >= 0)
     lol_push_dbl(tmList, &(tm->selection), 1, "selection");
@@ -228,7 +231,7 @@ void lol_push_treeModel(ListOfLists *lol, TreeModel *tm,
       lol_push_charvec(currAltMod, &(altmod->defString->chars), 1, "defn");
       lol_push_lol(altModList, currAltMod, NULL);
     }
-    lol_push_lol(tmList, altModList, "alt.model");
+    lol_push_lol(tmList, altModList, "ls.model");
   }
 
   lol_set_class(tmList, "tm");
@@ -340,6 +343,12 @@ void lol_push_msa_ptr(ListOfLists *lol, MSA *msa, const char *name) {
   lol_push(lol, msaLst, name, LIST_LIST);
 } 
 
+void lol_push_ms_ptr(ListOfLists *lol, MS *ms, const char *name) { 
+  ListOfLists *msLst = lol_new(1);
+  lol_set_class(msLst, "ms");
+  lol_push(msLst, ms, "externalPtr", MS_PTR_LIST);
+  lol_push(lol, msLst, name, LIST_LIST);
+} 
 
 //free a lol and associated memory (if type is char free the strings)
 //Does not free GFF or MSA pointers however.

@@ -111,10 +111,9 @@ LocalPwAlignment *la_read_lav(FILE *F, int read_seqs) {
       fname = str_new(tmpstr->length-2); /* remove quotes */
       str_substring(fname, tmpstr, 1, tmpstr->length-2);
       if (read_seqs) {
-        if ((F2 = fopen(fname->chars, "r")) == NULL) {
-          die("ERROR: cannot read sequence from %s.\n", fname->chars);
-        }
+        F2 = phast_fopen(fname->chars, "r");
         seq = msa_read_seq_fasta(F2);
+	phast_fclose(F2);
       }
 
       for (i = 0; i < lst_size(fields); i++) 
@@ -369,7 +368,8 @@ MSA* la_create_multiple_pw_alignment(int keep_order) {
 int la_get_target_coord(LocalPwAlignment *lpwa, int query_coord, 
                         adjust_dir adjust) {
   int i, j;
-  int q1 = -1, q2 = -2, t1 = -1, t2 = -1;
+  int q1 = -1, t1 = -1, t2 = -1;
+  //  int q2 = -2;  //set but not used
   AlignmentBlock *last_ab = NULL;
   GaplessAlignment *last_ga = NULL;
   /* find query coords q1 and q2 bracketing the position in question,
@@ -383,12 +383,12 @@ int la_get_target_coord(LocalPwAlignment *lpwa, int query_coord,
       /* coord falls between alignment blocks */
       if (last_ab == NULL) {    /* occurs at beginning */
         q1 = t1 = 0;
-        q2 = ab->query_beg;
+	//        q2 = ab->query_beg;
         t2 = ab->query_end;
       }
       else {
         q1 = last_ab->query_end;  
-        q2 = ab->query_beg;
+	//        q2 = ab->query_beg;
         t1 = last_ab->target_end;
         t2 = ab->target_beg;
       }
@@ -405,7 +405,7 @@ int la_get_target_coord(LocalPwAlignment *lpwa, int query_coord,
 	  die("ERROR la_get_target_coord: bad value for last_ga\n");
         if (ga->query_beg > query_coord) {
           q1 = last_ga->query_end;  
-          q2 = ga->query_beg;
+	  //          q2 = ga->query_beg;
           t1 = last_ga->target_end;
           t2 = ga->target_beg;          
           break;
@@ -431,7 +431,7 @@ int la_get_target_coord(LocalPwAlignment *lpwa, int query_coord,
   if (q1 == -1) {               /* coord must occur *beyond* all
                                    alignment blocks */
     q1 = last_ab->query_end;
-    q2 = lpwa->query_len-1;
+    //    q2 = lpwa->query_len-1;
     t1 = last_ab->target_end;
     t2 = lpwa->target_len-1;
   }

@@ -1,26 +1,31 @@
 \name{fix.start.stop.feat}
 \alias{fix.start.stop.feat}
-\title{Fix start and stop signals...}
-\usage{fix.start.stop.feat(x)
+\title{Fix start and stop signals}
+\usage{
+  fix.start.stop.feat(x)
 }
-\description{Fix start and stop signals}
-\value{An object of type \code{feat}, in which CDS regions are ensured to
-include start codons and exclude stop codons, as required by the GTF2 standard.}
-\note{\itemize{
-\item{If x is stored as a pointer to an object stored in C, signals will be
-added to x.}
-\item{Assumes at most one start_codon and at most one stop_codon per transcript.}
-}}
-\keyword{features}
-\author{Melissa J. Hubisz and Adam Siepel}
-\arguments{\item{x}{An object of type \code{feat}.  CDS regions must be present with type
-"CDS", and the transcript_id must be indicated in the attribute field.
-Start and stop codons should have feature type "start_codon" and "stop_codon"
-(as produced by addSignals.feat).}
+\arguments{
+  \item{x}{An object of type \code{feat}.  CDS regions must
+  be present with type "CDS", and the transcript_id must be
+  indicated in the attribute field. Start and stop codons
+  should have feature type "start_codon" and "stop_codon"
+  (as produced by addSignals.feat).}
 }
-
+\value{
+  An object of type \code{feat}, in which CDS regions are
+  ensured to include start codons and exclude stop codons,
+  as required by the GTF2 standard.
+}
+\description{
+  Fix start and stop signals
+}
+\note{
+  \itemize{ \item{If x is stored as a pointer to an object
+  stored in C, signals will be added to x.} \item{Assumes
+  at most one start_codon and at most one stop_codon per
+  transcript.} }
+}
 \examples{
-require("rphast")
 exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
 featFile <- "gencode.ENr334.gp"
 unzip(exampleArchive, featFile)
@@ -50,4 +55,11 @@ f.fixed[firstCds,]
 # last CDS has been fixed to not include stop codon
 f[lastCds,]
 f.fixed[lastCds,]
+
+unlink(featFile)
 }
+\author{
+  Melissa J. Hubisz and Adam Siepel
+}
+\keyword{features}
+

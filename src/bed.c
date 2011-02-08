@@ -7,9 +7,7 @@
  * file LICENSE.txt for details.
  ***************************************************************************/
 
-/* $Id: bed.c,v 1.8 2008-11-12 02:07:59 acs Exp $ */
-
-/** \file bed.c
+/* \file bed.c
     Reading and writing of BED files.  See http://genome.ucsc.edu/goldenPath/help/customTrack.html
     \ingroup feature
 */
@@ -75,8 +73,10 @@ void gff_read_from_bed(GFF_Set *gff, FILE *F) {
         sprintf(group, "id \"bed.%d\"", id++);
         
       if (lst_size(l) >= 5) {
-        if ((str_as_int(lst_get_ptr(l, 4), &score) != 0))
+        if ((str_as_int(lst_get_ptr(l, 4), &score) != 0)) {
+	  phast_warning("score columns should contain integer\n");
           is_error = 1;
+	}
         score_is_null = 0;
       }
       if (lst_size(l) >= 6 && 
@@ -133,18 +133,7 @@ void gff_read_from_bed(GFF_Set *gff, FILE *F) {
 }
 
 /** Write a GFF_Set in BED format. */
-void gff_print_bed(FILE *OUTF,  /**< Output stream  */
-                   GFF_Set *gff, 
-                                /**< Set to be printed */
-                   int use_groups
-                                /**< If TRUE, all members of a group
-                                   are described by a single line in
-                                   the BED file (12-column format); if
-                                   FALSE, any groups are ignored and
-                                   each feature gets its own line.
-                                   Features must already be grouped if
-                                   use_groups == TRUE. */
-                   ) {
+void gff_print_bed(FILE *OUTF,  GFF_Set *gff, int use_groups) {
   GFF_Feature *feat;
   int i, j;
 

@@ -1,0 +1,19 @@
+\name{print.phastBiasResult}
+\alias{print.phastBiasResult}
+\title{Pretty-print the phastBias result list without spilling giant matrices onto the screen}
+\usage{
+  \method{print}{phastBiasResult} (x, ...)
+}
+\arguments{
+  \item{x}{phastBias result object}
+
+  \item{...}{not used}
+}
+\description{
+  Pretty-print the phastBias result list without spilling
+  giant matrices onto the screen
+}
+\author{
+  Melissa J. Hubisz
+}
+

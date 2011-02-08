@@ -27,7 +27,7 @@ String *str_new(int starting_nchars) {
 }
 
 String *str_new_charstr(const char *str) {
-  String *s = str_new(strlen(str));
+  String *s = str_new((int)strlen(str));
   str_cpy_charstr(s, str);
   return s;
 }
@@ -82,7 +82,7 @@ void str_nappend_charstr(String *s, const char *charstr, int len) {
 
 /* uses NULL terminator of charstr */
 void str_append_charstr(String *s, const char *charstr) {
-  str_nappend_charstr(s, charstr, strlen(charstr));
+  str_nappend_charstr(s, charstr, (int)strlen(charstr));
 }
 
 void str_append_char(String *s, char c) {
@@ -137,6 +137,94 @@ int str_index_of(String *s, String *substr) {
   if (ptr == NULL) return -1;
   return ((int)(ptr - s->chars) / sizeof(char)); /* is this right? */
 }
+
+/* Peek at next line in file */
+int str_peek_next_line(String *s, FILE *F) {
+  char buffer[BUFFERSIZE];
+  int stop = 0, abort = 0, i=0, buffer_used=0;
+  
+  str_clear(s);
+
+  do {
+    buffer[BUFFERSIZE - 2] = '\n'; 
+    if (fgets(buffer, BUFFERSIZE, F) == NULL)
+      abort = 1;
+    else {
+      if (buffer[BUFFERSIZE - 2] == '\n' || buffer[BUFFERSIZE - 2] == '\0') {
+    stop = 1;
+    /* the penultimate character (immediately preceding the null
+       terminator) will NOT be a carriage return or null terminator if
+       and only if the length of the line exceeds the size of the
+       buffer */
+      }
+      str_append_charstr(s, buffer); 
+    }
+    //Determine how many characters of the buffer were used
+    buffer_used=-1;
+    i=0;
+    while (buffer[i] != '\0')
+    {  
+      buffer_used++; 
+      i++;
+    }
+    //write back the characters we read since this is only peek
+    ungetc('\n', F);
+    for(i=buffer_used;i>0; i--)
+    {
+      ungetc(buffer[i-1], F);
+    }
+  } while (!stop && !abort);
+  return abort ? EOF : 0;
+}
+
+
+
+/* Recursively peek at line L in file */
+int str_peek_line(String *s, FILE *F, int L) {
+  char buffer[BUFFERSIZE];
+  int stop = 0, abort = 0, i=0, buffer_used=0;
+  
+  str_clear(s);
+
+  do {
+    buffer[BUFFERSIZE - 2] = '\n'; 
+    if (fgets(buffer, BUFFERSIZE, F) == NULL)
+      abort = 1;
+    else {
+      if (buffer[BUFFERSIZE - 2] == '\n' || buffer[BUFFERSIZE - 2] == '\0') {
+       stop = 1;
+    /* the penultimate character (immediately preceding the null
+       terminator) will NOT be a carriage return or null terminator if
+       and only if the length of the line exceeds the size of the
+       buffer */
+       if( L > 1)
+        {
+          str_clear(s);
+          str_peek_line(s, F, L-1);
+        }else
+          str_append_charstr(s, buffer);
+      } else 
+         str_append_charstr(s, buffer);
+      
+    }
+    //Determine how many characters of the buffer were used
+    buffer_used=-1;
+    i=0;
+    while (buffer[i] != '\0')
+    {  
+      buffer_used++; 
+      i++;
+    }
+    //write back the characters we read since this is only peek
+    ungetc('\n', F);
+    for(i=buffer_used;i>0; i--)
+    {
+      ungetc(buffer[i-1], F);
+    }
+  } while (!stop && !abort);
+  return abort ? EOF : 0;
+}
+
 
 void str_substring(String *dest, String *src, int startidx, int len) {
   str_clear(dest);
@@ -357,7 +445,7 @@ int str_starts_with(String *s, String *substr) {
 }
 
 int str_starts_with_charstr(String *s, const char *substr) {
-  int len = strlen(substr);
+  int len = (int)strlen(substr);
   if (len > s->length) return 0;
   return (strncmp(s->chars, substr, len) == 0);
 }
@@ -369,7 +457,7 @@ int str_ends_with(String *s, String *substr) {
 }
 
 int str_ends_with_charstr(String *s, const char *substr) {
-  int len = strlen(substr);
+  int len = (int)strlen(substr);
   if (len > s->length) return 0;
   return (strncmp(&s->chars[s->length - len], substr, len) == 0);
 }
@@ -578,11 +666,11 @@ List *str_list_as_dbl(List *str_list) {
 void str_toupper(String *s) {
   int i;
   for (i = 0; i < s->length; i++)
-    s->chars[i] = toupper(s->chars[i]);
+    s->chars[i] = (char)toupper(s->chars[i]);
 }
 
 void str_tolower(String *s) {
   int i;
   for (i = 0; i < s->length; i++)
-    s->chars[i] = tolower(s->chars[i]);
+    s->chars[i] = (char)tolower(s->chars[i]);
 }

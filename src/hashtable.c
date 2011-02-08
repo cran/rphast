@@ -7,8 +7,6 @@
  * file LICENSE.txt for details.
  ***************************************************************************/
 
-/* $Id: hashtable.c,v 1.8 2009/02/19 19:44:15 agd27 Exp $*/
-
 /* hashtable - Fast, simple array-based hash table, optimized for
    'put' and 'get' ('delete' somewhat inefficient).  Stores copies of
    keys but not of data objects, which are managed as void*s (memory
@@ -27,7 +25,7 @@ Hashtable* hsh_new(int est_capacity) {
   Hashtable* ht;
   int i;
   ht = (Hashtable*)smalloc(sizeof(Hashtable));
-  ht->nbuckets = ceil(est_capacity*1.0/LOADING_FACTOR);
+  ht->nbuckets = (int)ceil(est_capacity*1.0/LOADING_FACTOR);
   if (ht->nbuckets < 10) ht->nbuckets = 10;
   ht->keys = (List**)smalloc(ht->nbuckets*sizeof(List*));
   ht->vals = (List**)smalloc(ht->nbuckets*sizeof(List*));

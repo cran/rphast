@@ -19,7 +19,7 @@
 #include <prob_vector.h>
 #include <prob_matrix.h>
 #include "list_of_lists.h"
-#include "phyloP.h"
+#include "phylo_p_print.h"
 #include "phylo_p.h"
 #include "fit_column.h"
 #include "fit_feature.h"
@@ -59,6 +59,7 @@ struct phyloP_struct *phyloP_struct_new(int rphast) {
   p->help = rphast ? "?phyloP" : "phyloP -h";
   p->mod_fname = NULL;
   p->msa_fname = NULL;
+  p->no_prune = FALSE;
 
   p->results = rphast ? lol_new(20) : NULL;
   return p;
@@ -94,7 +95,7 @@ TreeModel* fit_tree_model(TreeModel *source_mod, MSA *msa,
   tm_init_rmp(source_mod);           /* (no. params changes) */
   params = tm_params_new_init_from_model(retval);
 
-  tm_fit(retval, msa, params, -1, OPT_HIGH_PREC, NULL, 1);
+  tm_fit(retval, msa, params, -1, OPT_HIGH_PREC, NULL, 1, NULL);
 
   oldscale = vec_get(params, retval->scale_idx);
 
@@ -141,8 +142,6 @@ void phyloP(struct phyloP_struct *p) {
   method_type method;
   mode_type mode;
   FILE *logf;
-  List *cats_to_do;
-  CategoryMap *cm;
   char *mod_fname, *msa_fname, *help;
   FILE *outfile;
   ListOfLists *results;
@@ -178,8 +177,6 @@ void phyloP(struct phyloP_struct *p) {
   mode = p->mode;
   logf = p->logf;
   mod = p->mod;
-  cats_to_do = p->cats_to_do;
-  cm = p->cm;
   help = p->help;
   mod_fname = p->mod_fname;
   msa_fname = p->msa_fname;
@@ -231,7 +228,18 @@ void phyloP(struct phyloP_struct *p) {
     if ((feats != NULL || base_by_base) && msa->ss->tuple_idx == NULL)
       die("ERROR: ordered alignment required.\n");
 
-    /* prune tree, if necessary */
+     if (p->no_prune) {
+       int i;
+       /*(add sequences for any leaf nodes in tree that don't appear in msa */
+       for (i=0; i < mod->tree->nnodes; i++) {
+	 TreeNode *n = lst_get_ptr(mod->tree->nodes, i);
+	 if (n->lchild == NULL && n->rchild == NULL) {   /*  check leaf nodes */
+	   if (msa_get_seq_idx(msa, n->name) == -1)
+	     msa_add_seq(msa, n->name);
+	 }
+       }
+     }
+     /* prune tree, if necessary */
     pruned_names = lst_new_ptr(msa->nseqs);
     old_nleaves = (mod->tree->nnodes + 1) / 2;
     tm_prune(mod, msa, pruned_names);
@@ -242,7 +250,7 @@ void phyloP(struct phyloP_struct *p) {
       str_cpy_charstr(warnstr, "WARNING: pruned away leaves with no match in alignment (");
       for (j = 0; j < lst_size(pruned_names); j++) {
 	str_append(warnstr, (String*)lst_get_ptr(pruned_names, j));
-	str_append_charstr(warnstr, j < lst_size(pruned_names) ? ", " : ").\n");
+	str_append_charstr(warnstr, j < lst_size(pruned_names)-1 ? ", " : ").\n");
       }
       phast_warning(warnstr->chars);
       str_free(warnstr);
@@ -289,7 +297,9 @@ void phyloP(struct phyloP_struct *p) {
   if (feats != NULL) {
     if (msa->idx_offset > 0)
       gff_add_offset(feats, -(msa->idx_offset), msa_seqlen(msa, 0));
-    msa_map_gff_coords(msa, feats, p->refidx_feat, 0, 0, NULL);
+    msa_map_gff_coords(msa, feats, p->refidx_feat, 0, 0);
+    if (lst_size(feats->features) == 0)
+      die("ERROR: no features fall in alignment");
   }
 
   /* SPH method */
@@ -381,7 +391,7 @@ void phyloP(struct phyloP_struct *p) {
       }
       else {                        /* --features case */
         p_value_stats *stats = sub_p_value_many(jp, msa, feats->features, ci);
-        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0, NULL);
+        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0);
 	if (msa->idx_offset > 0)
 	  gff_add_offset(feats, msa->idx_offset, 0);
         print_feats_sph(outfile, stats, feats, mode, epsilon, output_gff, 
@@ -462,7 +472,7 @@ void phyloP(struct phyloP_struct *p) {
         p_value_joint_stats *jstats = 
           sub_p_value_joint_many(jp, msa, feats->features, 
                                  ci, MAX_CONVOLVE_SIZE, NULL);
-        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0, NULL);
+        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0);
 	if (msa->idx_offset > 0)
 	  gff_add_offset(feats, msa->idx_offset, 0);
         print_feats_sph_subtree(outfile, jstats, feats, mode, epsilon, 
@@ -516,7 +526,7 @@ void phyloP(struct phyloP_struct *p) {
       }
       if (subtree_name == NULL && branch_name == NULL) {  /* no subtree case */
         ff_lrts(mod, msa, feats, mode, pvals, scales, llrs, logf);
-        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0, NULL);
+        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0);
 	if (msa->idx_offset > 0)
 	  gff_add_offset(feats, msa->idx_offset, 0);
         if (output_gff) 
@@ -534,7 +544,7 @@ void phyloP(struct phyloP_struct *p) {
         }
         ff_lrts_sub(mod, msa, feats, mode, pvals, null_scales, scales, 
                     sub_scales, llrs, logf);
-        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0, NULL);
+        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0);
 	if (msa->idx_offset > 0)
 	  gff_add_offset(feats, msa->idx_offset, 0);
         if (output_gff) 
@@ -599,7 +609,7 @@ void phyloP(struct phyloP_struct *p) {
       }
       if (subtree_name == NULL && branch_name == NULL) { /* no subtree case */
         ff_score_tests(mod, msa, feats, mode, pvals, derivs, teststats);
-        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0, NULL);
+        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0);
 	if (msa->idx_offset > 0)
 	  gff_add_offset(feats, msa->idx_offset, 0);
         if (output_gff) 
@@ -618,7 +628,7 @@ void phyloP(struct phyloP_struct *p) {
         }
         ff_score_tests_sub(mod, msa, feats, mode, pvals, null_scales, derivs, 
                            sub_derivs, teststats, logf);
-        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0, NULL);
+        msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0);
 	if (msa->idx_offset > 0)
 	  gff_add_offset(feats, msa->idx_offset, 0);
         if (output_gff) 
@@ -663,7 +673,7 @@ void phyloP(struct phyloP_struct *p) {
         nspec = smalloc(lst_size(feats->features) * sizeof(double));
       }
       ff_gerp(mod, msa, feats, mode, nneut, nobs, nrejected, nspec, logf);
-      msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0, NULL);
+      msa_map_gff_coords(msa, feats, 0, p->refidx_feat, 0);
       if (msa->idx_offset > 0)
 	gff_add_offset(feats, msa->idx_offset, 0);
       if (output_gff) 

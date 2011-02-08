@@ -47,6 +47,7 @@ SEXP rph_phyloFit(SEXP msaP,
 		  SEXP initParsimonyP,
 		  SEXP clockP,
 		  SEXP emP,
+		  SEXP maxEmItsP,
 		  SEXP precisionP,
 		  SEXP gffP,
 		  SEXP ninfSitesP,
@@ -60,6 +61,8 @@ SEXP rph_phyloFit(SEXP msaP,
   double *doubleP;
   char *die_message=NULL;
   SEXP rv=R_NilValue;
+  List *new_rate_consts = NULL;
+  List *new_rate_weights = NULL;
 
   GetRNGstate(); //seed R's random number generator
   pf = phyloFit_struct_new(1);  //sets appropriate defaults for RPHAST mode
@@ -69,11 +72,56 @@ SEXP rph_phyloFit(SEXP msaP,
   if (treeStrP != R_NilValue) 
     pf->tree = rph_tree_new(treeStrP);
 
+  pf->use_em = LOGICAL_VALUE(emP);
+
+  if (rateConstantsP != R_NilValue) {
+    PROTECT(rateConstantsP = AS_NUMERIC(rateConstantsP));
+    numProtect++;
+    doubleP = NUMERIC_POINTER(rateConstantsP);
+    new_rate_consts = lst_new_dbl(LENGTH(rateConstantsP));
+    for (i=0; i < LENGTH(rateConstantsP); i++)
+      lst_push_dbl(new_rate_consts, doubleP[i]);
+//    pf->use_em = 1;
+  }
+
   if (initModP != R_NilValue) {
     pf->input_mod = (TreeModel*)EXTPTR_PTR(initModP);
     pf->subst_mod = pf->input_mod->subst_mod;
-    rph_tm_register_protect(pf->input_mod);
-  } else pf->subst_mod = rph_get_subst_mod(substModP);
+    tm_register_protect(pf->input_mod);
+    
+    if (new_rate_consts == NULL && pf->input_mod->rK != NULL && pf->input_mod->nratecats > 1) {
+      new_rate_consts = lst_new_dbl(pf->input_mod->nratecats);
+      for (i=0; i < pf->input_mod->nratecats; i++) 
+	lst_push_dbl(new_rate_consts, pf->input_mod->rK[i]);
+//      pf-> = 1;
+    }
+
+    if (pf->input_mod->empirical_rates && pf->input_mod->freqK != NULL && pf->input_mod->nratecats > 1) {
+      new_rate_weights = lst_new_dbl(pf->input_mod->nratecats);
+      for (i=0; i < pf->input_mod->nratecats; i++)
+	lst_push_dbl(new_rate_weights, pf->input_mod->freqK[i]);
+    }
+
+    tm_reinit(pf->input_mod, 
+	      rph_get_subst_mod(substModP),
+	      nratesP == R_NilValue ? pf->input_mod->nratecats : INTEGER_VALUE(nratesP),
+	      NUMERIC_VALUE(alphaP),
+	      new_rate_consts,
+	      new_rate_weights);
+  } else {
+    if (nratesP != R_NilValue)
+      pf->nratecats = INTEGER_VALUE(nratesP);
+    if (alphaP != R_NilValue)
+      pf->alpha = NUMERIC_VALUE(alphaP);
+    if (rateConstantsP != R_NilValue) {
+      pf->rate_consts = new_rate_consts;
+      if (nratesP == R_NilValue)
+	pf->nratecats = lst_size(new_rate_consts);
+      else if (lst_size(new_rate_consts) != pf->nratecats) 
+	die("length of new_rate_consts does not match nratecats\n");
+    }
+  }
+  pf->subst_mod = rph_get_subst_mod(substModP);
   
   pf->estimate_scale_only = LOGICAL_VALUE(scaleOnlyP);
   
@@ -82,46 +130,26 @@ SEXP rph_phyloFit(SEXP msaP,
     strcpy(pf->subtree_name, CHARACTER_VALUE(scaleSubtreeP));
   }
   
-  pf->nratecats = INTEGER_VALUE(nratesP);
-  
-  if (alphaP != R_NilValue)
-    pf->alpha = NUMERIC_VALUE(alphaP);
-
-  if (rateConstantsP != R_NilValue) {
-    PROTECT(rateConstantsP = AS_NUMERIC(rateConstantsP));
-    numProtect++;
-    doubleP = NUMERIC_POINTER(rateConstantsP);
-    pf->rate_consts = lst_new_dbl(LENGTH(rateConstantsP));
-    for (i=0; i<LENGTH(rateConstantsP); i++)
-      lst_push_dbl(pf->rate_consts, doubleP[i]);
-  }
-
   pf->random_init = LOGICAL_VALUE(initRandomP);
 
   pf->init_backgd_from_data = LOGICAL_VALUE(initBackgdFromDataP);
-
+  
   pf->init_parsimony = LOGICAL_VALUE(initParsimonyP);
   
   pf->assume_clock = LOGICAL_VALUE(clockP);
 
-  pf->use_em = LOGICAL_VALUE(emP);
+  if (maxEmItsP != R_NilValue)
+    pf->max_em_its = INTEGER_VALUE(maxEmItsP);
 
-  if (strcmp(CHARACTER_VALUE(precisionP), "LOW")==0)
-    pf->precision = OPT_LOW_PREC;
-  else if (strcmp(CHARACTER_VALUE(precisionP), "MED")==0)
-    pf->precision = OPT_MED_PREC;
-  else if (strcmp(CHARACTER_VALUE(precisionP), "HIGH")==0)
-    pf->precision = OPT_HIGH_PREC;
-  else if (strcmp(CHARACTER_VALUE(precisionP), "VERY_HIGH")==0)
-    pf->precision = OPT_VERY_HIGH_PREC;
-  else {
+  pf->precision = get_precision(CHARACTER_VALUE(precisionP));
+  if (pf->precision == OPT_UNKNOWN_PREC) {
     die_message = "invalid precision";
     goto rph_phyloFit_end;
   }
 
   if (gffP != R_NilValue) {
     pf->gff = (GFF_Set*)EXTPTR_PTR(gffP);
-    rph_gff_register_protect(pf->gff);
+    gff_register_protect(pf->gff);
   }
 
   if (ninfSitesP != R_NilValue)
@@ -155,7 +183,7 @@ SEXP rph_phyloFit(SEXP msaP,
 
   if (logFileP != R_NilValue) {
     if (IS_CHARACTER(logFileP)) 
-      pf->logf = fopen_fname(CHARACTER_VALUE(logFileP), "w+");
+      pf->logf = phast_fopen(CHARACTER_VALUE(logFileP), "w+");
     else if (IS_LOGICAL(logFileP) &&
 	     LOGICAL_VALUE(logFileP)) {
       pf->logf = stdout;
@@ -166,8 +194,8 @@ SEXP rph_phyloFit(SEXP msaP,
     pf->use_selection = TRUE;
     pf->selection = NUMERIC_VALUE(selectionP);
   }
-  
-  rph_msa_register_protect(pf->msa);
+
+  msa_register_protect(pf->msa);
 
   run_phyloFit(pf);
   rv = PROTECT(rph_listOfLists_to_SEXP(pf->results));
@@ -175,7 +203,7 @@ SEXP rph_phyloFit(SEXP msaP,
 
  rph_phyloFit_end:
   if (pf->logf != NULL && pf->logf != stdout && pf->logf != stderr)
-    fclose(pf->logf);
+    phast_fclose(pf->logf);
   PutRNGstate();
   if (die_message != NULL) die(die_message);
   if (numProtect > 0) 

@@ -1,21 +1,26 @@
 \name{add.UTRs.feat}
 \alias{add.UTRs.feat}
-\title{Add UTRs to features...}
-\usage{add.UTRs.feat(x)
+\title{Add UTRs to features}
+\usage{
+  add.UTRs.feat(x)
 }
-\description{Add UTRs to features}
-\value{An object of type \code{feat}, with all the entries of the original object, but
-also with UTR annotations.}
-\note{If x is stored as a pointer to an object stored in C, then UTRs will be added
-to x.}
-\keyword{features}
-\author{Melissa J. Hubisz and Adam Siepel}
-\arguments{\item{x}{An object of type \code{feat}.  CDS regions must be present with type "CDS", and
-the transcript_id must be indicated in the attribute field.}
+\arguments{
+  \item{x}{An object of type \code{feat}.  CDS regions must
+  be present with type "CDS", and the transcript_id must be
+  indicated in the attribute field.}
 }
-
+\value{
+  An object of type \code{feat}, with all the entries of
+  the original object, but also with UTR annotations.
+}
+\description{
+  Add UTRs to features
+}
+\note{
+  If x is stored as a pointer to an object stored in C,
+  then UTRs will be added to x.
+}
 \examples{
-require("rphast")
 exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
 featFile <- "gencode.ENr334.gp"
 unzip(exampleArchive, featFile)
@@ -27,4 +32,10 @@ f <- add.UTRs.feat(f)
 table(f$feature)
 coverage.feat(f[f$feature=="3'UTR",])
 coverage.feat(f[f$feature=="5'UTR",])
+unlink(featFile)
 }
+\author{
+  Melissa J. Hubisz and Adam Siepel
+}
+\keyword{features}
+

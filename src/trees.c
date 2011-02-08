@@ -7,16 +7,6 @@
  * file LICENSE.txt for details.
  ***************************************************************************/
 
-/* $Id: trees.c,v 1.25 2008-11-12 02:07:59 acs Exp $ */
-
-/** \file trees.c 
-  Functions for manipulating phylogenetic trees.  Includes functions
-  for reading, writing, traversing, and printing.  Trees are
-  represented as rooted binary trees with non-negative real branch
-  lengths.  
-  \ingroup phylo
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -70,7 +60,7 @@ TreeNode *tr_new_from_file(FILE *f) {
 /** Parse a Newick-formatted tree from a character string */
 TreeNode *tr_new_from_string(const char *treestr) { 
   TreeNode *root, *node, *newnode;
-  int i, in_distance = FALSE, in_label=FALSE, len = strlen(treestr), nopen_parens = 0,
+  int i, in_distance = FALSE, in_label=FALSE, len = (int)strlen(treestr), nopen_parens = 0,
     nclose_parens = 0, already_allowed = FALSE;
   char c;
   String *diststr = str_new(STR_SHORT_LEN), *labelstr = str_new(STR_SHORT_LEN);
@@ -82,7 +72,7 @@ TreeNode *tr_new_from_string(const char *treestr) {
     c = treestr[i];
 
     if (in_distance) {
-      if (c != '(' && c != ',' && c != ')' && c != ':' && c != '#') {
+      if (c != '(' && c != ',' && c != ')' && c != ':' && c != '#' && c != '!') {
         str_append_char(diststr, c);
         continue;
       }
@@ -96,7 +86,7 @@ TreeNode *tr_new_from_string(const char *treestr) {
     }
 
     if (in_label) {
-      if (c != '(' && c != ',' && c != ')' && c != ':' && c != '#') {
+      if (c != '(' && c != ',' && c != ')' && c != ':' && c != '#' && c != '!') {
         str_append_char(labelstr, c);
         continue;
       }
@@ -143,6 +133,9 @@ TreeNode *tr_new_from_string(const char *treestr) {
     else if (c == '#') {
       str_clear(labelstr);
       in_label = TRUE;
+    }
+    else if (c == '!') {
+      node->hold_constant = 1;
     }
     else {			/* has to be part of name */
       if (!isspace(c) || node->name[0] != '\0')	/* avoid leading spaces */
@@ -219,6 +212,7 @@ TreeNode *tr_new_node() {
   n->height = 0;
   n->label = NULL;
   n->nodes = n->preorder = n->inorder = n->postorder = NULL;
+  n->hold_constant = 0;
   return(n);
 }
 
@@ -294,7 +288,7 @@ void tr_print(FILE* f, TreeNode *root, int show_branch_lengths) {
 
   /* It's simplest to do this recursively. */
   tr_print_recur(f, root, show_branch_lengths);
-  len = strlen(root->name);
+  len = (int)strlen(root->name);
   if (len == 0 || root->name[len-1] != ';')
     fprintf(f, ";");
   fprintf(f, "\n");
@@ -321,6 +315,8 @@ void tr_print_recur(FILE* f, TreeNode *n, int show_branch_lengths) {
 
   if (show_branch_lengths && n->parent != NULL)
     fprintf(f, ":%g", n->dparent);
+  if (n->hold_constant)
+    fprintf(f, "!");
   if (n->label != NULL)
     fprintf(f, " # %s", n->label);
 }
@@ -446,6 +442,7 @@ void tr_node_cpy(TreeNode *dest, TreeNode *src) {
   strcpy(dest->name, src->name); 
   dest->dparent = src->dparent;
   if (src->label != NULL) dest->label = copy_charstr(src->label);
+  dest->hold_constant = src->hold_constant;
   /* don't copy data, nnodes, height, preorder, inorder, postorder */
 }
 
@@ -545,6 +542,9 @@ void tr_print_ordered_recur(FILE* f, TreeNode *n, int *left_right,
 
   if (show_branch_lengths)
     fprintf(f, ":%g", n->dparent);
+
+  if (n->hold_constant)
+    fprintf(f, "!");
 
   if (n->label != NULL)
     fprintf(f, " # %s", n->label);
@@ -651,25 +651,25 @@ List *tr_postorder(TreeNode *tr) {
 
 /** Provide x-y coordinates for layout. */
 void tr_layout_xy(TreeNode *tree, 
-                  int x0,       /**< Upper left x bound */
-                  int y0,       /**< Upper left y bound  */
-                  int x1,       /**< Lower right x bound */
-                  int y1,       /**< Lower right y bound  */
-                  int *x,       /**< On return, will contain
+                  int x0,       /* Upper left x bound */
+                  int y0,       /* Upper left y bound  */
+                  int x1,       /* Lower right x bound */
+                  int y1,       /* Lower right y bound  */
+                  int *x,       /* On return, will contain
                                    x-coordinates for nodes, in order
                                    of tree->nodes.  Must be
                                    preallocated. */
-                  int *y,       /**< On return, will contain
+                  int *y,       /* On return, will contain
                                    y-coordinates for nodes, in order
                                    of tree->nodes.  Must be
                                    preallocated. */
                   int use_branch_lens, 
-                                /**< If TRUE, tree will be laid out
+                                /* If TRUE, tree will be laid out
                                    such that edges are proportional to
                                    branch lengths (dparent
                                    attributes) */
                   int horizontal
-                                /**< If TRUE, tree will be laid out
+                                /* If TRUE, tree will be laid out
                                    with root on left and leaves on
                                    right; otherwise, root will be at
                                    top and leaves at bottom */
@@ -727,32 +727,32 @@ void tr_layout_xy(TreeNode *tree,
       n = lst_get_ptr(traversal, i); 
       if (horizontal == 0) 
         y[n->id] = n->parent == NULL ? y0 :
-          y[n->parent->id] - n->dparent*scale;
+          y[n->parent->id] - (int)(n->dparent*scale);
       else
         x[n->id] = n->parent == NULL ? x0 :
-          x[n->parent->id] + n->dparent*scale;
+          x[n->parent->id] + (int)(n->dparent*scale);
     }
   }
 } 
 
 /** Print a (very basic!) postscript rendering of a tree. */
-void tr_print_ps(FILE *F,       /**< Destination file */
+void tr_print_ps(FILE *F,       /* Destination file */
                  TreeNode *tree, 
                                 /**< Tree root */
                  int show_branch_lens,
-                                /**< Whether to print branch lengths
+                                /* Whether to print branch lengths
                                    by edges */
                  int square_branches,
-                                /**< If TRUE, branches will be
+                                /* If TRUE, branches will be
                                    right-angled, otherwise will be
                                    diagonal */
                  int use_branch_lens, 
-                                /**< If TRUE, tree will be laid out
+                                /* If TRUE, tree will be laid out
                                    such that edges are proportional to
                                    branch lengths (dparent
                                    attributes) */
                  int horizontal_layout
-                                /**< If TRUE, tree will be laid out
+                                /* If TRUE, tree will be laid out
                                    with root on left and leaves on
                                    right; otherwise, root will be at
                                    top and leaves at bottom */
@@ -785,7 +785,7 @@ basefont setfont\n");
         yoffset = -6;
       }
       else {
-        xoffset = -3 * (n->name != NULL ? strlen(n->name) : 0);
+        xoffset = -3 * (n->name != NULL ? (int)strlen(n->name) : 0);
         yoffset = -18;
       }
 
@@ -965,14 +965,18 @@ void tr_scale_subtree(TreeNode *t, TreeNode *sub, double scale_const,
 /** Prune away all leaves whose names are in (or not in) the specified
     list.  Nodes will be removed and branches combined (branch lengths
     added) to restore as a proper binary tree.  */
-void tr_prune(TreeNode **t,     /**< Tree to prune (may be altered
+void tr_prune(TreeNode **t,     /* Tree to prune (may be altered
                                    because root can change) */
-              List *names,      /**< List of names.  On return, will
+              List *names,      /* List of names.  On return, will
                                    contain list of names of leaves
                                    that were pruned away.  */
-              int all_but       /**< if FALSE, prune leaves *in*
+              int all_but,       /* if FALSE, prune leaves *in*
                                    'names'; if TRUE, prune leaves *not
                                    in* 'names'  */
+              int *id_map        /* if not NULL, should be allocated to 
+				    the number of nodes in original tree.
+				    On return, will be filled in with the
+				    new id for each node */
               ) {
 
   TreeNode *n;
@@ -1067,11 +1071,17 @@ void tr_prune(TreeNode **t,     /**< Tree to prune (may be altered
   if (*t != NULL && (*t)->postorder != NULL) (*t)->postorder = NULL;
 
   /* reset ids, nodes, nnodes, heights */
+  if (id_map != NULL) {
+    for (i=0; i < lst_size(traversal); i++)
+      id_map[i] = -1;
+  }
   if (*t != NULL) {
     (*t)->nnodes = new_nnodes;
     traversal = tr_preorder(*t);
     for (i = 0; i < lst_size(traversal); i++) {
       n = lst_get_ptr(traversal, i);
+      if (id_map != NULL)
+	id_map[n->id] = i;
       n->id = i;
       if (n != *t) n->nnodes = -1;
     }
@@ -1100,7 +1110,7 @@ void tr_prune_supertree(TreeNode **t, TreeNode *node) {
       lst_push_ptr(prune_names, s);
     }
   }
-  tr_prune(t, prune_names, FALSE);
+  tr_prune(t, prune_names, FALSE, NULL);
   lst_free_strings(prune_names);
   lst_free(prune_names);
   sfree(inSub);
@@ -1119,7 +1129,7 @@ void tr_prune_subtree(TreeNode **t, TreeNode *node) {
       lst_push_ptr(prune_names, s);
     }
   }
-  tr_prune(t, prune_names, TRUE);
+  tr_prune(t, prune_names, TRUE, NULL);
   lst_free_strings(prune_names);
   lst_free(prune_names);
 }
@@ -1247,7 +1257,7 @@ double tr_scale_by_subtree(TreeNode *tree, TreeNode *sub) {
 
   /* Now scale */
   n = tr_create_copy(tree);
-  tr_prune(&n, sub_names, TRUE);
+  tr_prune(&n, sub_names, TRUE, NULL);
   scale = tr_total_len(sub) / tr_total_len(n);
   tr_scale(tree, scale);
   tr_free(n);
@@ -1324,14 +1334,31 @@ void tr_partition_nodes(TreeNode *tree, TreeNode *sub, List *inside,
   sfree(mark);
 }
 
+
+/* recursive version of tr_leaf_names that works for nodes that are
+   not the root of the tree */
+void tr_leaf_names_rec(TreeNode *tree, List *rv) {
+  if (tree->lchild == NULL) 
+    lst_push_ptr(rv, str_new_charstr(tree->name));
+  else {
+    tr_leaf_names_rec(tree->lchild, rv);
+    tr_leaf_names_rec(tree->rchild, rv);
+  }
+}
+
 /** Return a list of the leaf names in a given tree */
 List *tr_leaf_names(TreeNode *tree) {
   List *retval = lst_new_ptr((tree->nnodes + 1) / 2);
   int i;
-  for (i = 0; i < tree->nnodes; i++) {
-    TreeNode *n = lst_get_ptr(tree->nodes, i);
-    if (n->lchild == NULL && n->rchild == NULL)
-      lst_push_ptr(retval, str_new_charstr(n->name));
+  if (tree->nodes == NULL) {
+    // do this recursively if tree->nodes is NULL (usually true for non-root nodes)
+    tr_leaf_names_rec(tree, retval);
+  } else {
+    for (i = 0; i < tree->nnodes; i++) {
+      TreeNode *n = lst_get_ptr(tree->nodes, i);
+      if (n->lchild == NULL && n->rchild == NULL)
+	lst_push_ptr(retval, str_new_charstr(n->name));
+    }
   }
   return retval;
 }
@@ -1379,7 +1406,9 @@ void tr_print_nodes(FILE *F, TreeNode *tree) {
     fprintf(F, "\tlchild = %d\n", n->lchild == NULL ? -1 : n->lchild->id);
     fprintf(F, "\trchild = %d\n", n->rchild == NULL ? -1 : n->rchild->id);
     fprintf(F, "\tname = '%s'\n", n->name);
-    fprintf(F, "\tdparent = %g\n", n->dparent);
+    fprintf(F, "\tdparent = %g", n->dparent);
+    if (n->hold_constant) fprintf(F, " (constant)\n");
+    else fprintf(F, "\n");
     if (n->label != NULL)
       fprintf(F, "\tlabel = %s\n", n->label);
     fprintf(F, "\n");
@@ -1519,6 +1548,7 @@ void tr_reroot(TreeNode *tree, TreeNode *selected_node, int include_branch) {
     n = lst_get_ptr(tree->nodes, i);
     n->nnodes = (n == newroot ? lst_size(tree->nodes) : -1);
     n->height = 0;
+    n->hold_constant = 0;
   }
   lst_free(tree->nodes);
 

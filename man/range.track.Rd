@@ -1,15 +1,26 @@
 \name{range.track}
 \alias{range.track}
-\title{Get the coordinate range of a list of RPHAST results...}
-\usage{range.track(..., na.rm=FALSE)
+\title{Get the coordinate range of a list of RPHAST results}
+\usage{
+  \method{range}{track} (..., na.rm = FALSE)
 }
-\description{Get the coordinate range of a list of RPHAST results}
-\value{a numeric vector of length two giving the minimum and maximum
-coordinates in any wig or feature track in the list.  MSA tracks are
-*only* used if there are no wig or feature tracks.}
+\arguments{
+  \item{...}{a list of tracks}
+
+  \item{na.rm}{logical, indicating if \code{NA}'s should be
+  omitted}
+}
+\value{
+  a numeric vector of length two giving the minimum and
+  maximum coordinates in any wig or feature track in the
+  list.  MSA tracks are *only* used if there are no wig or
+  feature tracks.
+}
+\description{
+  Get the coordinate range of a list of RPHAST results
+}
+\author{
+  Melissa J. Hubisz
+}
 \keyword{plot}
-\author{Melissa J. Hubisz}
-\arguments{\item{...}{a list of tracks}
-\item{na.rm}{logical, indicating if \code{NA}'s should be omitted}
-}
 

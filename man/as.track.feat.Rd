@@ -1,26 +1,37 @@
 \name{as.track.feat}
 \alias{as.track.feat}
-\title{Create a features track...}
-\usage{as.track.feat(x, name, short.label=NULL, col="black", is.gene=FALSE, arrow.density=10)
+\title{Create a features track}
+\usage{
+  as.track.feat(x, name, short.label = NULL, col = "black",
+    is.gene = FALSE, arrow.density = 10)
 }
-\description{Create a features track}
-\value{An object of type \code{track} which can be plotted with plot.track
-function}
-\keyword{plot}
-\author{Melissa J. Hubisz}
-\arguments{\item{x}{An object of type \code{feat}}
-\item{name}{The name of the track (a character string)}
-\item{short.label}{An optional character string to be displayed in
-left hand margin of track}
-\item{col}{The color to use plotting this track (can be a single
-color or a color for each element)}
-\item{is.gene}{A logical value; if \code{TRUE}, extract and plot gene
-information from features.  The features which will be plotted are the
-ones with types "CDS", "exon", or "intron".  All others will be ignored.}
-\item{arrow.density}{(Only used if \code{is.gene==TRUE}.  The number of
-lines per inch used to denote strand in gene plots.}
-}
+\arguments{
+  \item{x}{An object of type \code{feat}}
 
+  \item{name}{The name of the track (a character string)}
+
+  \item{short.label}{An optional character string to be
+  displayed in left hand margin of track}
+
+  \item{col}{The color to use plotting this track (can be a
+  single color or a color for each element)}
+
+  \item{is.gene}{A logical value; if \code{TRUE}, extract
+  and plot gene information from features.  The features
+  which will be plotted are the ones with types "CDS",
+  "exon", or "intron".  All others will be ignored.}
+
+  \item{arrow.density}{(Only used if \code{is.gene==TRUE}.
+  The number of lines per inch used to denote strand in
+  gene plots.}
+}
+\value{
+  An object of type \code{track} which can be plotted with
+  plot.track function
+}
+\description{
+  Create a features track
+}
 \examples{
 exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
 featFile <- "sol1.gp"
@@ -32,4 +43,10 @@ geneTrack <- as.track.feat(f, "gene track", is.gene=TRUE)
 plot.track(list(featTrack, geneTrack))
 plot.track(list(featTrack, geneTrack, geneTrack, geneTrack, geneTrack),
            xlim=c(14800, 16000))
+unlink(featFile)
 }
+\author{
+  Melissa J. Hubisz
+}
+\keyword{plot}
+

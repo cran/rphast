@@ -291,15 +291,15 @@ int phastCons(struct phastCons_struct *p) {
     if (nummod == 2 && (estim_trees || estim_rho))
       die("ERROR: If re-estimating tree models, pass in only one model for initialization.\n");
     if (mod[0]->empirical_rates || 
-        (nummod == 2 && mod[1]->empirical_rates))
+	(nummod == 2 && mod[1]->empirical_rates))
       die("ERROR: nonparameteric rate variation not allowed with default two-state HMM.\n");
 
     /* set equilibrium frequencies if estimating tree models */
     if (estim_trees || (gc != -1 && estim_rho)) 
       init_eqfreqs(mod[0], msa, gc);
-
+    
     if (nummod == 1) { /* create 2nd tree model &
-                                            rescale first */
+			  rescale first */
       mod = srealloc(mod, 2 * sizeof(void*));
       mod[1] = tm_create_copy(mod[0]);
       if (!estim_rho) tm_scale_branchlens(mod[0], rho, TRUE);
@@ -383,7 +383,7 @@ int phastCons(struct phastCons_struct *p) {
   if (FC && estim_lambda) {
     if (!quiet) fprintf(results_f, "Finding MLE for lambda...");
     lnl = phmm_fit_lambda(phmm, &lambda, log_f);
-    if (!quiet) fprintf(results_f, " (lambda = %f)\n", lambda);
+    if (!quiet) fprintf(results_f, " (lambda = %g)\n", lambda);
     if (results != NULL) lol_push_dbl(results, &lambda, 1, "lambda");
     phmm_update_cross_prod(phmm, lambda);
   }
@@ -415,15 +415,15 @@ int phastCons(struct phastCons_struct *p) {
       if (!quiet) {
 	fprintf(results_f, "(");
 	if (estim_transitions)
-	  fprintf(results_f, "mu = %f. nu = %f%s", mu, nu, 
+	  fprintf(results_f, "mu = %g. nu = %g%s", mu, nu, 
 		  estim_indels || estim_rho ? ", " : "");
 	if (estim_indels)
 	  fprintf(results_f, 
-		  "alpha_0 = %f, beta_0 = %f, tau_0 = %f, alpha_1 = %f, beta_1 = %f, tau_1 = %f%s", 
+		  "alpha_0 = %g, beta_0 = %g, tau_0 = %g, alpha_1 = %g, beta_1 = %g, tau_1 = %g%s", 
 		  alpha_0, beta_0, tau_0, alpha_1, beta_1, tau_1, 
 		  estim_rho ? ", " : "");
 	if (estim_rho) 
-	  fprintf(results_f, "rho = %f", rho);
+	  fprintf(results_f, "rho = %g", rho);
 	fprintf(results_f, ")\n");
       } 
       if (results != NULL) {
@@ -457,8 +457,8 @@ int phastCons(struct phastCons_struct *p) {
 	if (!quiet)
 	  fprintf(results_f, "Writing re-estimated tree models to %s and %s...\n", 
 		  cons_fname, noncons_fname);
-	tm_print(fopen_fname(cons_fname, "w+"), phmm->mods[0]);
-	tm_print(fopen_fname(noncons_fname, "w+"), phmm->mods[1]);
+	tm_print(phast_fopen(cons_fname, "w+"), phmm->mods[0]);
+	tm_print(phast_fopen(noncons_fname, "w+"), phmm->mods[1]);
       }
       if (results != NULL) {
 	ListOfLists *tmplist = lol_new(2);
@@ -509,7 +509,7 @@ int phastCons(struct phastCons_struct *p) {
     /* convert GFF to coord frame of reference sequence and adjust
        coords by idx_offset, if necessary  */
     if (refidx != 0 || msa->idx_offset != 0)
-      msa_map_gff_coords(msa, predictions, 0, refidx, msa->idx_offset, NULL);
+      msa_map_gff_coords(msa, predictions, 0, refidx, msa->idx_offset);
 
     if (refidx != 0) 
       gff_flatten(predictions);	
@@ -647,13 +647,13 @@ int phastCons(struct phastCons_struct *p) {
       lol_push_dbl(results, &lnl, 1, "likelihood");
     if (lnl_f != NULL) {
       fprintf(lnl_f, "lnL = %.4f\n", lnl); 
-      if (FC) fprintf(lnl_f, "(lambda = %f)\n", lambda);
+      if (FC) fprintf(lnl_f, "(lambda = %g)\n", lambda);
       else if (two_state && (estim_transitions || estim_indels)) {
 	fprintf(lnl_f, "(");
 	if (estim_transitions)
-	  fprintf(lnl_f, "mu = %f, nu = %f%s", mu, nu, estim_indels ? ", " : "");
+	  fprintf(lnl_f, "mu = %g, nu = %g%s", mu, nu, estim_indels ? ", " : "");
 	if (estim_indels)
-	  fprintf(lnl_f, "alpha_0 = %f, beta_0 = %f, tau_0 = %f, alpha_1 = %f, beta_1 = %f, tau_1 = %f", alpha_0, beta_0, tau_0, alpha_1, beta_1, tau_1);
+	  fprintf(lnl_f, "alpha_0 = %g, beta_0 = %g, tau_0 = %g, alpha_1 = %g, beta_1 = %g, tau_1 = %g", alpha_0, beta_0, tau_0, alpha_1, beta_1, tau_1);
 	fprintf(lnl_f, ")\n");
       }
     }
@@ -683,7 +683,8 @@ void setup_two_state(HMM **hmm, CategoryMap **cm, double mu, double nu) {
   hmm_reset(*hmm);
 
   /* define two-category category map */
-  *cm = cm_create_trivial(1, "cons_");
+  if (cm != NULL)
+    *cm = cm_create_trivial(1, "cons_");
 }
 
 /* Version of compute_emissions for use when estimating rho only (see
@@ -694,7 +695,7 @@ void compute_emissions_estim_rho(double **emissions, void **models,
 				 int length) {
   PhyloHmm *phmm = (PhyloHmm*)data;
   tl_compute_log_likelihood(phmm->mods[0], phmm->em_data->msa, 
-			    phmm->emissions[0], -1, NULL);
+			    phmm->emissions[0], NULL,  -1, NULL);
 }
 
 
@@ -708,6 +709,7 @@ double fit_two_state(PhyloHmm *phmm, MSA *msa, int estim_func, int estim_indels,
                      double *alpha_1, double *beta_1, double *tau_1, 
                      double *rho, double gamma, FILE *logf) {
   double retval;
+  void (*compute_emissions_func)(double **, void **, int, void*, int, int);
 
   mm_set(phmm->functional_hmm->transition_matrix, 0, 0, 1-*mu);
   mm_set(phmm->functional_hmm->transition_matrix, 0, 1, *mu);
@@ -744,24 +746,15 @@ double fit_two_state(PhyloHmm *phmm, MSA *msa, int estim_func, int estim_indels,
       ss_realloc(msa, msa->ss->tuple_size, msa->ss->ntuples, TRUE, TRUE);
   }
 
-  if (estim_trees) {
-    /* force re-initialization of tree models with rate variation;
-       this is a hack that helps keep the parameterization simple */
-    /*    if (phmm->mods[0]->nratecats == 1) {
-      tm_reinit(phmm->mods[0], phmm->mods[0]->subst_mod, 2, 
-                phmm->mods[0]->alpha, NULL, NULL);
-      phmm->mods[0]->nratecats = 1; phmm->mods[0]->alpha = -1; // ignore rate variation 
-      phmm->mods[0]->freqK[0] = phmm->mods[0]->rK[0] = 1;
-    }
-    if (phmm->mods[1]->nratecats == 1) {
-      tm_reinit(phmm->mods[1], phmm->mods[1]->subst_mod, 2, 
-                phmm->mods[1]->alpha, NULL, NULL);
-      phmm->mods[1]->nratecats = 1; phmm->mods[1]->alpha = -1;
-      phmm->mods[1]->freqK[0] = phmm->mods[1]->rK[0] = 1;
-    }*/
+  if (estim_trees)
+    compute_emissions_func = phmm_compute_emissions_em;
+  else if (estim_rho) 
+    compute_emissions_func = compute_emissions_estim_rho;
+  else compute_emissions_func = NULL;
 
+  if (estim_trees) {
     retval = hmm_train_by_em(phmm->hmm, phmm->mods, phmm, 1, &phmm->alloc_len, NULL, 
-                             phmm_compute_emissions_em, reestimate_trees,
+                             compute_emissions_func, reestimate_trees,
                              gamma > 0 ? 
                              phmm_estim_trans_em_coverage : phmm_estim_trans_em, 
                              phmm_get_obs_idx_em, 
@@ -784,7 +777,7 @@ double fit_two_state(PhyloHmm *phmm, MSA *msa, int estim_func, int estim_indels,
     tm_set_subst_matrices(phmm->mods[0]);
 
     retval = hmm_train_by_em(phmm->hmm, phmm->mods, phmm, 1, &phmm->alloc_len, NULL, 
-                             compute_emissions_estim_rho, reestimate_rho,
+                             compute_emissions_func, reestimate_rho,
                              gamma > 0 ? 
                              phmm_estim_trans_em_coverage : phmm_estim_trans_em, 
                              phmm_get_obs_idx_em, 
@@ -834,11 +827,11 @@ void unpack_params_mod(TreeModel *mod, Vector *params_in) {
   /* check parameter values */
   for (i = 0; i < params_in->size; i++) {
     double mu = vec_get(params_in, i);
-    if (mu < 0 && abs(mu) < TM_IMAG_EPS) /* consider close enough to 0 */
+    if (mu < 0 && fabs(mu) < TM_IMAG_EPS) /* consider close enough to 0 */
       vec_set(params_in, i, mu=0);
-    if (mu < 0) die("ERROR: parameter %d has become negative (%f).\n", i, mu);
+    if (mu < 0) die("ERROR: parameter %d has become negative (%g).\n", i, mu);
     if (isinf(mu) || isnan(mu))
-      die("ERROR: parameter %d is no longer finite (%f).\n", i, mu);
+      die("ERROR: parameter %d is no longer finite (%g).\n", i, mu);
   }
   for (i = 0; i<params->size; i++) {
     if (mod->param_map[i] >= 0) 
@@ -902,8 +895,8 @@ double likelihood_wrapper(Vector *params, void *data) {
 
   unpack_params_phmm(phmm, params);
 
-  retval0 = -tl_compute_log_likelihood(phmm->mods[0], phmm->em_data->msa, NULL, 0, NULL);
-  retval1 = -tl_compute_log_likelihood(phmm->mods[1], phmm->em_data->msa, NULL, 1, NULL);
+  retval0 = -tl_compute_log_likelihood(phmm->mods[0], phmm->em_data->msa, NULL, NULL, 0, NULL);
+  retval1 = -tl_compute_log_likelihood(phmm->mods[1], phmm->em_data->msa, NULL, NULL, 1, NULL);
 
   return retval0 + retval1;
                                 /* FIXME: what happens when not one to
@@ -911,7 +904,7 @@ double likelihood_wrapper(Vector *params, void *data) {
 }
 
 /* Re-estimate phylogenetic model based on expected counts (M step of EM) */
-void reestimate_trees(void **models, int nmodels, void *data, 
+void reestimate_trees(TreeModel **models, int nmodels, void *data, 
                       double **E, int nobs, FILE *logf) {
 
   PhyloHmm *phmm = (PhyloHmm*)data;
@@ -928,7 +921,7 @@ void reestimate_trees(void **models, int nmodels, void *data,
   for (k = 0; k < phmm->nmods; k++) 
     for (obsidx = 0; obsidx < nobs; obsidx++) 
       phmm->em_data->msa->ss->cat_counts[k][obsidx] = E[k][obsidx];
-
+  
   /* This will set up params in phmm->mods[0] and phmm->mods[1].  The
      tree models should be the same at this point, since only one model
      is allowed for --estimate-trees.  Therefore the parameter setup
@@ -952,7 +945,7 @@ void reestimate_trees(void **models, int nmodels, void *data,
       phmm->mods[i]->nratecats = phmm->mods[!i]->nratecats;
   }
 
-  tm_setup_params(phmm->mods[0]);
+  tm_setup_params(phmm->mods[0], 0);
   params = tm_params_new_init_from_model(phmm->mods[1]);
 
   //get number of parameters
@@ -1005,7 +998,7 @@ void reestimate_trees(void **models, int nmodels, void *data,
   vec_copy(phmm->mods[1]->all_params, params);
 
   if (opt_bfgs(likelihood_wrapper, opt_params, phmm, &ll, lower_bounds, 
-               NULL, logf, NULL, OPT_MED_PREC, phmm->em_data->H) != 0)
+               NULL, logf, NULL, OPT_MED_PREC, phmm->em_data->H, NULL) != 0)
     die("ERROR returned by opt_bfgs.\n");
 
   if (logf != NULL) 
@@ -1022,24 +1015,25 @@ void reestimate_trees(void **models, int nmodels, void *data,
   vec_free(upper_bounds);
 }
 
+
 /* Wrapper for computation of likelihood, for use by reestimate_rho (below) */
 double likelihood_wrapper_rho(double rho, void *data) {
   PhyloHmm *phmm = (PhyloHmm*)data;
   phmm->mods[0]->scale = rho;
   tm_set_subst_matrices(phmm->mods[0]);
   return -tl_compute_log_likelihood(phmm->mods[0], phmm->em_data->msa, 
-				    NULL, 0, NULL);
+				    NULL, NULL, 0, NULL);
 }
 
 /* Similar to reestimate_trees, but re-estimate only scale parameter
    rho; only the first model (for the conserved state) needs to be
    considered */
-void reestimate_rho(void **models, int nmodels, void *data, 
+void reestimate_rho(TreeModel **models, int nmodels, void *data, 
 		    double **E, int nobs, FILE *logf) {
 
   PhyloHmm *phmm = (PhyloHmm*)data;
   int obsidx;
-  double ll, ax, bx, cx, fa, fb, fc;
+  double ax, bx, cx, fa, fb, fc;
 
   for (obsidx = 0; obsidx < nobs; obsidx++) 
     phmm->em_data->msa->ss->cat_counts[0][obsidx] = E[0][obsidx];
@@ -1050,8 +1044,9 @@ void reestimate_rho(void **models, int nmodels, void *data,
   bx = phmm->em_data->rho;
   ax = max(0.1, phmm->em_data->rho - .05);
   mnbrak(&ax, &bx, &cx, &fa, &fb, &fc, likelihood_wrapper_rho, phmm, logf);
-  ll = opt_brent(ax, bx, cx, likelihood_wrapper_rho, 5e-3, 
-		 &phmm->em_data->rho, phmm, logf);
+  opt_brent(ax, bx, cx, likelihood_wrapper_rho, 5e-3, 
+	    &phmm->em_data->rho, phmm, logf);
+  //  printf("ll=%f rho=%f\n", ll, phmm->em_data->rho);
 
   if (logf != NULL) 
     fprintf(logf, "END RE-ESTIMATION OF RHO\n\n");
@@ -1103,8 +1098,8 @@ void phmm_estim_trans_em_coverage(HMM *hmm, void *data, double **A) {
     else nu = nu1;
 
     /* double check that derivative is really zero */
-    if (!(fabs(-z*C[0][0]/(1-z*nu) + (C[0][1] + C[1][0])/nu - C[1][1]/(1-nu)) < 1e-6))
-      die("ERROR phmm_estim_trans_em_coverage: derivate not zero?\n");
+//    if (!(fabs(-z*C[0][0]/(1-z*nu) + (C[0][1] + C[1][0])/nu - C[1][1]/(1-nu)) < 1e-4))
+//     die("ERROR phmm_estim_trans_em_coverage: derivative not zero?\n");
 
     mu = z * nu;
     if (!(nu >= 0 && nu <= 1 && mu >= 0 && mu <= 1))
@@ -1150,7 +1145,9 @@ void init_eqfreqs(TreeModel *mod, MSA *msa, double gc) {
                    mod->rate_matrix->inv_states[(int)'T'], (1-gc)/2);
   }
   else {                        /* estimate from alignment */
-    if (mod->subst_mod == JC69 || mod->subst_mod == K80)
+    if (subst_mod_is_codon_model(mod->subst_mod))
+      msa_get_backgd_3x4(mod->backgd_freqs, msa);
+    else if (mod->subst_mod == JC69 || mod->subst_mod == K80)
       vec_set_all(mod->backgd_freqs, 1.0/mod->backgd_freqs->size);
     else
       msa_get_base_freqs_tuples(msa, mod->backgd_freqs, mod->order+1, -1);

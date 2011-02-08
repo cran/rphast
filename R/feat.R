@@ -1,8 +1,8 @@
-#' @nord
-#' @export
-.makeObj.feat <- function() {
+.makeObj.feat <- function(isPointer) {
   feat <- list()
-  attr(feat, "class") <- "feat"
+  if (isPointer) {
+    attr(feat, "class") <- c("feat", "list")
+  } else attr(feat, "class") <- c("feat", "data.frame")
   feat
 }
 
@@ -20,7 +20,7 @@
 ##' @export
 copy.feat <- function(x) {
   if (is.null(x$externalPtr)) return(x)
-  result <- .makeObj.feat()
+  result <- .makeObj.feat(TRUE)
   result$externalPtr <- .Call.rphast("rph_gff_copy", x$externalPtr)
   result
 }
@@ -32,8 +32,8 @@ copy.feat <- function(x) {
 ##' The function will guess the format of the input file automatically.
 ##'
 ##' @title Read a Feature File (GFF, BED, or GenePred)
-##' @param filename the name of the file (can be GFF, BED, or GenePred: rphast
-##' will auto-detect)
+##' @param filename the name of the file (can be GFF, BED, GenePred, or wig:
+##' rphast will auto-detect)
 ##' @param pointer.only Whether to store object by reference instead of a
 ##' data.frame
 ##' @return If \code{pointer.only==FALSE}, a data.frame with columns corresponding
@@ -54,12 +54,15 @@ copy.feat <- function(x) {
 ##' @keywords BED
 ##' @keywords features
 ##' @author Melissa J. Hubisz and Adam Siepel
+##' @example inst/examples/read-feat.R
 ##' @export
 read.feat <- function(filename, pointer.only=FALSE) {
-  feat <- .makeObj.feat()
+  filename <- check.arg(filename, "filename", "character", null.OK=FALSE,
+                        min.length=1L, max.length=1L)
+  feat <- .makeObj.feat(TRUE)
   feat$externalPtr <- .Call.rphast("rph_gff_read", filename)
   if (!pointer.only) {
-    feat <- as.data.frame.feat(feat)
+    feat <- from.pointer.feat(feat)
   }
   feat
 }
@@ -77,7 +80,11 @@ read.feat <- function(filename, pointer.only=FALSE) {
 ##' Otherwise, it is a list containing a single element, which is
 ##' a pointer to an object stored in C.
 ##' @title Features Objects
-##' @param seqname a character vector containing the name of the sequence
+##' @param seqname a character vector containing the name of the sequence.  If
+##' the features correspond to regions of an alignment, then seqname
+##' should be the name of the sequence in the alignment that is used
+##' as the frame of reference in the features.  To use the entire alignment
+##' as a frame of reference, set seqname to "MSA".
 ##' @param src The source of the feature
 ##' @param feature The feature type name
 ##' @param start The start of the feature.  Sequence numbering begins at 1.
@@ -99,6 +106,7 @@ read.feat <- function(filename, pointer.only=FALSE) {
 ##' \code{\link{msa}} for more details on the pointer.only option.
 ##' @keywords features
 ##' @author Melissa J. Hubisz and Adam Siepel
+##' @example inst/examples/feat.R
 ##' @export
 feat <- function(seqname="default", src=".", feature=".",
                  start, end, score=NULL,
@@ -133,6 +141,10 @@ feat <- function(seqname="default", src=".", feature=".",
              min.length=len, max.length=len)
   check.arg(pointer.only, "pointer.only", "logical", null.OK=FALSE)
 
+# NOTE: I'd like to impose this, but in some genepred files elements have length -1
+#  if (sum(end - start < 0) > 0)
+#    stop("Error: end should be >= start for all features")
+
   if (pointer.only) {
     if (!is.null(score)) score <- as.numeric(score)
     if (!is.null(strand)) strand <- as.character(strand)
@@ -142,7 +154,7 @@ feat <- function(seqname="default", src=".", feature=".",
                         as.character(src), as.character(feature),
                         as.integer(start), as.integer(end),
                         score, strand, frame, attribute)
-    x <- .makeObj.feat()
+    x <- .makeObj.feat(TRUE)
     x$externalPtr <- ptr
   } else {
     x <- data.frame(seqname=seqname, src=src, feature=feature,
@@ -151,6 +163,7 @@ feat <- function(seqname="default", src=".", feature=".",
     if (!is.null(strand)) x <- cbind(x, strand)
     if (!is.null(frame)) x <- cbind(x, frame)
     if (!is.null(attribute)) x <- cbind(x, attribute)
+    attr(x, "class") <- c("feat", "data.frame")
   }
   x
 }
@@ -164,6 +177,7 @@ feat <- function(seqname="default", src=".", feature=".",
 ##' @seealso \code{\link{feat}} for more details on features storage
 ##' options.
 ##' @author Melissa J. Hubisz
+##' @example inst/examples/as-pointer-feat.R
 ##' @export
 as.pointer.feat <- function(x) {
   if (!is.null(x$externalPtr))
@@ -181,9 +195,10 @@ as.pointer.feat <- function(x) {
 ##' @param ... further arguments to be passed to or from other methods
 ##' @keywords features
 ##' @seealso \code{\link{write.feat}}
-##' @export
 ##' @author Melissa J. Hubisz and Adam Siepel
-##' @S3method print feat
+##' @method print feat
+##' @export
+##' @export print.feat
 print.feat <- function(x, ...) {
   cat(paste("Features object\n"))
   write.feat(x, NULL)
@@ -196,6 +211,7 @@ print.feat <- function(x, ...) {
 ##' @param file The name of the file to write to (will be overwritten)
 ##' @keywords features GFF
 ##' @author Melissa J. Hubisz and Adam Siepel
+##' @example inst/examples/write-feat.R
 ##' @export
 write.feat <- function(x, file) {
   check.arg(file, "file", "character", null.OK=TRUE)
@@ -210,13 +226,23 @@ write.feat <- function(x, file) {
 ##' @param x An object of type \code{feat}
 ##' @return An integer containing the number of rows in each features object
 ##' @export
-##' @S3method nrow feat
+##' @export nrow.feat
+##' @method nrow feat
 ##' @keywords features
+##' @example inst/examples/nrow-feat.R
 ##' @author Melissa J. Hubisz and Adam Siepel
 nrow.feat <- function(x) {
-  if (is.null(x$externalPtr))
-    return(dim(x)[1])
-  .Call.rphast("rph_gff_numrow", x$externalPtr)
+  if (is.data.frame(x)) {
+    attr(x, "class") <- "data.frame"
+    nrow(x)
+#    attr(x, "class") <- "data.frame"
+#    NextMethod("nrow", x)
+#    NextMethod()
+#    UseMethod("nrow", x)
+  } else {
+    if (is.null(x$externalPtr)) stop("invalid object sent to nrow.feat")
+    .Call.rphast("rph_gff_numrow", x$externalPtr)
+  }
 }
 
 
@@ -227,13 +253,17 @@ nrow.feat <- function(x) {
 ##' @note If the features object is stored as a pointer in C, the number
 ##' of columns is always 9.
 ##' @export
-##' @S3method ncol feat
+##' @export ncol.feat
+##' @method ncol feat
 ##' @keywords features
+##' @example inst/examples/ncol-feat.R
 ##' @author Melissa J. Hubisz
 ncol.feat <- function(x) {
-  if (is.null(x$externalPtr))
-    return(dim(x)[2])
-  9 # feat objects stored in C always have 9 columns
+  if (is.data.frame(x)) {
+    attr(x, "class") <- "data.frame"
+#    NextMethod("nrow")
+    ncol(x)
+  } else return(9)  # feat objects stored in C always have 9 columns
 }
 
 
@@ -242,8 +272,10 @@ ncol.feat <- function(x) {
 ##' @param object an object of type \code{feat}
 ##' @param ... further arguments to be passed to or from other methods
 ##' @export
-##' @S3method summary feat
+##' @export summary.feat
+##' @method summary feat
 ##' @keywords features
+##' @example inst/examples/summary-feat.R
 ##' @author Melissa J. Hubisz
 summary.feat <- function(object, ...) {
   if (is.null(object$externalPtr)) {
@@ -269,7 +301,9 @@ summary.feat <- function(object, ...) {
 ##' and \code{\link{as.pointer.feat}} for conversion in the other
 ##' direction.
 ##' @export
-##' @S3method as.data.frame feat
+##' @export as.data.frame.feat
+##' @method as.data.frame feat
+##' @example inst/examples/as-data-frame-feat.R
 ##' @author Melissa J. Hubisz and Adam Siepel
 as.data.frame.feat <- function(x, row.names=NULL, optional=FALSE, ...) {
   if (is.data.frame(x)) return(x)
@@ -281,15 +315,31 @@ as.data.frame.feat <- function(x, row.names=NULL, optional=FALSE, ...) {
 }
 
 
+##' Convert a features object from C memory (external pointer) to R memory
+##' @param x A features object stored as a pointer to C memory
+##' @return A features object (inheriting from the data.frame class) stored
+##' in R memory
+##' @export
+##' @author Melissa J. Hubisz
+from.pointer.feat <- function(x) {
+  x <- as.data.frame.feat(x)
+  attr(x, "class") <- c("feat", "data.frame")
+  x
+}
+
+
+
 ##' Get the dimensions of a features object
 ##' @title Feature dimensions
 ##' @param x an object of type \code{feat}
 ##' @return An integer vector of length two containing the number of
 ##' rows and number of columns in the features object.
 ##' @export
-##' @S3method dim feat
+##' @export dim.feat
+##' @method dim feat
 ##' @keywords features
 ##' @author Melissa J. Hubisz
+##' @example inst/examples/dim-feat.R
 dim.feat <- function(x) {
   c(nrow.feat(x), ncol.feat(x))
 }
@@ -301,7 +351,8 @@ dim.feat <- function(x) {
 ##' @param na.rm Whether to remove values of NA before calculating range.
 ##' @return A vector of size 2 indicating minimum and maximum coord in
 ##' the features object
-##' @S3method range feat
+##' @method range feat
+##' @export range.feat
 ##' @export
 ##' @keywords features
 ##' @author Melissa J. Hubisz
@@ -347,10 +398,12 @@ range.feat <- function(..., na.rm=FALSE) {
 ## the lables for each element.  If \code{TRUE}, use x$feature for labels.
 ##' @param xlim A numerical vector of length 2 giving the range for the x-axis.
 ##' @param ylim A numerical vector of length 2 giving the range for the y-axis.
-##' @S3method plot feat
 ##' @param ... graphical parameters to be passed to \code{plot}.
+##' @method plot feat
+##' @export plot.feat
 ##' @export
 ##' @keywords features plot
+##' @example inst/examples/plot-feat.R
 ##' @author Melissa J. Hubisz
 plot.feat <- function(x, y=0, height=1, plottype="r",
                       arrow.density=5,
@@ -365,7 +418,7 @@ plot.feat <- function(x, y=0, height=1, plottype="r",
                       ylim=c(y-height*3/4, y+height*3/4), ...) {
 
   if (!is.null(x$externalPtr))
-    x <- as.data.frame.feat(x)
+    x <- from.pointer.feat(x)
   if (is.null(x$start) || is.null(x$end))
     stop("invalid features object")
   if (plottype=="a" && is.null(x$strand))
@@ -379,12 +432,12 @@ plot.feat <- function(x, y=0, height=1, plottype="r",
   x <- x[f,]
   
   if (plottype=="r" || plottype=="b") {
-    rect(x$start, y-height/2, x$end, y+height/2,
+    rect(x$start-0.5, y-height/2, x$end+0.5, y+height/2,
          col=fill.col, border=col, lty=lty,
          lwd=lwd)
   }
   if (plottype == "l")
-    segments(x$start, y, x$end, col=col, lty=lty, lwd=lwd)
+    segments(x$start-0.5, y, x$end+0.5, col=col, lty=lty, lwd=lwd)
   if (plottype == "a" || plottype == "b") {
     usr <- par("usr")
     pin <- par("pin")
@@ -398,8 +451,8 @@ plot.feat <- function(x, y=0, height=1, plottype="r",
     if (sum(f) > 0) {
       xplus <- x[f,]
       for (i in 1:nrow.feat(xplus)) {
-        start <- xplus[i,]$start
-        end <- xplus[i,]$end
+        start <- xplus[i,]$start-0.5
+        end <- xplus[i,]$end+0.5
         xlen <- height/2/tan(angle)/upi[2]*upi[1]
         x0 <- seq(from = end + arrow.density*floor(xlen/arrow.density),
                   to = start-xlen, by=-arrow.density)
@@ -434,8 +487,8 @@ plot.feat <- function(x, y=0, height=1, plottype="r",
     if (sum(f) > 0) {
       xneg <- x[f,]
       for (i in 1:nrow.feat(xneg)) {
-        start <- xneg[i,]$start
-        end <- xneg[i,]$end
+        start <- xneg[i,]$start-0.5
+        end <- xneg[i,]$end+0.5
         x0 <- seq(from=start - arrow.density*floor(xlen/arrow.density),
                   to = end+xlen, by=arrow.density)
 #        x0 <- seq(from=start-xlen, to=end+xlen, by=arrow.density)
@@ -484,10 +537,12 @@ plot.feat <- function(x, y=0, height=1, plottype="r",
 ## the lables for each element.  If \code{TRUE}, use x$feature for labels.
 ##' @param xlim A numerical vector of length 2 giving the range for the x-axis.
 ##' @param ylim A numerical vector of length 2 giving the range for the y-axis.
-##' @S3method plot feat
 ##' @param ... graphical parameters to be passed to \code{plot}.
+##' @method plot gene
+##' @export plot.gene
 ##' @export
 ##' @keywords features plot
+##' @example inst/examples/plot-gene.R
 ##' @author Melissa J. Hubisz
 plot.gene <- function(x, y=0, height=1,
                       arrow.density=5,
@@ -500,7 +555,7 @@ plot.gene <- function(x, y=0, height=1,
                       xlim=range.feat(x),
                       ylim=c(y-height*3/4, y+height*3/4), ...) {
   if (!is.null(x$externalPtr))
-    x <- as.data.frame.feat(x)
+    x <- from.pointer.feat(x)
   if (is.null(x$start) || is.null(x$end))
     stop("invalid features object")
 
@@ -546,7 +601,10 @@ plot.gene <- function(x, y=0, height=1,
 ##' @param ... additional arguments to be passed to \code{density}
 ##' @return A kernel density object as defined by \code{\link{density}}
 ##' @export
+##' @export density.feat
+##' @method density feat
 ##' @keywords features
+##' @importFrom stats density
 ##' @author Melissa J. Hubisz
 density.feat <- function(x, type="length", ...) {
   if (type == "length") {
@@ -570,7 +628,8 @@ density.feat <- function(x, type="length", ...) {
 ##' @param type a character string, denoting the value to make the histogram with.
 ##' Currently the only valid types are "length" or "score"
 ##' @param ... additional arguments to be passed to \code{hist}
-##' @S3method hist feat
+##' @method hist feat
+##' @export hist.feat
 ##' @export
 ##' @keywords features
 ##' @author Melissa J. Hubisz
@@ -610,14 +669,20 @@ hist.feat <- function(x, type="length", ...) {
 ##' If \code{TRUE}, return only the fragments of x that overlap
 ##' with filter.  In this case, the same fragments may be output multiple times, if they are
 ##' selected by multiple entries in filter.  numbase and min.percent apply in either case.
+##' When this option is used, the return value is a list with two gffs.  The first (named frags)
+##' contains the overlapping fragments, and the second (filter.frags) contain the fragments
+##' from filter which selected the overlapping fragments. 
 ##' @param pointer.only If \code{TRUE}, the return object will only be a
 ##' pointer to an object stored in C (useful for very large features; advanced use only).
-##' @return an object of type \code{feat} containing the selected entries from x.
+##' @return an object of type \code{feat} containing the selected entries from x (unless
+##' get.fragments==TRUE, then it returns a list with two \code{feat} objects; see
+##' get.fragments).
 ##' @note If either x or filter are feature objects stored as a pointer to C memory,
 ##' then this function may reorder the elements in these objects, but leave them
 ##' otherwise unchanged.
 ##' @export
 ##' @keywords features
+##' @example inst/examples/overlap-feat.R
 ##' @author Melissa J. Hubisz
 overlap.feat <- function(x, filter, numbase=1, min.percent=NULL,
                          overlapping=TRUE, get.fragments=FALSE, pointer.only=FALSE) {
@@ -635,16 +700,26 @@ overlap.feat <- function(x, filter, numbase=1, min.percent=NULL,
   if (is.null(filter$externalPtr))
     filter <- as.pointer.feat(filter)
 
-  rv <- .makeObj.feat()
-  rv$externalPtr <- .Call.rphast("rph_gff_overlapSelect",
-                                 x$externalPtr, filter$externalPtr,
-                                 numbase, min.percent, !overlapping,
-                                 get.fragments)
-  if (!is.null(rv) && !pointer.only) {
-    rv <- as.data.frame.feat(rv)
+  rv <- list()
+  rv[[1]] <- .Call.rphast("rph_gff_overlapSelect",
+                          x$externalPtr, filter$externalPtr,
+                          numbase, min.percent, !overlapping,
+                          get.fragments)
+  if (get.fragments) {
+    rv <- rphast.simplify.list(rv)
+    if (!pointer.only) {
+      rv$frags <- from.pointer.feat(rv$frags)
+      rv$filter.frags <- from.pointer.feat(rv$filter.frags)
+    }
+    return(rv)
   }
-  if (nrow.feat(rv) == 0) return(NULL)
-  rv
+  feat.rv <- .makeObj.feat(TRUE)
+  feat.rv$externalPtr <- rv[[1]]
+  if (!is.null(rv) && !pointer.only) {
+    feat.rv <- from.pointer.feat(feat.rv)
+  }
+  if (nrow.feat(feat.rv) == 0) return(NULL)
+  feat.rv
 }
 
 
@@ -666,12 +741,12 @@ inverse.feat <- function(x, region.bounds, pointer.only=FALSE) {
     x <- as.pointer.feat(x)
   if (is.null(region.bounds$externalPtr))
     region.bounds <- as.pointer.feat(region.bounds)
-  rv <- .makeObj.feat()
+  rv <- .makeObj.feat(TRUE)
   rv$externalPtr <- .Call.rphast("rph_gff_inverse",
                                  x$externalPtr,
                                  region.bounds$externalPtr)
   if (!pointer.only)
-    rv <- as.data.frame.feat(rv)
+    rv <- from.pointer.feat(rv)
   rv
 }
 
@@ -699,6 +774,7 @@ inverse.feat <- function(x, region.bounds, pointer.only=FALSE) {
 ##' pointer to an object stored in C may be reordered (sorted) by this function.
 ##' @export
 ##' @keywords features
+##' @example inst/examples/coverage-feat.R
 ##' @author Melissa J. Hubisz
 coverage.feat <- function(..., or=FALSE, not=NULL, get.feats=FALSE,
                           pointer.only=FALSE) {
@@ -722,11 +798,11 @@ coverage.feat <- function(..., or=FALSE, not=NULL, get.feats=FALSE,
     featlist[[i]] <- x$externalPtr
   }
   if (get.feats) {
-    rv <- .makeObj.feat()
+    rv <- .makeObj.feat(TRUE)
     rv$externalPtr <- .Call.rphast("rph_gff_featureBits", featlist,
                                    or, get.feats)
     if (pointer.only) return(rv)
-    return(as.data.frame.feat(rv))
+    return(from.pointer.feat(rv))
   }
   .Call.rphast("rph_gff_featureBits", featlist, or, get.feats)
 }
@@ -741,15 +817,16 @@ coverage.feat <- function(..., or=FALSE, not=NULL, get.feats=FALSE,
 ##' to x.
 ##' @export
 ##' @keywords features
+##' @example inst/examples/add-UTRs-feat.R
 ##' @author Melissa J. Hubisz and Adam Siepel
 add.UTRs.feat <- function(x) {
   if (is.null(x$externalPtr)) {
     x <- as.pointer.feat(x)
     getDataFrame <- TRUE
   } else getDataFrame <- FALSE
-  rv <- .makeObj.feat()
+  rv <- .makeObj.feat(TRUE)
   rv$externalPtr <- .Call.rphast("rph_gff_add_UTRs", x$externalPtr)
-  if (getDataFrame) return(as.data.frame.feat(rv))
+  if (getDataFrame) return(from.pointer.feat(rv))
   rv
 }
 
@@ -762,15 +839,16 @@ add.UTRs.feat <- function(x) {
 ##' added to x.
 ##' @export
 ##' @keywords features
+##' @example inst/examples/add-introns-feat.R
 ##' @author Melissa J. Hubisz and Adam Siepel
 add.introns.feat <- function(x) {
   if (is.null(x$externalPtr)) {
     x <- as.pointer.feat(x)
     getDataFrame <- TRUE
   } else getDataFrame <- FALSE
-  rv <- .makeObj.feat()
+  rv <- .makeObj.feat(TRUE)
   rv$externalPtr <- .Call.rphast("rph_gff_add_introns", x$externalPtr)
-  if (getDataFrame) return(as.data.frame.feat(rv))
+  if (getDataFrame) return(from.pointer.feat(rv))
   rv
 }
 
@@ -786,15 +864,16 @@ add.introns.feat <- function(x) {
 ##' or stop codon.}}
 ##' @export
 ##' @keywords features
+##' @example inst/examples/add-signals-feat.R
 ##' @author Melissa J. Hubisz and Adam Siepel
 add.signals.feat <- function(x) {
   if (is.null(x$externalPtr)) {
     x <- as.pointer.feat(x)
     getDataFrame <- TRUE
   } else getDataFrame <- FALSE
-  rv <- .makeObj.feat()
+  rv <- .makeObj.feat(TRUE)
   rv$externalPtr <- .Call.rphast("rph_gff_add_signals", x$externalPtr)
-  if (getDataFrame) return(as.data.frame.feat(rv))
+  if (getDataFrame) return(from.pointer.feat(rv))
   rv
 }
 
@@ -813,15 +892,16 @@ add.signals.feat <- function(x) {
 ##' }
 ##' @export
 ##' @keywords features
+##' @example inst/examples/fix-start-stop-feat.R
 ##' @author Melissa J. Hubisz and Adam Siepel
 fix.start.stop.feat <- function(x) {
   if (is.null(x$externalPtr)) {
     x <- as.pointer.feat(x)
     getDataFrame <- TRUE
   } else getDataFrame <- FALSE
-  rv <- .makeObj.feat()
+  rv <- .makeObj.feat(TRUE)
   rv$externalPtr <- .Call.rphast("rph_gff_fix_start_stop", x$externalPtr)
-  if (getDataFrame) return(as.data.frame.feat(rv))
+  if (getDataFrame) return(from.pointer.feat(rv))
   rv
 }
 
@@ -834,21 +914,22 @@ fix.start.stop.feat <- function(x) {
 ##' @keywords features
 ##' @author Melissa J. Hubisz and Adam Siepel
 rbind.feat <- function(...) {
-  feat <- .makeObj.feat()
+  feat <- .makeObj.feat(TRUE)
   featlist <- list(...)
   idx <- 1
+  p.featlist <- list()
   for (i in 1:length(featlist)) {
     currfeat <- featlist[[i]]
-    if (!is.null(currfeat)) {
-      if (is.null(currfeat$externalPtr)) 
+    if (!is.null(currfeat) && nrow.feat(currfeat) > 0L) {
+      if (is.null(currfeat$externalPtr))
         currfeat <- as.pointer.feat(currfeat)
-      featlist[[idx]] <- currfeat$externalPtr
+      p.featlist[[idx]] <- currfeat$externalPtr
       idx <- idx+1
     }
   }
   if (idx == 1) return(NULL)
-  feat$externalPtr <- .Call.rphast("rph_gff_append", featlist)
-  as.data.frame.feat(feat)
+  feat$externalPtr <- .Call.rphast("rph_gff_append", p.featlist)
+  from.pointer.feat(feat)
 }
 
 ##' Split features by length
@@ -870,6 +951,8 @@ rbind.feat <- function(...) {
 ##' with all features of length > max.length broken into segments
 ##' (starting from the first position in feature).  The last piece
 ##' of each split segment may be smaller than max.length
+##' @method split feat
+##' @export split.feat
 ##' @export
 ##' @keywords features
 ##' @author Melissa J. Hubisz
@@ -886,12 +969,12 @@ split.feat <- function(x, f, drop=FALSE, start.from="left",
     stop("start.from invalid value (should be \"left\" or \"right\")")
   if (is.null(x$externalPtr))
     x <- as.pointer.feat(x)
-  splitFeat <- .makeObj.feat()
+  splitFeat <- .makeObj.feat(TRUE)
   splitFeat$externalPtr <- .Call.rphast("rph_gff_split", x$externalPtr,
                                         max.length, drop, 
                                         ifelse(start.from=="left", 0, 1))
   if (!pointer.only)
-    splitFeat <- as.data.frame.feat(splitFeat)
+    splitFeat <- from.pointer.feat(splitFeat)
   splitFeat
 }
 
@@ -901,20 +984,20 @@ split.feat <- function(x, f, drop=FALSE, start.from="left",
 ##' @param decreasing Set to TRUE to sort from highest to lowest coordinates
 ##' @param ... Currently not used
 ##' @return An object of type \code{feat} sorted primarily by
-##' start position, then by end position.
+##' seqname, then by start position, then by end position.
+##' @method sort feat
+##' @export sort.feat
 ##' @export
-##' @S3method sort feat
-##' @note This function is not recommended if x is stored as a pointer to an
-##' object in C; in this case it may sort differently depending on how
-##' the object has been previously used.  x will be sorted if it is a pointer.
+##' @note If x is stored as a pointer to an object in C, the object will
+##' be modified to the return value.
 ##' @keywords features
 ##' @author Melissa J. Hubisz and Adam Siepel
 sort.feat <- function(x, decreasing = FALSE, ...) {
   if (is.null(x$externalPtr))
     x <- as.pointer.feat(x)
-  rv <- .makeObj.feat()
+  rv <- .makeObj.feat(TRUE)
   rv$externalPtr <- .Call.rphast("rph_gff_sort", x$externalPtr)
-  rv <- as.data.frame.feat(rv)
+  rv <- from.pointer.feat(rv)
   if (decreasing) 
     rv <- rv[dim(rv)[1]:1,]
   rv
@@ -939,9 +1022,9 @@ sort.feat <- function(x, decreasing = FALSE, ...) {
 ##' @author Melissa J. Hubisz
 composition.feat <- function(x, annotations) {
   if (!is.null(annotations$externalPtr))
-    annotations <- as.data.frame.feat(annotations)
+    annotations <- from.pointer.feat(annotations)
   if (!is.null(x$externalPtr))
-    x <- as.data.frame.feat(x)
+    x <- from.pointer.feat(x)
   annTypes <- unique(annotations$feature)
   rv <- list()
   for (anntype in annTypes) {
@@ -975,15 +1058,15 @@ composition.feat <- function(x, annotations) {
 ##' @author Melissa J. Hubisz
 enrichment.feat <- function(x, annotations, region.bounds) {
   if (!is.null(annotations$externalPtr))
-    annotations <- as.data.frame.feat(annotations)
+    annotations <- from.pointer.feat(annotations)
   if (!is.null(x$externalPtr))
-    x <- as.data.frame.feat(x)
+    x <- from.pointer.feat(x)
   annTypes <- unique(annotations$feature)
   rv <- list()
   totalNumBase <- coverage.feat(region.bounds)
   for (anntype in annTypes) {
     annfeat <- annotations[annotations$feature == anntype,]
-    rv[[anntype]] <- coverage.feat(x, annfeat, region.bounds)*totalNumBase/(coverage.feat(annfeat, region.bounds)*coverage.feat(x, region.bounds))
+    rv[[anntype]] <- as.numeric(coverage.feat(x, annfeat, region.bounds))*as.numeric(totalNumBase)/(as.numeric(coverage.feat(annfeat, region.bounds))*as.numeric(coverage.feat(x, region.bounds)))
   }
   data.frame(type=names(rv), enrichment=as.numeric(rv), stringsAsFactors=TRUE)
 }
@@ -1005,28 +1088,39 @@ enrichment.feat <- function(x, annotations, region.bounds) {
 ##' out first.}
 ##' \item{If x is a pointer to an object in C, it will be modified (to
 ##' the return value).}}
-##' @S3method unique feat
+##' @method unique feat
+##' @export unique.feat
 ##' @export
 ##' @keywords features
+##' @note VERY IMPORTANT: this function is not currently implemented to look
+##' at chromosomes (ie the seqname field of the feature).  Therefore any
+##' genes which have overlapping coordinates REGARDLESS OF THE CHROMOSOME
+##' will be pruned to a single "non-overlapping" gene.  To get around this,
+##' first subset the features by chromosome and call uniq.feat on each
+##' subset.
+##' @note Also, this algorithm considers genes to be overlapping even if
+##' they are on different strands.  If this is undesirable, then subset
+##' the features by strand as well as chromosome.
 ##' @author Melissa J. Hubisz and Adam Siepel
 unique.feat <- function(x, incomparables=FALSE, ...) {
   if (is.null(x$externalPtr)) {
     x <- as.pointer.feat(x)
     getDataFrame <- TRUE
   } else getDataFrame <- FALSE
-  rv <- .makeObj.feat()
+  rv <- .makeObj.feat(TRUE)
   rv$externalPtr <- .Call.rphast("rph_gff_nonOverlapping_genes", x$externalPtr)
   if (getDataFrame)
-    rv <- as.data.frame.feat(rv)
+    rv <- from.pointer.feat(rv)
   rv
 }
 
 
 ##' Extract value from tag-value formatted attribute in features object
 ##' @param x A features object of type \code{feat}.  The attribute field
-##' should be in tag-value format (as described in the GFF standard; ie,
-##' "tag1 val1a val1b; tag2 val2 ; ...",
-##' where vals are in quotes if they are strings. 
+##' should be in tag-value format (either GFF 2 standard; ie,
+##' "tag1 val1a val1b; tag2 val2 ; ...", or, GFF 3 standard; ie,
+##' "tag1=val1a,val1b;tag2=val2; ...".
+##' where vals are in quotes if they are strings.  
 ##' @param tag The tag whose values are to be extracted.
 ##' @return If there is at most one relevant value for each feature,
 ##' a character vector of the same length as x will be returned, containing
@@ -1037,6 +1131,7 @@ unique.feat <- function(x, incomparables=FALSE, ...) {
 ##' NA for no value).
 ##' @export
 ##' @keywords features GFF
+##' @example inst/examples/tagval-feat.R
 ##' @author Melissa J. Hubisz
 tagval.feat <- function(x, tag) {
   check.arg(tag, "tag", "character", null.OK=FALSE)
@@ -1057,8 +1152,9 @@ tagval.feat <- function(x, tag) {
 
 ##' Extract value from tag-value formatted attributes
 ##' @param x A vector of character strings in tag-val format (as
-##' described in the GFF standard; ie, "tag1 val1a val1b; tag2 val2 ; ...",
-##' where vals are in quotes if they are strings. 
+##' described in the GFF 2 standard; ie, "tag1 val1a val1b; tag2 val2 ; ...",
+##' or in the GFF 3 format "tag1=val1a,val1b; tag2=val2; ..."),
+##' where vals are in quotes if they are strings.
 ##' @param tag The tag whose values are to be extracted.
 ##' @return If there is at most one value per tag for each element of x,
 ##' a character vector of the same length as x will be returned, containing
@@ -1069,6 +1165,7 @@ tagval.feat <- function(x, tag) {
 ##' NA for no value).
 ##' @export
 ##' @keywords GFF
+##' @example inst/examples/tagval.R
 ##' @author Melissa J. Hubisz
 tagval <- function(x, tag) {
   check.arg(x, "x", "character", null.OK=FALSE, min.length=1L, max.length=NULL)
@@ -1076,3 +1173,99 @@ tagval <- function(x, tag) {
                 end=rep(2, length(x)), attribute=x),
               tag=tag)
 }
+
+
+##' Combine adjacent features with the same "feature" field
+##' @param x An object of type feat
+##' @return A features object in which adjacent features are
+##' combined into one longer feature.
+##' @note If x is stored as a pointer to a C structure, then
+##' x will be modified to the return value.
+##' @author Melissa J. Hubisz and Adam Siepel
+##' @export
+flatten.feat <- function(x) {
+  isPointer <- !is.null(x$externalPtr)
+  if (!isPointer) x <- as.pointer.feat(x)
+  sort.feat(x)
+  .Call.rphast("rph_gff_flatten", x$externalPtr)
+  if (!isPointer) return(from.pointer.feat(x))
+  x
+}
+
+
+##' Read a wig file
+##'
+##' Reads fixed or variable step wig files.  Stores them as a
+##' features object.
+##' @param file The file to read
+##' @param pointer.only If \code{TRUE}, store as a pointer to a
+##' C structure
+##' @return A GFF object representing data in wig file
+##' @export
+read.wig <- function(file, pointer.only=FALSE) {
+  read.feat(file, pointer.only=pointer.only)
+}
+
+
+##' Write a fixedStep wig file
+##' @title Writing a wig file
+##' @param chrom A character vector giving chromosome name for each point.
+##' Will be recycled to length(start)
+##' @param start An integer vector giving start coordinate for each point.
+##' @param score A numeric vector giving score at each point
+##' Will be recycled to length(start)
+##' @param span An integer giving span (ie, length) of each element (all
+##' elements must have the same length, so only a single value is allowed).
+##' @param file The name of the file to write to (will be overwritten).
+##' A value of NULL implies write to console.
+##' @param append Whether to append to the file.  If FALSE, file will be
+##' overwritten.
+##' @keywords wig fixedStep
+##' @author Melissa J. Hubisz
+##' @export
+##' @example inst/examples/write-wig.R
+write.wig <- function(chrom, start, score, span=1, file=NULL, append=FALSE) {
+  chrom <- check.arg(chrom, "chrom", "character", null.OK=FALSE, max.length=NULL)
+  start <- check.arg(start, "start", "integer", null.OK=FALSE, max.length=NULL)
+  score <- check.arg(score, "score", "numeric", null.OK=FALSE, max.length=NULL)
+  span <- check.arg(span, "span", "integer", null.OK=FALSE)
+  file <- check.arg(file, "file", "character", null.OK=TRUE)
+  append <- check.arg(append, "append", "logical", null.OK=FALSE)
+  if (span <= 0) stop("span should be integer >= 1")
+
+  if (length(chrom) > length(start))
+    stop("length(chrom) > length(start)")
+  if (length(score) > length(start))
+    stop("length(score) > length(start)")
+  
+  invisible(.Call.rphast("rph_wig_print",
+                         feat(seqname=chrom, start=start, end=start+span-1,
+                              score=score, pointer.only=TRUE)$externalPtr,
+                         file,
+                         append))
+}
+
+
+##' Write a features object in fixedStep wig format
+##' @param x An object of type feat
+##' @param file The name of the file to write to.  A value of NULL
+##' implies write to console.
+##' @param append If TRUE, append to the file.  Otherwise overwrite.
+##' @keywords wig fixedStep GFF features
+##' @author Melissa J. Hubisz
+##' @note Wig format only contains chromosome, coordinates, and score.  Any
+##' other data will be lost.
+##' @note This function will quit with an error if the elements of x are
+##' not all the same length (as required by fixedStep wig format).
+##' @note If x is stored as a pointer to a C structure, the elements
+##' will be sorted by this function.
+##' @example inst/examples/write-wig-feat.R
+##' @export
+write.wig.feat <- function(x, file=NULL, append=FALSE) {
+  append <- check.arg(append, "append", "logical", null.OK=FALSE)
+  file <- check.arg(file, "file", "character", null.OK=TRUE)
+  if (is.null(x$externalPtr))
+    x <- as.pointer.feat(x)
+  invisible(.Call.rphast("rph_wig_print", x$externalPtr, file, append))
+}
+           

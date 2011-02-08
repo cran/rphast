@@ -1,22 +1,30 @@
 \name{mod.backgd.tm}
 \alias{mod.backgd.tm}
-\title{Adjust tree model background frequencies while maintaining reversibility...}
-\usage{mod.backgd.tm(tm, new.backgd=NULL, gc=NULL)
+\title{Adjust tree model background frequencies while maintaining reversibility}
+\usage{
+  mod.backgd.tm(tm, new.backgd = NULL, gc = NULL)
 }
-\description{Adjust tree model background frequencies while maintaining reversibility}
-\note{Currently only works with models of order 0, without lineage-
-specific models, and which use the default alphabet "ACGT".}
-\author{Melissa J. Hubisz and Adam Siepel}
-\arguments{\item{tm}{An object of type \code{tm}}
-\item{new.backgd}{A numeric vector of length 4 giving the background
-frequencies of A,C,G,T}
-\item{gc}{(Alternative to new.backgd) A numeric value giving the GC
-content, which is used to calculate new background frequencies.
-Assumes freq(C)==freq(G)==gc/2, and freq(A)==freq(T)==(1-gc)/2}
-}
+\arguments{
+  \item{tm}{An object of type \code{tm}}
 
+  \item{new.backgd}{A numeric vector of length 4 giving the
+  background frequencies of A,C,G,T}
+
+  \item{gc}{(Alternative to new.backgd) A numeric value
+  giving the GC content, which is used to calculate new
+  background frequencies. Assumes freq(C)==freq(G)==gc/2,
+  and freq(A)==freq(T)==(1-gc)/2}
+}
+\description{
+  Adjust tree model background frequencies while
+  maintaining reversibility
+}
+\note{
+  Currently only works with models of order 0, without
+  lineage- specific models, and which use the default
+  alphabet "ACGT".
+}
 \examples{
-require("rphast")
 exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
 filename <- "rev.mod"
 unzip(exampleArchive, filename)
@@ -27,4 +35,10 @@ mod.backgd.tm(tm, c(0.25, 0.25, 0.25, 0.25))
 
 # change background frequencies so that GC content is 0.6
 mod.backgd.tm(tm, gc=0.6)
+
+unlink(filename)
 }
+\author{
+  Melissa J. Hubisz and Adam Siepel
+}
+

@@ -7,10 +7,8 @@
  * file LICENSE.txt for details.
  ***************************************************************************/
 
-/* $Id: lists.h,v 1.6 2008-11-12 02:07:59 acs Exp $ */
-
-/** \file lists.h
-   Simple array-based lists and supporting functions. 
+/** @file lists.h
+   Array-based lists and supporting functions: Add, Remove, Search, Sort, Reverse, etc.
 
    Supports storage of objects of arbitrary size.  Convenience
    functions are available for common data types such as ints,
@@ -19,7 +17,7 @@
    is important or when you need to access elements by index; use
    linked-lists instead when (mid-list) insertions and deletions are
    important. 
-   \ingroup base
+   @ingroup base
 */
 
 /*
@@ -44,7 +42,7 @@ struct lst_struct {
   void** array;                 /**< storage array for list elements */
   int lidx;                     /**< leftmost index of active list
                                    (inclusive) */
-  int ridx;                     /**< righmost index of active list
+  int ridx;                     /**< rightmost index of active list
                                    (exclusive) */
   int CAPACITY;                 /**< current storage capacity (number
                                    of elements) */
@@ -169,6 +167,17 @@ void lst_cpy(List* dest, List* src);
 static PHAST_INLINE int lst_size(List *l)
 { return l->ridx - l->lidx;}
 
+/** Obtain size of list (number of elements).
+    Returns number of elements
+
+    @param l Target list
+    \note This function does the same thing as lst_size but is not inlined so performance may be slower
+    \endnote
+    
+    \sa lst_size.
+*/
+int lst_size_non_inline(List *l);
+
 /** Test whether list is empty.
    Returns 1 if empty, 0 otherwise 
 
@@ -274,6 +283,23 @@ int lst_get_int(List* l, int i) {
   return (ptr == NULL ? 0 : *ptr);
 }
 
+/** Retrieve the ith integer in list.
+   Returns integer at ith position in list or 0 if i is out of bounds.
+
+  \warning Return value will be ambiguous when using numeric data
+   containing zeroes.  Make sure index is within bounds
+   
+  @param l List containing the desired object.
+  @param i Index of the object to be retrieved.   
+
+  \note This function is the non-inlined version of lst_get_int, so it does the same thing as lst_get_int but may have worse performance
+  \endnote
+
+  \sa lst_get_int
+*/
+int lst_get_int_non_inline(List *l, int i);
+
+
 /** Retrieve ith double in list .
    Returns double at ith position in list or 0 if i is out of bounds.
 
@@ -291,6 +317,22 @@ double lst_get_dbl(List* l, int i) {
   return (ptr == NULL ? 0 : *ptr);
 }
 
+
+/** Retrieve ith double in list .
+   Returns double at ith position in list or 0 if i is out of bounds.
+
+  \warning Return value will be ambiguous when using numeric data
+   containing zeroes.  Make sure index is within bounds 
+
+  @param l List containing the desired object.
+  @param i Index of the object to be retrieved.   
+
+  \note This is the non-inline version of lst_get_dbl, so it does the exact same thing but may have worse performance.
+
+  \sa lst_get_dbl.
+*/
+double lst_get_dbl_non_inline(List* l, int i);
+
 /** Retrieve ith pointer in list .
    Returns pointer at ith position in list or NULL if i is out of bounds. 
 
@@ -304,6 +346,17 @@ void* lst_get_ptr(List* l, int i) {
   void **ptr =  (void**)lst_get(l, i); 
   return (ptr == NULL ? NULL : *ptr);
 }
+
+/** Retrieve ith pointer in list .
+   Returns pointer at ith position in list or NULL if i is out of bounds. 
+
+  @param l List containing the desired object.
+  @param i Index of the object to be retrieved.   
+
+  \note This is the non-inline version of lst_get_ptr, so it does the exact same thing but may have worse performance.
+  \sa lst_get_ptr.
+*/
+void* lst_get_ptr_non_inline(List* l, int i);
 
 /** Set value of ith object in list. 
 
@@ -564,7 +617,7 @@ int lst_delete_obj(List *l,
 
   @param l Target list.
   @param o Pointer to object used for comparison (see lst_push() for details).
-  @param compare Comparision function: arguments are pointers to objects in the list.
+  @param compare Comparison function: arguments are pointers to objects in the list.
                                    For example, if the list contains
                                    ints, then the function should
                                    compare "*((int*)arg1)" and
@@ -723,6 +776,7 @@ double lst_dbl_stdev(List *l);
 */
 void lst_dbl_quantiles(List *l, double *quantiles, int nquantiles, 
                        double *quantile_vals);
+
 
 /** \} */
 

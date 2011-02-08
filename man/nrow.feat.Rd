@@ -1,15 +1,19 @@
 \name{nrow.feat}
 \alias{nrow.feat}
 \title{Number of Features}
-\usage{nrow.feat(x)
+\usage{
+  \method{nrow}{feat} (x)
 }
-\description{Get the number of rows in a features object}
-\value{An integer containing the number of rows in each features object}
-\keyword{features}
-\author{Melissa J. Hubisz and Adam Siepel}
-\arguments{\item{x}{An object of type \code{feat}}
+\arguments{
+  \item{x}{An object of type \code{feat}}
 }
-
+\value{
+  An integer containing the number of rows in each features
+  object
+}
+\description{
+  Get the number of rows in a features object
+}
 \examples{
 seq <- rep("hg18.chr6", 10)
 src <- rep("fake_example", 10)
@@ -19,3 +23,8 @@ end <- seq(10, 100, by=10)
 f <- feat(seq, src, feature, start, end)
 nrow.feat(f)
 }
+\author{
+  Melissa J. Hubisz and Adam Siepel
+}
+\keyword{features}
+

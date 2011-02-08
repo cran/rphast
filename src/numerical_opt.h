@@ -34,8 +34,11 @@ typedef enum {
   OPT_MED_PREC, 
   OPT_HIGH_PREC,
   OPT_CRUDE_PREC,
-  OPT_VERY_HIGH_PREC
+  OPT_VERY_HIGH_PREC,
+  OPT_UNKNOWN_PREC
 } opt_precision_type; 
+
+opt_precision_type get_precision(const char *prec);
 
 void opt_gradient(Vector *grad, double (*f)(Vector*, void*), 
                   Vector *params, void* data, opt_deriv_method method,
@@ -47,7 +50,8 @@ int opt_bfgs(double (*f)(Vector*, void*), Vector *params,
              Vector *upper_bounds, FILE *logf,
              void (*compute_grad)(Vector *grad, Vector *params,
                                   void *data, Vector *lb, Vector *ub),
-             opt_precision_type precision, Matrix *inv_Hessian);
+             opt_precision_type precision, Matrix *inv_Hessian,
+	     int *num_evals);
 
 void opt_lnsrch(Vector *xold, double fold, Vector *g, Vector *p, 
                 Vector *x, double *f, double stpmax, 
@@ -79,11 +83,6 @@ void opt_derivs_1d(double *deriv, double *deriv2, double x, double fx,
                    double (*compute_deriv2)(double x, void *data, double lb, 
                                             double ub),
 		   double deriv_epsilon);
-
-int opt_bfgs_1d(double (*f)(double, void*), double (*x), void *data, 
-                  double *fx, int sigfigs, double lb, double ub, FILE *logf, 
-                  double (*compute_deriv)(double x, void *data, double lb, 
-                                          double ub));
 
 void opt_lnsrch_1d(double direction, double xold, double fold, double *x, 
                    double *fx, double deriv, double (*func)(double, void*), 

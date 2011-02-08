@@ -1,22 +1,35 @@
 \name{concat.msa}
 \alias{concat.msa}
-\title{Concatenate msa objects...}
-\usage{concat.msa(msas, ordered=FALSE, pointer.only=FALSE)
+\title{Concatenate msa objects}
+\usage{
+  concat.msa(msas, ordered = FALSE, pointer.only = FALSE)
 }
-\description{Concatenate msa objects}
-\details{If the MSAs do not contain the same set of sequences, the sequences
-will be added to each MSA and filled with missing data.  The order
-of sequences is taken from the first MSA, and sequences are added to
-this as necessary.}
-\value{An object of type MSA}
-\note{None of the msas passed to this function will be altered, even if
-they are stored as pointers to objects in C.}
+\arguments{
+  \item{msas}{A list of MSA objects to concatenate
+  together.}
+
+  \item{ordered}{If FALSE, disregard the order of columns
+  in the combined MSA.}
+
+  \item{pointer.only}{(Advanced use only, for very large
+  MSA objects) If TRUE, return object will be a pointer to
+  an object stored in C.}
+}
+\value{
+  An object of type MSA
+}
+\description{
+  If the MSAs do not contain the same set of sequences, the
+  sequences will be added to each MSA and filled with
+  missing data.  The order of sequences is taken from the
+  first MSA, and sequences are added to this as necessary.
+}
+\note{
+  None of the msas passed to this function will be altered,
+  even if they are stored as pointers to objects in C.
+}
+\author{
+  Melissa J. Hubisz and Adam Siepel
+}
 \keyword{msa}
-\author{Melissa J. Hubisz and Adam Siepel}
-\arguments{\item{msas}{A list of MSA objects to concatenate together.}
-\item{ordered}{If FALSE, disregard the order of columns in the combined
-MSA.}
-\item{pointer.only}{(Advanced use only, for very large MSA objects) If
-TRUE, return object will be a pointer to an object stored in C.}
-}
 

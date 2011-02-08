@@ -16,6 +16,7 @@
 
 #include <fit_feature.h>
 #include <fit_column.h>
+#include <misc.h>
 #include <sufficient_stats.h>
 #include <tree_likelihoods.h>
 
@@ -230,6 +231,8 @@ void ff_lrts_sub(TreeModel *mod, MSA *msa, GFF_Set *gff, mode_type mode,
                                      data for supertree/subtree case */
 
   /* init ColFitData -- one for null model, one for alt */
+  modcpy->estimate_branchlens = TM_BRANCHLENS_ALL;
+  modcpy->subtree_root = NULL;
   d = ff_init_fit_data(modcpy, msa, ALL, NNEUT, FALSE);
   d2 = ff_init_fit_data(mod, msa, SUBTREE, mode, FALSE); 
                                 /* mod has the subtree info, modcpy
@@ -272,7 +275,7 @@ void ff_lrts_sub(TreeModel *mod, MSA *msa, GFF_Set *gff, mode_type mode,
       //      vec_set(d2->cdata->params, 1, 0.01);
       if (opt_bfgs(ff_likelihood_wrapper, d2->cdata->params, d2, &alt_lnl, 
                    d2->cdata->lb, d2->cdata->ub, logf, NULL, 
-                   OPT_HIGH_PREC, NULL) != 0)
+                   OPT_HIGH_PREC, NULL, NULL) != 0)
         ;                         /* do nothing; nonzero exit typically
                                      occurs when max iterations is
                                      reached; a warning is printed to
@@ -291,7 +294,7 @@ void ff_lrts_sub(TreeModel *mod, MSA *msa, GFF_Set *gff, mode_type mode,
 	vec_set(d2->cdata->params, 1, 1.0);
 	if (opt_bfgs(ff_likelihood_wrapper, d2->cdata->params, d2, &alt_lnl, 
 		     d2->cdata->lb, d2->cdata->ub, logf, NULL, 
-		     OPT_HIGH_PREC, NULL) != 0)
+		     OPT_HIGH_PREC, NULL, NULL) != 0)
 	  if (delta_lnl <= -0.1)
 	    die("ERROR ff_lrts_sub: delta_lnl (%f) <= -0.1\n", delta_lnl);
       }

@@ -1,0 +1,20 @@
+\name{nothanks.rphast}
+\alias{nothanks.rphast}
+\title{Stop rphast registration reminders}
+\usage{
+  nothanks.rphast()
+}
+\description{
+  Once this is called rphast will no longer produce startup
+  messages prodding you to register.
+}
+\note{
+  This creates an empty file called "notRegistered" in
+  \code{Sys.getenv("rphastRegDir")}.  The rphastRegDir is
+  usually in \%appdata\%\\rphast for Windows systems and
+  ~/.rphast for other systems.
+}
+\author{
+  Melissa J. Hubisz
+}
+

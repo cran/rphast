@@ -1,15 +1,35 @@
 \name{prune.tree}
 \alias{prune.tree}
 \title{Prune a Tree}
-\usage{prune.tree(tree, seqs, all.but=FALSE)
+\usage{
+  prune.tree(tree, seqs, all.but = FALSE)
 }
-\description{Prune sequences from a file}
-\value{a vector of character strings representing the pruned trees.}
+\arguments{
+  \item{tree}{A vector of character strings, each
+  containing a newick tree}
+
+  \item{seqs}{The sequences to prune from the trees}
+
+  \item{all.but}{A logical value.  If false, prunes all the
+  named sequences from the tree.  If TRUE, prunes all
+  sequences except the ones named.}
+}
+\value{
+  a vector of character strings representing the pruned
+  trees.
+}
+\description{
+  Prune sequences from a file
+}
+\examples{
+trees <- c("((hg18, panTro2), mm9);",
+           "((hg18:0.142679,(mm9:0.083220,rn4:0.090564):0.269385):
+                0.020666,canFam2:0.193569);")
+prune.tree(trees, c("panTro2", "mm9"), all.but=TRUE)
+prune.tree(trees, "hg18", all.but=FALSE)
+}
+\author{
+  Melissa J. Hubisz and Adam Siepel
+}
 \keyword{trees}
-\author{Melissa J. Hubisz and Adam Siepel}
-\arguments{\item{tree}{A vector of character strings, each containing a newick tree}
-\item{seqs}{The sequences to prune from the trees}
-\item{all.but}{A logical value.  If false, prunes all the named sequences
-from the tree.  If TRUE, prunes all sequences except the ones named.}
-}
 

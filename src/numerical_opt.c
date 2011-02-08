@@ -93,6 +93,19 @@
 FILE *debugf = NULL;
 #endif
 
+opt_precision_type get_precision(const char *prec) {
+   if (strcmp(prec, "LOW")==0)
+     return OPT_LOW_PREC;
+   if (strcmp(prec, "MED")==0)
+     return OPT_MED_PREC;
+   if (strcmp(prec, "HIGH")==0)
+     return OPT_HIGH_PREC;
+   if (strcmp(prec, "VERY_HIGH")==0)
+     return OPT_VERY_HIGH_PREC;
+   return OPT_UNKNOWN_PREC;
+}
+
+
 /* Numerically compute the gradient for the specified function at the
    specified parameter values.  Vector "grad" must already be
    allocated.  Will pass on to the specified function the auxiliary
@@ -377,10 +390,11 @@ int opt_bfgs(double (*f)(Vector*, void*), Vector *params,
              Vector *upper_bounds, FILE *logf,
              void (*compute_grad)(Vector *grad, Vector *params,
                                   void *data, Vector *lb, Vector *ub),
-             opt_precision_type precision, Matrix *inv_Hessian) {
+             opt_precision_type precision, Matrix *inv_Hessian,
+	     int *num_evals) {
   
   int check, i, its, n = params->size, success = 0, nevals = 0, 
-    params_at_bounds = 0, new_at_bounds, changed_dimension = 0,
+    params_at_bounds = 0, new_at_bounds, //changed_dimension = 0,
     trunc, already_failed = 0, minsf;
   double den, fac, fae, fval, stpmax, temp, test, lambda, fval_old,
     deriv_epsilon = DERIV_EPSILON;
@@ -388,6 +402,9 @@ int opt_bfgs(double (*f)(Vector*, void*), Vector *params,
   Matrix *H, *first_frac, *sec_frac, *bfgs_term;
   opt_deriv_method deriv_method = OPT_DERIV_FORWARD;
   struct timeval start_time, end_time;
+
+  if (precision == OPT_UNKNOWN_PREC)
+    die("unknown precision in opt_bfgs");
 
   if (logf != NULL)
     gettimeofday(&start_time, NULL);
@@ -408,7 +425,7 @@ int opt_bfgs(double (*f)(Vector*, void*), Vector *params,
   bfgs_term = mat_new(n, n);
 
 #ifdef DEBUG
-  debugf = fopen("opt.debug", "w+");
+  debugf = fopen_name("opt.debug", "w+");
 #endif
 
   fval = f(params, data);       /* Calculate starting function value
@@ -449,7 +466,7 @@ int opt_bfgs(double (*f)(Vector*, void*), Vector *params,
      of xi accordingly */
   if (params_at_bounds) {
     project_vector(xi, at_bounds);
-    changed_dimension = 1;
+    //    changed_dimension = 1;
   }
 /*   for (i = 0; i < at_bounds->size; i++)  */
 /*     vec_set(at_bounds, i, OPT_NO_BOUND); */
@@ -467,7 +484,7 @@ int opt_bfgs(double (*f)(Vector*, void*), Vector *params,
                                      at_bounds, 1)) > 0) {
       params_at_bounds += new_at_bounds;
       project_vector(xi, at_bounds); 
-      changed_dimension = 1;
+      //      changed_dimension = 1;
     }
     vec_scale(xi, -1);
 
@@ -607,7 +624,7 @@ int opt_bfgs(double (*f)(Vector*, void*), Vector *params,
                                      at_bounds, 1)) > 0) {
       params_at_bounds += new_at_bounds;
       project_vector(xi, at_bounds); 
-      changed_dimension = 1;
+      //      changed_dimension = 1;
     }
 
     /* see about relaxing some constraints (enlarging H) */
@@ -643,7 +660,7 @@ int opt_bfgs(double (*f)(Vector*, void*), Vector *params,
         mat_set(H, max_idx, max_idx, 1);
         vec_set(at_bounds, max_idx, OPT_NO_BOUND); 
         params_at_bounds--;
-        changed_dimension = 1;
+	//        changed_dimension = 1;
       }
     }
 
@@ -663,7 +680,7 @@ int opt_bfgs(double (*f)(Vector*, void*), Vector *params,
        are no params currently at the bounds, then we need not do
        anything (H already taken care of, dg and xi can remain as
        they are).  */
-    changed_dimension = 0;
+    //    changed_dimension = 0;
     /*     } */
 
     /* compute product of current inv Hessian and difference in
@@ -782,6 +799,8 @@ int opt_bfgs(double (*f)(Vector*, void*), Vector *params,
   mat_free(first_frac);
   mat_free(sec_frac);
   mat_free(bfgs_term);
+  if (num_evals != NULL)
+    *num_evals = nevals;
 
   if (success == 0) {
     if (logf != NULL)
@@ -1339,7 +1358,7 @@ int opt_sigfig(double val1, double val2) {
   tmp = pow(10, floor(log10(val1)));
   val1 /= tmp; val2 /= tmp;
   for (sf = 0; sf < 30; sf++) { /* never look at more than 30 digits */
-    tv1 = floor(val1); tv2 = floor(val2);
+    tv1 = (int)floor(val1); tv2 = (int)floor(val2);
     if (tv1 != tv2 || (val1 < 1e-30 && val2 < 1e-30)) break;
                                 /* avoid pathological roundoff cases */
     val1 = (val1 - tv1) * 10;   /* avoid overflow */

@@ -1,22 +1,41 @@
 \name{guess.format.msa}
 \alias{guess.format.msa}
-\title{MSA Format From Filename Extension}
-\usage{guess.format.msa(filename)
+\title{MSA Guess Format}
+\usage{
+  guess.format.msa(filename, method = "content")
 }
-\description{Guess the format of an MSA file by looking at the filename extension.}
-\value{A string describing an MSA file (one of "MAF", "FASTA",
-"LAV", "SS", "MPM", "PHYLIP"), or NULL if a guess can't be made
-based on the file extension.}
-\seealso{is.format.msa}
-\keyword{msa}
-\author{Melissa J. Hubisz}
-\arguments{\item{filename}{The name of an MSA file}
-}
+\arguments{
+  \item{filename}{A vector of file names}
 
-\examples{
-guess.format.msa("file/asdf.fa")
-guess.format.msa("blah\blah.maf")
-guess.format.msa("abcd/efg/hij.ss")
-guess.format.msa("maf.fasta.lav")
-guess.format.msa("helloWorld")
+  \item{method}{Either "content" or "extension".  "content"
+  implies to open the file and guess the format based on
+  content; "extension" simply guesses based on the
+  extension on the file name (it does not open the file).
+  This argument will be recycled to the length of
+  filename.}
 }
+\value{
+  A character vector giving the format of each file (one of
+  "MAF", "FASTA", "LAV", "SS", "PHYLIP", "MPM", or
+  "UNKNOWN").
+}
+\description{
+  Guess the format of an MSA file by looking at the file
+  contents.
+}
+\examples{
+exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
+files <- c("ENr334-100k.maf", "ENr334-100k.fa", "ENr334-100k.ss", "sol1.maf", "sol1.gp")
+unzip(exampleArchive, files=files)
+guess.format.msa(files)
+# the last file is not an alignment, which is why it returns UNKNOWN
+unlink(files)
+}
+\author{
+  Melissa J. Hubisz
+}
+\seealso{
+  is.format.msa
+}
+\keyword{msa}
+

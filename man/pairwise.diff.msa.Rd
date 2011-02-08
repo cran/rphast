@@ -1,25 +1,45 @@
 \name{pairwise.diff.msa}
 \alias{pairwise.diff.msa}
-\title{Get pairwise differences per site between sequences...}
-\usage{pairwise.diff.msa(x, seq1=NULL, seq2=NULL, ignore.missing=TRUE, ignore.gaps=TRUE)
+\title{Get pairwise differences per site between sequences}
+\usage{
+  pairwise.diff.msa(x, seq1 = NULL, seq2 = NULL,
+    ignore.missing = TRUE, ignore.gaps = TRUE)
 }
-\description{Get pairwise differences per site between sequences}
-\value{If seq1 and seq2 are provided, returns a numeric value giving
-the fraction of sites in the alignment where seq1 and seq2 differ (or
-zero if there are no sites to compare).  If seq1 is provided and seq2
-is NULL, returns a numeric vector giving this value for seq1 compared
-to every sequence (including itself; order of results is same as order of
-sequences in alignment).  If both seq1 and seq2 are NULL, returns a matrix
-giving this value for every sequence compared with every other sequence.}
-\seealso{\code{ninf.msa} To count the number of non-gap and non-missing character}
-\author{Melissa J. Hubisz}
-\arguments{\item{x}{An object of type \code{msa}}
-\item{seq1}{A character vector or integer index indicating seq1 (see Value)}
-\item{seq2}{A character vector of integer index indicating seq2.  Can only be
-provided if seq1 is provided.}
-\item{ignore.missing}{A logical value indicating whether to compare
-sites where either sequence has missing data.}
-\item{ignore.gaps}{A logical value indicating whether to compare sites
-where either sequence contains a gap.}
+\arguments{
+  \item{x}{An object of type \code{msa}}
+
+  \item{seq1}{A character vector or integer index
+  indicating seq1 (see Value)}
+
+  \item{seq2}{A character vector of integer index
+  indicating seq2.  Can only be provided if seq1 is
+  provided.}
+
+  \item{ignore.missing}{A logical value indicating whether
+  to compare sites where either sequence has missing data.}
+
+  \item{ignore.gaps}{A logical value indicating whether to
+  compare sites where either sequence contains a gap.}
+}
+\value{
+  If seq1 and seq2 are provided, returns a numeric value
+  giving the fraction of sites in the alignment where seq1
+  and seq2 differ (or zero if there are no sites to
+  compare).  If seq1 is provided and seq2 is NULL, returns
+  a numeric vector giving this value for seq1 compared to
+  every sequence (including itself; order of results is
+  same as order of sequences in alignment).  If both seq1
+  and seq2 are NULL, returns a matrix giving this value for
+  every sequence compared with every other sequence.
+}
+\description{
+  Get pairwise differences per site between sequences
+}
+\author{
+  Melissa J. Hubisz
+}
+\seealso{
+  \code{ninf.msa} To count the number of non-gap and
+  non-missing character
 }
 

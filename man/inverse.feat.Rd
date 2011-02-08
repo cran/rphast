@@ -1,19 +1,33 @@
 \name{inverse.feat}
 \alias{inverse.feat}
-\title{Get inverse features...}
-\usage{inverse.feat(x, region.bounds, pointer.only=FALSE)
+\title{Get inverse features}
+\usage{
+  inverse.feat(x, region.bounds, pointer.only = FALSE)
 }
-\description{Get inverse features}
-\value{An object of type \code{feat} which contains all regions in
-region.bounds that are not in the first argument}
-\note{If x is stored as a pointer to C memory, then its elements will
-be sorted by this function.  region.bounds will not be changed.}
+\arguments{
+  \item{x}{An object of type \code{feat}}
+
+  \item{region.bounds}{An object of type \code{feat} which
+  defines the boundaries of all relevant chromosomes in the
+  first argument}
+
+  \item{pointer.only}{If \code{TRUE}, return a pointer to a
+  structure stored in C (advanced use only).}
+}
+\value{
+  An object of type \code{feat} which contains all regions
+  in region.bounds that are not in the first argument
+}
+\description{
+  Get inverse features
+}
+\note{
+  If x is stored as a pointer to C memory, then its
+  elements will be sorted by this function.  region.bounds
+  will not be changed.
+}
+\author{
+  Melissa J. Hubisz
+}
 \keyword{features}
-\author{Melissa J. Hubisz}
-\arguments{\item{x}{An object of type \code{feat}}
-\item{region.bounds}{An object of type \code{feat} which defines
-the boundaries of all relevant chromosomes in the first argument}
-\item{pointer.only}{If \code{TRUE}, return a pointer to a structure stored
-in C (advanced use only).}
-}
 

@@ -1,16 +1,26 @@
 \name{copy.msa}
 \alias{copy.msa}
 \title{MSA copy}
-\usage{copy.msa(x)
+\usage{
+  copy.msa(x)
 }
-\description{Creates a copy of an MSA sequence}
-\details{If m is stored in R (as it is by default), then m2 <- copy.msa(m1)
-is no different than m2 <- m1.  But if it is stored as a pointer
-to a C structure, this is the only way to make an explicit copy
-of the MSA object.}
-\value{an MSA object which can be modified independently from the
-original object}
-\author{Melissa J. Hubisz and Adam Siepel}
-\arguments{\item{x}{an MSA object}
+\arguments{
+  \item{x}{an MSA object}
+}
+\value{
+  an MSA object which can be modified independently from
+  the original object
+}
+\description{
+  Creates a copy of an MSA sequence
+}
+\details{
+  If m is stored in R (as it is by default), then m2 <-
+  copy.msa(m1) is no different than m2 <- m1.  But if it is
+  stored as a pointer to a C structure, this is the only
+  way to make an explicit copy of the MSA object.
+}
+\author{
+  Melissa J. Hubisz and Adam Siepel
 }
 

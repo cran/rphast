@@ -1,17 +1,21 @@
 \name{as.pointer.feat}
 \alias{as.pointer.feat}
 \title{Features To Pointer}
-\usage{as.pointer.feat(x)
+\usage{
+  as.pointer.feat(x)
 }
-\description{Take a set of features stored in R and return one stored by reference}
-\value{an object of type \code{feat} stored by reference as a pointer to an
-object created in C.}
-\seealso{\code{\link{feat}} for more details on features storage
-options.}
-\author{Melissa J. Hubisz}
-\arguments{\item{x}{an object of type \code{feat} stored as a data frame in R}
+\arguments{
+  \item{x}{an object of type \code{feat} stored as a data
+  frame in R}
 }
-
+\value{
+  an object of type \code{feat} stored by reference as a
+  pointer to an object created in C.
+}
+\description{
+  Take a set of features stored in R and return one stored
+  by reference
+}
 \examples{
 seq <- rep("hg18.chr6", 10)
 src <- rep("fake_example", 10)
@@ -23,3 +27,11 @@ f2 <- as.pointer.feat(f1)
 f1
 f2
 }
+\author{
+  Melissa J. Hubisz
+}
+\seealso{
+  \code{\link{feat}} for more details on features storage
+  options.
+}
+

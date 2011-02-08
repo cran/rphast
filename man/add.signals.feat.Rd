@@ -1,24 +1,29 @@
 \name{add.signals.feat}
 \alias{add.signals.feat}
-\title{Add start/stop codon, 3'/5' splice signals to features...}
-\usage{add.signals.feat(x)
+\title{Add start/stop codon, 3'/5' splice signals to features}
+\usage{
+  add.signals.feat(x)
 }
-\description{Add start/stop codon, 3'/5' splice signals to features}
-\value{An object of type \code{feat}, with all the entries of the original object, but
-also with stop codons, start, codons, 3' splice, and 5' splice sites annotated.}
-\note{\itemize{
-\item{If x is stored as a pointer to an object stored in C, signals will be
-added to x.}
-\item{Does not correctly handle case of splice site in middle of start
-or stop codon.}}}
-\keyword{features}
-\author{Melissa J. Hubisz and Adam Siepel}
-\arguments{\item{x}{An object of type \code{feat}.  CDS regions must be present with type "CDS", and
-the transcript_id must be indicated in the attribute field.}
+\arguments{
+  \item{x}{An object of type \code{feat}.  CDS regions must
+  be present with type "CDS", and the transcript_id must be
+  indicated in the attribute field.}
 }
-
+\value{
+  An object of type \code{feat}, with all the entries of
+  the original object, but also with stop codons, start,
+  codons, 3' splice, and 5' splice sites annotated.
+}
+\description{
+  Add start/stop codon, 3'/5' splice signals to features
+}
+\note{
+  \itemize{ \item{If x is stored as a pointer to an object
+  stored in C, signals will be added to x.} \item{Does not
+  correctly handle case of splice site in middle of start
+  or stop codon.}}
+}
 \examples{
-require("rphast")
 exampleArchive <- system.file("extdata", "examples.zip", package="rphast")
 featFile <- "gencode.ENr334.gp"
 unzip(exampleArchive, featFile)
@@ -32,4 +37,10 @@ coverage.feat(f[f$feature=="3'splice",])
 coverage.feat(f[f$feature=="5'splice",])
 coverage.feat(f[f$feature=="start_codon",])
 coverage.feat(f[f$feature=="stop_codon",])
+unlink(featFile)
 }
+\author{
+  Melissa J. Hubisz and Adam Siepel
+}
+\keyword{features}
+

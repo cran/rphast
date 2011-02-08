@@ -1,5 +1,3 @@
-##' @nord
-##' @export
 .makeObj.tm <- function() {
   tm <- list()
   class(tm) <- "tm"
@@ -18,8 +16,6 @@ is.tm <- function(x) {
 }
 
 
-##' @export
-##' @nord
 .rootLeaf.from.pointer.tm <- function(x, tree) {
   if (is.null(x$externalPtr))
     stop(".rootLeaf.from.pointer.tm expects list with externalPtr")
@@ -34,9 +30,7 @@ is.tm <- function(x) {
 # Treemodels stored as external pointers are NOT protected.
 # from.pointer and as.pointer do not call freeall.rphast
 
-##' @nord
-##' @export
-from.pointer.one.altmodel.tm <- function(x, i) {
+from.pointer.one.lsmodel.tm <- function(x, i) {
   rv <- list()
   rv[["defn"]] <- .Call.rphast("rph_tm_altmodel_def", x$externalPtr, i)
   rv[["subst.mod"]] <- .Call.rphast("rph_tm_altmodel_substMod", x$externalPtr, i)
@@ -53,22 +47,18 @@ from.pointer.one.altmodel.tm <- function(x, i) {
   rv
 }
 
-##' @nord
-##' @export
-from.pointer.altmodel.tm <- function(x) {
+from.pointer.lsmodel.tm <- function(x) {
   numModel <- .Call.rphast("rph_tm_num_altmodel", x$externalPtr)
   if (numModel == 0L) return(NULL)
   rv <- list()
   for (i in 1:numModel) {
-    rv[[i]] <- from.pointer.one.altmodel.tm(x, i)
+    rv[[i]] <- from.pointer.one.lsmodel.tm(x, i)
     if (numModel == 1L) return(rv[[i]])
   }
   rv
 }
 
 
-##' @nord
-##' @export
 from.pointer.tm <- function(x) {
   if (is.null(x$externalPtr))
     stop("from.pointer.tm expects list with externalPtr")
@@ -86,14 +76,14 @@ from.pointer.tm <- function(x) {
   tm$root.leaf <- .rootLeaf.from.pointer.tm(x, tm$tree)
   selection <- .Call.rphast("rph_tm_selection", x$externalPtr)
   if (selection[1]==1) tm$selection <- selection[2]
-  altmodel <- from.pointer.altmodel.tm(x)
-  if (!is.null(altmodel)) tm$alt.model <- altmodel
+  site.model <- .Call.rphast("rph_tm_site_model", x$externalPtr)
+  if (site.model) tm$site.model <- site.model
+  lsmodel <- from.pointer.lsmodel.tm(x)
+  if (!is.null(lsmodel)) tm$ls.model <- lsmodel
   tm
 }
 
 
-##' @nord
-##' @export
 as.pointer.tm <- function(x) {
   rv <- list()
   rv$externalPtr <- .Call.rphast("rph_tm_new",
@@ -108,25 +98,26 @@ as.pointer.tm <- function(x) {
                                  x$rate.consts,
                                  x$rate.weights,
                                  x$root.leaf,
-                                 x$selection)
-  if (!is.null(x$alt.model)) {
-    if (!is.null(x$alt.model$defn)) {
+                                 x$selection,
+                                 x$site.model)
+  if (!is.null(x$ls.model)) {
+    if (!is.null(x$ls.model$defn)) {
       numModel <- 1L
-    } else numModel <- length(x$alt.model)
+    } else numModel <- length(x$ls.model)
     for (i in 1:numModel) {
-      if (numModel == 1L && !is.null(x$alt.model$defn)) {
-        altmod <- x$alt.model
-      } else altmod <- x$alt.model[[i]]
+      if (numModel == 1L && !is.null(x$ls.model$defn)) {
+        lsmod <- x$ls.model
+      } else lsmod <- x$ls.model[[i]]
 
-      .Call.rphast("rph_tm_add_alt_mod", rv$externalPtr, altmod[["defn"]])
+      .Call.rphast("rph_tm_add_alt_mod", rv$externalPtr, lsmod[["defn"]])
       .Call.rphast("rph_tm_altmod_set_subst_mod", rv$externalPtr, i,
-                   altmod[["subst.mod"]])
+                   lsmod[["subst.mod"]])
       .Call.rphast("rph_tm_altmod_set_backgd", rv$externalPtr, i,
-                   altmod[["backgd"]])
+                   lsmod[["backgd"]])
       .Call.rphast("rph_tm_altmod_set_ratematrix", rv$externalPtr, i,
-                   altmod[["rate.matrix"]])
+                   lsmod[["rate.matrix"]])
       .Call.rphast("rph_tm_altmod_set_sel_bgc", rv$externalPtr, i,
-                   altmod[["selection"]], altmod[["bgc"]])
+                   lsmod[["selection"]], lsmod[["bgc"]])
     }
   }
   rv
@@ -134,8 +125,6 @@ as.pointer.tm <- function(x) {
 
 
 # should we check to make sure it has all the necessary elements and no extra ones?
-##' @nord
-##' @export
 as.tm.list <- function(l) {
   class(l) <- "tm"
   l
@@ -148,6 +137,7 @@ as.tm.list <- function(l) {
 ##' @seealso \code{\link{tm}}
 ##' @keywords tm
 ##' @export
+##' @example inst/examples/read-tm.R
 ##' @author Melissa J. Hubisz and Adam Siepel
 read.tm <- function(filename) {
   check.arg(filename, "filename", "character", null.OK=FALSE)
@@ -167,6 +157,7 @@ read.tm <- function(filename) {
 ##' @seealso \code{\link{tm}}
 ##' @keywords tm
 ##' @export
+##' @example inst/examples/write-tm.R
 ##' @author Melissa J. Hubisz and Adam Siepel
 write.tm <- function(tm, filename=NULL, append=FALSE) {
   check.arg(filename, "filename", "character", null.OK=TRUE)
@@ -182,8 +173,10 @@ write.tm <- function(tm, filename=NULL, append=FALSE) {
 ##' @param ... Parameters to be passed to/from other functions
 ##' @seealso \code{\link{tm}}
 ##' @export
+##' @export summary.tm
 ##' @keywords tm
-##' @S3method summary tm
+##' @method summary tm
+##' @example inst/examples/summary-tm.R
 ##' @author Melissa J. Hubisz and Adam Siepel
 summary.tm <- function(object, ...) {
   write.tm(object, NULL)
@@ -196,7 +189,9 @@ summary.tm <- function(object, ...) {
 ##' @param ... arguments to be passed to/from other functions
 ##' @seealso \code{\link{tm}}
 ##' @export
-##' @S3method as.list tm
+##' @export as.list.tm
+##' @method as.list tm
+##' @example inst/examples/as-list-tm.R
 ##' @author Melissa J. Hubisz and Adam Siepel
 as.list.tm <- function(x, ...) {
   class(x) <- "list"
@@ -211,8 +206,10 @@ as.list.tm <- function(x, ...) {
 ##' @param ... arguments to be passed to/from other functions
 ##' @seealso \code{\link{tm}}
 ##' @export
+##' @export print.tm
 ##' @keywords tm
-##' @S3method print tm
+##' @method print tm
+##' @example inst/examples/print-tm.R
 ##' @author Melissa J. Hubisz and Adam Siepel
 print.tm <- function(x, aslist=FALSE, ...) {
   if (aslist) print(as.list(x), ...)
@@ -227,6 +224,7 @@ print.tm <- function(x, aslist=FALSE, ...) {
 ##' @return A vector of logical values indicating whether each string
 ##' represents a defined substitution model
 ##' @export
+##' @example inst/examples/is-subst-mod-tm.R
 ##' @author Melissa J. Hubisz and Adam Siepel
 is.subst.mod.tm <- function(mod) {
   result <- logical(length(mod))
@@ -240,6 +238,7 @@ is.subst.mod.tm <- function(mod) {
 ##' @return a character vector with the names of all valid substitution
 ##' models
 ##' @export
+##' @example inst/examples/subst-mods.R
 ##' @author Melissa J. Hubisz and Adam Siepel
 subst.mods <- function() {
   .Call.rphast("rph_subst_mods_list_all", NULL)
@@ -286,6 +285,7 @@ subst.mods <- function() {
 ##' @keywords tm
 ##' @return An object of class \code{tm} representing a phylogenetic model.
 ##' @export
+##' @example inst/examples/tm.R
 ##' @author Melissa J. Hubisz and Adam Siepel
 tm <- function(tree, subst.mod, rate.matrix=NULL, backgd=NULL,
                alphabet="ACGT", nratecats=1, 
@@ -368,6 +368,7 @@ tm <- function(tree, subst.mod, rate.matrix=NULL, backgd=NULL,
 ##' @note Currently only works with models of order 0, without lineage-
 ##' specific models, and which use the default alphabet "ACGT".
 ##' @export
+##' @example inst/examples/mod-backgd-tm.R
 ##' @author Melissa J. Hubisz and Adam Siepel
 mod.backgd.tm <- function(tm, new.backgd=NULL, gc=NULL) {
   if (is.null(new.backgd)) {
@@ -456,21 +457,22 @@ unapply.bgc.sel <- function(m, bgc=0, sel=0, alphabet="ACGT") {
 ##' third element is a list of parameters which will not be optimized by
 ##' phyloFit.
 ##'
-##' rate.matrix is the initial rate.matrix to use for this model.
-##'
 ##' backgd is the initial set of equilibrium frequencies for this model; if 
 ##' not present, then the equilibrium frequencies will be shared with the
 ##' main model.
 ##'
 ##' selection and bgc are optional parameters for the model with
 ##' biased gene conversion and selection.  If they are not provided this
-##' model is not used.
+##' model is not used.  Note that selection is defined relative to 
+##' selection in the main model, if x$selection is not NULL (so the
+##' total selection in the lineage-specific model is the sum of
+##' the selection value in the main and lineage-specific model.
 ##'
 ##' A tree model can have multiple lineage-specific models; if a later
 ##' model applies to the same branch as an earlier model, then the later one
 ##' overrides it.
 ##'
-##' All lineage-specific models are stored in the alt.mod element
+##' All lineage-specific models are stored in the ls.model element
 ##' of the \code{tm} object.
 ##' @param x An object of type \code{tm}
 ##' @param branch If the lineage-specific model applies to a single branch,
@@ -481,6 +483,10 @@ unapply.bgc.sel <- function(m, bgc=0, sel=0, alphabet="ACGT") {
 ##' are denoted in a tree with a pound sign and label following the node.
 ##' See \code{\link{label.branches}} and \code{\link{label.subtree}} to
 ##' add a label to a tree.
+##' @param category An integer indicating which category/categories to
+##' apply the lineage-specific model.  This only works if x$nratecats > 1.
+##' A value of 0 or NULL implies all categories.  Otherwise this can be an
+##' integer (or vector of integers) from 1..x$nratecats.
 ##' @param subst.mod A character string indicating the substitution model to
 ##' be used for the lineage-specific model.  If \code{NULL}, use the same
 ##' model as the rest of the tree.  See \code{\link{subst.mods}} for a
@@ -503,27 +509,25 @@ unapply.bgc.sel <- function(m, bgc=0, sel=0, alphabet="ACGT") {
 ##' @param const.params A character vector indicating which parameters to
 ##' hold constant at their initial values, rather than being optimized
 ##' upon a call to phyloFit.  Possible values are the same as for
-##' separate.params.
+##' separate.params, although no boundaries can be given here.
 ##' @param backgd The initial equilibrium frequencies to use for this
 ##' model.  If \code{NULL}, use the same as in the main model.
-##' @param rate.matrix  The initial rate matrix to use for this model.  If
-##' \code{NULL}, initialize to main model.  If provided, and selection and/or
-##' bgc are provided, assume that rate matrix is already scaled 
-##' @param selection The selection parameter (from the sel+bgc model).
+##' @param selection The selection parameter (from the sel+bgc model), 
+##' relative to selection in the main model.
 ##' @param bgc The bgc parameter (from the sel+bgc model).
 ##' @return An object of type \code{tm}, identical to the input model but
 ##' with a new lineage-specific model added on.  This lineage-specific model
 ##' is not validated by this function.
 ##' @author Melissa J. Hubisz
 ##' @export
-add.alt.mod <- function(x,
-                        branch=NULL, label=NULL,
-                        subst.mod=NULL, separate.params=NULL,
-                        const.params=NULL,
-                        rate.matrix=NULL,
-                        backgd=NULL,
-                        selection=NULL,
-                        bgc=NULL) {
+add.ls.mod <- function(x,
+                       branch=NULL, label=NULL,
+                       category=0,
+                       subst.mod=NULL, separate.params=NULL,
+                       const.params=NULL,
+                       backgd=NULL,
+                       selection=NULL,
+                       bgc=NULL) {
 
   if (is.null(branch) && is.null(label))
     stop("either branch or label must be provided")
@@ -534,6 +538,21 @@ add.alt.mod <- function(x,
   # C code will check that branch/label exist on tree
   if (is.null(branch)) branchArg <- label
   else branchArg <- branch
+
+  category <- check.arg(category, "category", "integer", null.OK=TRUE,
+                        min.length=1L, max.length=NULL)
+  if (!is.null(category)) {
+    nrates <- x$nratecats
+    if (is.null(nrates)) nrates <- 1
+    if (sum(category < 0 | category > nrates) >= 1L)
+      stop("category should be in range [0..,", nrates,"]")
+    if (sum(category==0)==0) {
+      catstr <- paste(category-1, sep=",")
+      if (!is.null(branch)) {
+        branch <- sprintf("%s#%s", branch, catstr)
+      } else label <- sprintf("%s#%s", label, catstr)
+    }
+  }
 
   if (is.null(subst.mod)) subst.mod <- x[["subst.mod"]]
   if (subst.mod != x$subst.mod && !is.null(separate.params))
@@ -559,16 +578,19 @@ add.alt.mod <- function(x,
   defn <- sprintf("%s:%s", ifelse(!is.null(branch), branch, label),
                   ifelse(is.null(separate.params), subst.mod,
                          paste(separate.params, collapse=",")))
+  if (!is.null(const.params)) {
+    defn <- sprintf("%s:%s", defn, paste(const.params, sep=",", collapse=","))
+  }
   origPtr <- as.pointer.tm(x)
   .Call.rphast("rph_tm_add_alt_mod", origPtr$externalPtr, defn)
   newmod <- from.pointer.tm(origPtr)
 
   # apply selection and/or bgc to ls model if provided
   if (! (is.null(bgc) && is.null(selection))) {
-    if (is.null(newmod$alt.model$defn)) {
-      nummod <- length(newmod$alt.model)
-      altmod <- newmod$alt.model[[nummod]]
-    } else altmod <- newmod$alt.model
+    if (is.null(newmod$ls.model$defn)) {
+      nummod <- length(newmod$ls.model)
+      lsmod <- newmod$ls.model[[nummod]]
+    } else lsmod <- newmod$ls.model
 
     # newmod$bgc should always be null
     if (!is.null(newmod$selection)) {
@@ -577,16 +599,18 @@ add.alt.mod <- function(x,
                                  sel=newmod$selection)
     } else currMat <- newmod$rate.matrix
 
-    altmod$rate.matrix <- apply.bgc.sel(currMat,
+    if (is.null(newmod$selection)) total.sel <- 0 else total.sel <- newmod$selection
+    if (!is.null(selection)) total.sel <- total.sel + selection
+    lsmod$rate.matrix <- apply.bgc.sel(currMat,
                                         alphabet=newmod$alphabet,
                                         bgc=if (is.null(bgc)) 0 else bgc,
-                                        sel=if (is.null(selection)) 0 else selection)
-    if (!is.null(selection)) altmod$selection <- selection
-    if (!is.null(bgc)) altmod$bgc <- bgc
+                                        sel=total.sel)
+    if (!is.null(selection)) lsmod$selection <- selection
+    if (!is.null(bgc)) lsmod$bgc <- bgc
 
-    if (is.null(newmod$alt.model$defn)) {
-      newmod$alt.model[[nummod]] <- altmod
-    } else newmod$alt.model <- altmod 
+    if (is.null(newmod$ls.model$defn)) {
+      newmod$ls.model[[nummod]] <- lsmod
+    } else newmod$ls.model <- lsmod
   }
   newmod
 }
@@ -599,7 +623,7 @@ add.alt.mod <- function(x,
 ##' model being used.  Here is the meaning of params for each model:
 ##' \itemize{
 ##' \item{"JC69","F81": These models have no parameters; params should be NULL.}
-##' \item{"K80","HKY85": params should be a single value representing the
+##' \item{"K80","HKY85","HKY_CODON": params should be a single value representing the
 ##' transition-transversion ratio (kappa).}
 ##' \item{"HKY85+Gap": params should be a numeric vector of length 2; the first
 ##' element represents the transition/transversion ratio (kappa), and the second
@@ -699,6 +723,8 @@ get.rate.matrix.params.tm <- function(x) {
 ##' a new plot.
 ##' @param ... Further arguments to be passed to \code{plot}.
 ##' @author Melissa J. Hubisz
+##' @method plot rate.matrix
+##' @export plot.rate.matrix
 ##' @export
 plot.rate.matrix <- function(x, eq.freq=NULL, max.cex=10.0,
                              eq.freq.max.cex=5.0,
@@ -799,6 +825,9 @@ plot.rate.matrix <- function(x, eq.freq=NULL, max.cex=10.0,
 ##' a new plot.
 ##' @param ... Further arguments to be passed to \code{plot}.
 ##' @author Melissa J. Hubisz
+##' @example inst/examples/plot-tm.R
+##' @method plot tm
+##' @export plot.tm
 ##' @export
 plot.tm <- function(x, show.eq.freq=TRUE, max.cex=10.0,
                     eq.freq.max.cex=5.0,
@@ -820,7 +849,7 @@ plot.tm <- function(x, show.eq.freq=TRUE, max.cex=10.0,
 ##' Make a bubble plot of a lineage-specific transition matrix of a
 ##' tree model.
 ##' @param x An object of type \code{tm}.
-##' @param i An integer identifying which element of tm[["alt.mod"]] to
+##' @param i An integer identifying which element of tm[["ls.model"]] to
 ##' plot.
 ##' @param show.eq.freq If \code{TRUE}, show bubbles representing equilibrium
 ##' frequencies along the bottom of plot.
@@ -845,26 +874,29 @@ plot.tm <- function(x, show.eq.freq=TRUE, max.cex=10.0,
 ##' a new plot.
 ##' @param ... Further arguments to be passed to \code{plot}.
 ##' @author Melissa J. Hubisz
+##' @example inst/examples/plot-lsmodel-tm.R
+##' @method plot lsmodel.tm
+##' @export plot.lsmodel.tm
 ##' @export
-plot.altmodel.tm <- function(x, i=1, show.eq.freq=TRUE, max.cex=10.0,
+plot.lsmodel.tm <- function(x, i=1, show.eq.freq=TRUE, max.cex=10.0,
                              eq.freq.max.cex=5.0,
                              alphabet=NULL, col=NULL,
                              eq.freq.col=NULL, filled=TRUE,
                              add=FALSE, ...) {
-  if (!is.null(x$alt.mod$defn)) {
-    if (i != 1) stop("only one alt.mod in x, but i=", i)
-    altmod <- x$alt.mod
+  if (!is.null(x$ls.model$defn)) {
+    if (i != 1) stop("only one ls.model in x, but i=", i)
+    lsmod <- x$ls.model
   } else {
-    if (length(x$alt.mod) < i)
-    stop("not enough alt.models (%i)", length(x$alt.mod))
-    altmod <- x$alt.mod[[i]]
+    if (length(x$ls.model) < i)
+    stop("not enough ls.models (%i)", length(x$ls.model))
+    lsmod <- x$ls.model[[i]]
   }
   if (show.eq.freq) {
-    if (is.null(altmod$backgd)) {
+    if (is.null(lsmod$backgd)) {
       eq.freq <- x$backgd
-    } else eq.freq <- altmod$backgd
+    } else eq.freq <- lsmod$backgd
   } else eq.freq <- NULL
-  plot.rate.matrix(altmod$rate.matrix,
+  plot.rate.matrix(lsmod$rate.matrix,
                    eq.freq,
                    max.cex=max.cex,
                    eq.freq.max.cex=eq.freq.max.cex,
@@ -873,4 +905,41 @@ plot.altmodel.tm <- function(x, i=1, show.eq.freq=TRUE, max.cex=10.0,
                    eq.freq.col=eq.freq.col,
                    filled=filled,
                    add=add, ...)
+}
+
+##' Set up a tree model for branch site selection analysis
+##' @param mod an object of type \code{tm}
+##' @param foreground a character string giving a tree branch name or label
+##' identifying foreground branches
+##' @param bgc If \code{TRUE}, then use 8 categories of sites; four with bgc
+##' in the foreground and four without.
+##' @param altModel If \code{TRUE}, then optimize the foreground positive
+##' selection parameter (constrained > 0).  Otherwise hold constant at 0.
+##' @param init.sel.neg Initial value for negative selection parameter
+##' @param init.sel.pos Initial value for positive selection paramter
+##' @param init.bgc Initial value for bgc parameter (Ignored if bgc==FALSE)
+##' @param init.weights Numeric vector of length three giving the initial
+##' weight parameters.  The first two values determine the relative
+##' frequencies of negatively, neutral, and positively selected sites.  The
+##' last parameter determines the frequency of sites affected by bgc, and is
+##' ignored if bgc==FALSE. All values should be >= 0.
+##' @return An object of type \code{tm} which can be used as the init.mod
+##' argument to phyloFit to perform the branch-site test.
+##' @author Melissa J. Hubisz
+##' @export
+setup.branch.site.tm <- function(mod, foreground, bgc=FALSE, altModel=TRUE,
+                                 init.sel.neg=0, init.sel.pos=0,
+                                 init.bgc=0, init.weights=NULL) {
+  mod <- as.pointer.tm(mod)
+  if (!is.null(init.weights)) {
+    if (length(init.weights) != 3L && bgc)
+      stop("init.weights should be length 3 if bgc==TRUE")
+    if (length(init.weights) != 3L && length(init.weights) != 2L && !bgc)
+      stop("init.weights should be length 2 or 3 if bgc==FALSE")
+    if (sum(init.weights < 0) > 0L)
+      stop("all values in init.weights should be >=0")
+  }
+  .Call.rphast("rph_tm_setup_site_model", mod$externalPtr, foreground, bgc,
+               altModel, init.sel.neg, init.sel.pos, init.bgc, init.weights)
+  from.pointer.tm(mod)
 }

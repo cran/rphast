@@ -1,18 +1,30 @@
 \name{sort.feat}
 \alias{sort.feat}
-\title{Sort a GFF...}
-\usage{sort.feat(x, decreasing=FALSE, ...)
+\title{Sort a GFF}
+\usage{
+  \method{sort}{feat} (x, decreasing = FALSE, ...)
 }
-\description{Sort a GFF}
-\value{An object of type \code{feat} sorted primarily by
-start position, then by end position.}
-\note{This function is not recommended if x is stored as a pointer to an
-object in C; in this case it may sort differently depending on how
-the object has been previously used.  x will be sorted if it is a pointer.}
+\arguments{
+  \item{x}{An object of type \code{feat}}
+
+  \item{decreasing}{Set to TRUE to sort from highest to
+  lowest coordinates}
+
+  \item{...}{Currently not used}
+}
+\value{
+  An object of type \code{feat} sorted primarily by
+  seqname, then by start position, then by end position.
+}
+\description{
+  Sort a GFF
+}
+\note{
+  If x is stored as a pointer to an object in C, the object
+  will be modified to the return value.
+}
+\author{
+  Melissa J. Hubisz and Adam Siepel
+}
 \keyword{features}
-\author{Melissa J. Hubisz and Adam Siepel}
-\arguments{\item{x}{An object of type \code{feat}}
-\item{decreasing}{Set to TRUE to sort from highest to lowest coordinates}
-\item{...}{Currently not used}
-}
 

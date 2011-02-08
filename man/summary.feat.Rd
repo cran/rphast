@@ -1,15 +1,18 @@
 \name{summary.feat}
 \alias{summary.feat}
 \title{Features Summary}
-\usage{summary.feat(object, ...)
+\usage{
+  \method{summary}{feat} (object, ...)
 }
-\description{Prints a brief summary of a features object.}
-\keyword{features}
-\author{Melissa J. Hubisz}
-\arguments{\item{object}{an object of type \code{feat}}
-\item{...}{further arguments to be passed to or from other methods}
-}
+\arguments{
+  \item{object}{an object of type \code{feat}}
 
+  \item{...}{further arguments to be passed to or from
+  other methods}
+}
+\description{
+  Prints a brief summary of a features object.
+}
 \examples{
 seq <- rep("hg18.chr6", 10)
 src <- rep("fake_example", 10)
@@ -20,3 +23,8 @@ f <- feat(seq, src, feature, start, end)
 summary(f)  # this calls summary.data.frame
 summary(as.pointer.feat(f))
 }
+\author{
+  Melissa J. Hubisz
+}
+\keyword{features}
+

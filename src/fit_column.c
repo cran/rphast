@@ -137,6 +137,8 @@ void col_scale_derivs_subst_complex(ColFitData *d) {
     die("ERROR col_scale_derivs_subst_complex: got S==NULL\n");
   if (Sinv==NULL)
     die("ERROR col_scale_derivs_subst_complex: got Sinv==NULL\n");
+  if (d->mod->alt_subst_mods != NULL)
+    die("ERROR col_scale_derivs_subst_complex cannot handle lineage-specific models");
 
   for (rcat = 0; rcat < d->mod->nratecats; rcat++) {
     for (nid = 1; nid < d->mod->tree->nnodes; nid++) { /* skip root */
@@ -213,6 +215,8 @@ void col_scale_derivs_subst_real(ColFitData *d) {
     die("ERROR col_scale_derivs_subst_real: got S==NULL\n");
   if (Sinv==NULL)
     die("ERROR col_scale_derivs_subst_real: got Sinv==NULL\n");
+  if (d->mod->alt_subst_mods != NULL)
+    die("ERROR col_scale_derivs_subst_real: cannot handle lineage-specific models");
 
   for (rcat = 0; rcat < d->mod->nratecats; rcat++) {
     for (nid = 1; nid < d->mod->tree->nnodes; nid++) { /* skip root */
@@ -826,6 +830,7 @@ void col_lrts_sub(TreeModel *mod, MSA *msa, mode_type mode,
   modcpy = tm_create_copy(mod);   /* need separate copy of tree model
                                      with different internal scaling
                                      data for supertree/subtree case */
+  modcpy->subtree_root = NULL;
 
   /* init ColFitData -- one for null model, one for alt */
   d = col_init_fit_data(modcpy, msa, ALL, NNEUT, FALSE);
@@ -861,7 +866,7 @@ void col_lrts_sub(TreeModel *mod, MSA *msa, mode_type mode,
                     logf, NULL, NULL);   
 
       //      opt_bfgs(col_likelihood_wrapper, d->params, d, &null_lnl, d->lb,
-      //	       d->ub, logf, NULL, OPT_HIGH_PREC, NULL);
+      //	       d->ub, logf, NULL, OPT_HIGH_PREC, NULL, NULL);
 
       /* turns out to be faster (roughly 15% in limited experiments)
          to use numerical rather than exact derivatives */
@@ -874,7 +879,7 @@ void col_lrts_sub(TreeModel *mod, MSA *msa, mode_type mode,
       vec_set(d2->params, 1, d2->init_scale_sub);
 
       if (opt_bfgs(col_likelihood_wrapper, d2->params, d2, &alt_lnl, d2->lb, 
-                   d2->ub, logf, NULL, OPT_HIGH_PREC, NULL) != 0)
+                   d2->ub, logf, NULL, OPT_HIGH_PREC, NULL, NULL) != 0)
         ;                         /* do nothing; nonzero exit typically
                                      occurs when max iterations is
                                      reached; a warning is printed to
@@ -1462,8 +1467,8 @@ FimGrid *col_fim_grid_sub(TreeModel *mod) {
   int i;
   FimGrid *g = smalloc(sizeof(FimGrid));
 
-  g->ngrid1 = 1.0/GRIDSIZE1;
-  g->ngrid2 = (1.0 * GRIDMAXLOG / GRIDSIZE2) + 1;
+  g->ngrid1 = (int)(1.0/GRIDSIZE1);
+  g->ngrid2 = (int)((1.0 * GRIDMAXLOG / GRIDSIZE2) + 1);
   g->ngrid = g->ngrid1 + g->ngrid2;  
   g->scales = smalloc(g->ngrid * sizeof(double));
 
@@ -1529,9 +1534,9 @@ Matrix *col_get_fim_sub(FimGrid *g, double scale) {
     die("ERROR col_get_fix_sub: scale should be >= 0 but is %e\n", scale);
 
   if (scale < 1) 
-    idx = floor(scale / GRIDSIZE1);
+    idx = (int)floor(scale / GRIDSIZE1);
   else
-    idx = g->ngrid1 + floor(log(scale) / GRIDSIZE2);
+    idx = g->ngrid1 + (int)floor(log(scale) / GRIDSIZE2);
 
   if (idx >= g->ngrid - 1)
     retval = mat_create_copy(g->fim[g->ngrid - 1]); 

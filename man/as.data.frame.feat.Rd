@@ -1,22 +1,28 @@
 \name{as.data.frame.feat}
 \alias{as.data.frame.feat}
 \title{Features to Data Frame}
-\usage{as.data.frame.feat(x, row.names=NULL, optional=FALSE, ...)
+\usage{
+  \method{as.data.frame}{feat} (x, row.names = NULL,
+    optional = FALSE, ...)
 }
-\description{Convert a features object to a data frame}
-\value{a data frame containing features data}
-\seealso{\code{\link{feat}} for a description of features data frames,
-and \code{\link{as.pointer.feat}} for conversion in the other
-direction.}
-\author{Melissa J. Hubisz and Adam Siepel}
-\arguments{\item{x}{an object of type \code{feat}}
-\item{row.names}{optional names for each feature}
-\item{optional}{logical, if \code{TRUE}, setting row names and 
-converting column names (to syntactic names: see
-\code{\link{make.names}} is optional.}
-\item{...}{additional arguments to be passed to other methods}
-}
+\arguments{
+  \item{x}{an object of type \code{feat}}
 
+  \item{row.names}{optional names for each feature}
+
+  \item{optional}{logical, if \code{TRUE}, setting row
+  names and converting column names (to syntactic names:
+  see \code{\link{make.names}} is optional.}
+
+  \item{...}{additional arguments to be passed to other
+  methods}
+}
+\value{
+  a data frame containing features data
+}
+\description{
+  Convert a features object to a data frame
+}
 \examples{
 seq <- rep("hg18.chr6", 10)
 src <- rep("fake_example", 10)
@@ -29,3 +35,12 @@ f2 <- as.data.frame(f1)
 summary(f2)
 dim(f2)
 }
+\author{
+  Melissa J. Hubisz and Adam Siepel
+}
+\seealso{
+  \code{\link{feat}} for a description of features data
+  frames, and \code{\link{as.pointer.feat}} for conversion
+  in the other direction.
+}
+
