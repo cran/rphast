@@ -41,9 +41,10 @@ bgc.nucleotide.tests(align, neutralMod, "hg18", bgc.limits=c(0, 2000), sel.limit
 
 
 ###################################################
-### code chunk number 6: HAR.lrs
+### code chunk number 6: HAR
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
+# note this is not portable
 nullLike <- nuc.results["null", "likelihood"]
 selLike <- nuc.results["sel", "likelihood"]
 bgcLike <- nuc.results["bgc", "likelihood"]

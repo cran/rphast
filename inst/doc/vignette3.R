@@ -70,21 +70,31 @@ barplot(lr, names.arg=1:motifLen, ylab="likelihood ratio")
 ### code chunk number 6: seqLogoPlot
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
-require("seqLogo")
-m <- read.table("NRSF/NRSF.mtf")
-pwm <- makePWM(t(m))
-seqLogo(pwm, xfontsize=10)
+haveSeqLogo <- require("seqLogo")
+if (haveSeqLogo) {
+    m <- read.table("NRSF/NRSF.mtf")
+    pwm <- makePWM(t(m))
+    seqLogo(pwm, xfontsize=10)
+} else {
+    plot(c(0),c(0), type="n", xlab="", ylab="", xaxt="n", yaxt="n")
+    text(0, 0, "Need to install seqLogo to see this plot")
+}
 
 
 ###################################################
 ### code chunk number 7: seqLogoPlotBackgd
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
-m <- matrix(0, nrow=21, ncol=4)
-for (i in 1:21)
-  m[i,] <- mods[[i]]$backgd
-pwm <- makePWM(t(m))
-seqLogo(pwm, xfontsize=10)
+if (haveSeqLogo) {
+    m <- matrix(0, nrow=21, ncol=4)
+    for (i in 1:21)
+        m[i,] <- mods[[i]]$backgd
+    pwm <- makePWM(t(m))
+    seqLogo(pwm, xfontsize=10)
+} else {
+    plot(c(0),c(0), type="n", xlab="", ylab="", xaxt="n", yaxt="n")
+    text(0, 0, "Need to install seqLogo to see this plot")
+}
 
 
 ###################################################

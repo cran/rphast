@@ -3,11 +3,11 @@
 \alias{rphast}
 \docType{package}
 \title{
-R interface to PHAST software for comparative genomics
+Interface to PHAST Software for Comparative Genomics
 }
 \description{
-RPHAST is an R interface to the PHAST pacakge
-    (Phylogenetic Analyis with Space/Time Models).  It can be used for
+RPHAST is an R interface to the PHAST software 
+    (Phylogenetic Analysis with Space/Time Models).  It can be used for
     many types of analysis in comparative and evolutionary genomics,
     such as estimating models of evolution from sequence data, scoring
     alignments for conservation or acceleration, and predicting
@@ -17,14 +17,13 @@ RPHAST is an R interface to the PHAST pacakge
 }
 \details{
 \tabular{ll}{
-Copyright: \tab The code in src/pcre is Copyright (c) 1997-2010 University\cr
-\tab of Cambridge.  All other code is Copyright (c) 2002-2010 University\cr
+Copyright: \tab All code is Copyright (c) 2002-2015 University\cr
 \tab of California, Cornell University.\cr
 Package: \tab rphast\cr
 License: \tab BSD_3_clause + file LICENSE\cr
-Version: \tab 1.5\cr
-URL: \tab http://compgen.bscb.cornell.edu/rphast\cr
-Date: \tab 2011-02-08\cr
+Version: \tab 1.6\cr
+URL: \tab http://compgen.cshl.edu/rphast\cr
+Date: \tab 2015-01-13\cr
 Depends: \tab \cr
 \tab stats\cr
 Suggests: \tab \cr
@@ -46,7 +45,7 @@ Collate: \tab \cr
 \tab 'treeModel.R'\cr
 \tab 'trees.R'\cr
 \tab 'zzz.R'\cr
-Built: \tab R 3.0.2; x86_64-pc-linux-gnu; 2013-12-12 21:19:54 UTC; unix\cr
+Built: \tab R 3.1.2; x86_64-unknown-linux-gnu; 2015-01-14 04:10:29 UTC; unix\cr
 }
 
 Index:
