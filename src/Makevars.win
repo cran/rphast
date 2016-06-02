@@ -1,68 +1,68 @@
 PKG_CFLAGS = -I. -DHAVE_CONFIG_H -DPHAST_VERSION='"v1.3"' -DRPHAST -DR_LAPACK -DPCRE_STATIC -fno-strict-aliasing -DUSE_PHAST_MEMORY_HANDLER
 PKG_LIBS = -lpcre $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 OBJECTS = \
- msa.o\
- maf.o\
- local_alignment.o\
- multi_msa.o\
- maf_block.o\
- sufficient_stats.o\
- em.o\
- hmm.o\
- rph_wig.o\
- rph_bgc_hmm.o\
- rph_phylo_hmm.o\
- rph_phyloFit.o\
- rph_tfbs.o\
- rph_gff.o\
- rph_phastCons.o\
- rph_category_map.o\
- rph_phyloP.o\
- rph_list_of_lists.o\
- rph_util.o\
- rph_tree_model.o\
- rph_msa.o\
- rph_hmm.o\
- rph_subst_mods.o\
- rph_trees.o\
+ complex_matrix.o\
+ complex_vector.o\
+ eigen.o\
+ hashtable.o\
+ list_of_lists.o\
  lists.o\
- numerical_opt.o\
- vector.o\
+ markov_matrix.o\
  matrix.o\
  memory_handler.o\
- list_of_lists.o\
- markov_matrix.o\
- prob_vector.o\
- prob_matrix.o\
- eigen.o\
- complex_vector.o\
- complex_matrix.o\
- hashtable.o\
  misc.o\
+ numerical_opt.o\
+ prob_matrix.o\
+ prob_vector.o\
  stringsplus.o\
- gff.o\
- wig.o\
- genepred.o\
+ vector.o\
  bed.o\
  category_map.o\
- fit_column.o\
- phast_cons.o\
- fit_em.o\
- phylo_p.o\
- indel_history.o\
- tree_model.o\
- subst_distrib.o\
- trees.o\
- subst_mods.o\
- tree_likelihoods.o\
- dgamma.o\
- phylo_p_print.o\
- indel_mod.o\
- bgc_hmm.o\
- phylo_fit.o\
- fit_feature.o\
- gap_patterns.o\
- phylo_hmm.o\
+ genepred.o\
+ gff.o\
+ wig.o\
+ em.o\
+ hmm.o\
  motif.o\
  tfbs.o\
+ local_alignment.o\
+ maf.o\
+ maf_block.o\
+ msa.o\
+ multi_msa.o\
+ sufficient_stats.o\
+ bgc_hmm.o\
+ dgamma.o\
+ fit_column.o\
+ fit_em.o\
+ fit_feature.o\
+ indel_history.o\
+ indel_mod.o\
+ phast_cons.o\
+ phylo_fit.o\
+ phylo_p.o\
+ phylo_p_print.o\
+ subst_distrib.o\
+ subst_mods.o\
+ tree_likelihoods.o\
+ tree_model.o\
+ trees.o\
+ gap_patterns.o\
+ phylo_hmm.o\
+ rph_bgc_hmm.o\
+ rph_category_map.o\
+ rph_gff.o\
+ rph_hmm.o\
+ rph_list_of_lists.o\
+ rph_msa.o\
+ rph_phastCons.o\
+ rph_phyloFit.o\
+ rph_phyloP.o\
+ rph_phylo_hmm.o\
+ rph_subst_mods.o\
+ rph_tfbs.o\
+ rph_tree_model.o\
+ rph_trees.o\
+ rph_util.o\
+ rph_wig.o\
  rph_init.o

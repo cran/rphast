@@ -2137,7 +2137,7 @@ CC=`"${R_HOME}/bin/R" CMD config CC`
 #RCFLAGS=`"${R_HOME}/bin/R" CMD config CFLAGS`
 RCFLAGS="-g"
 #CFLAGS="${RCFLAGS} ${CFLAGS}"
-CFLAGS=" -g"
+CFLAGS="${CFLAGS} -g"
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${CFLAGS}" >&5
 $as_echo "${CFLAGS}" >&6; }
 ac_ext=c
