@@ -4400,7 +4400,10 @@ fi
 LIBS="${OLD_LIBS}"
 
 OLD_CFLAGS=${CFLAGS}
-CFLAGS="${CFLAGS} -fno-strict-aliasing"
+#Removing -g flag (CRAN rules)
+#CFLAGS="${CFLAGS} -fno-strict-aliasing"
+CFLAGS="-fno-strict-aliasing"
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for -fno-strict-aliasing" >&5
 $as_echo_n "checking for -fno-strict-aliasing... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext

@@ -21,9 +21,9 @@ Copyright: \tab All code is Copyright (c) 2002-2016 University\cr
 \tab of California, Cornell University, Cold Spring Harbor Laboratory.\cr
 Package: \tab rphast\cr
 License: \tab BSD_3_clause + file LICENSE\cr
-Version: \tab 1.6.4\cr
+Version: \tab 1.6.5\cr
 URL: \tab http://compgen.cshl.edu/rphast\cr
-Date: \tab 2016-05-25\cr
+Date: \tab 2016-08-15\cr
 Imports: \tab methods\cr
 Depends: \tab \cr
 \tab stats\cr
@@ -47,7 +47,7 @@ Collate: \tab \cr
 \tab 'trees.R'\cr
 \tab 'zzz.R'\cr
 RoxygenNote: \tab 5.0.1\cr
-Built: \tab R 3.1.2; x86_64-unknown-linux-gnu; 2016-06-01 18:45:50 UTC; unix\cr
+Built: \tab R 3.1.2; x86_64-unknown-linux-gnu; 2016-08-15 17:31:30 UTC; unix\cr
 }
 
 Index:
