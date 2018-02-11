@@ -1,13 +1,13 @@
-6fb407756ee17822a9ff01d1d3d897c3 *ChangeLog
-a20ca0310a81e24d42294cf8efba8c2c *DESCRIPTION
+6f0351e1d98ebfc30e4928bb768465d8 *ChangeLog
+2426c840f0b229af10656d8e77b00989 *DESCRIPTION
 559e1ba4e87d54deeae6c22d51164c62 *LICENSE
-cea943637b3b756738defecaf5b734e0 *NAMESPACE
-c75718c726fd986d7afc386562da3826 *R/bgc.R
+f78860d9426eeb0e838751f4813098ef *NAMESPACE
+ea0dfea32de9b694593757551fab8f99 *R/bgc.R
 d87b85d9665687b062a03040e8957ac0 *R/checkArgs.R
-b5ddab222a324bf8d03806e17b941179 *R/feat.R
+9beb2342aa751e3b3621e4e0ca72c199 *R/feat.R
 c350c64406477198d11da54264a6c1e2 *R/hmm.R
 8d411457331cf9d0abea2de1f9a1f8a6 *R/listOfLists.R
-83b4239229f3532ec8ba26098d3e89fa *R/msa.R
+5380dbbf9676c5d8737757112b081d7c *R/msa.R
 f52ad379ddfb4a323204d9ad8252f3f2 *R/optim.R
 9997c117a172e505bcecea777cbf0e91 *R/phastCons.R
 a9bcf844c6288a71b30929b5f224d7d4 *R/phyloFit.R
@@ -23,13 +23,13 @@ ce2a5c8316596122a3c82893440adce2 *configure
 c975fab5288bd0a98e36076cb3b0a6cb *configure.ac
 459f6d89f05059c3c7e26bb8e7446759 *inst/doc/vignette1.R
 bb41630129aa4eb9ddb3c4798dfc75f7 *inst/doc/vignette1.Rnw
-1eab562932e8d01b44944d15ba2f416e *inst/doc/vignette1.pdf
+42b41e20c12aa49bfe82810faa472d6c *inst/doc/vignette1.pdf
 56af422874dadbb0e2cf80b65c916c28 *inst/doc/vignette3.R
 32cd70165a5a9704e5e877c3ad2432c5 *inst/doc/vignette3.Rnw
-6af83605cb760fc0952cb1609c8937b4 *inst/doc/vignette3.pdf
+7b2bb3a0dbf3154cd5442d3139c0dbee *inst/doc/vignette3.pdf
 c2e2e2a8b0f914694f3576b95d3391c0 *inst/doc/vignette4.R
 a42c3c72870fd6ceaf9d3700ff1c564c *inst/doc/vignette4.Rnw
-8b1b5357c087b9f91642ea4722df0a69 *inst/doc/vignette4.pdf
+c29e875d00adde92af474fd53c820cc0 *inst/doc/vignette4.pdf
 bf7cdff23a6a89832f7d8831a5295fa0 *inst/examples/add-UTRs-feat.R
 7204f31166d72f8c7d8a93d28ad6df25 *inst/examples/add-introns-feat.R
 9860952af95d8aa9b18843122e549d5d *inst/examples/add-signals-feat.R
@@ -70,7 +70,7 @@ c92a324603288d83156cf42824d5780c *inst/examples/numnodes-tree.R
 9440b1f9cb484a0a8e742b6f23ae7ca6 *inst/examples/offset-msa.R
 fe9eb35d9dd05e738a398796de75cead *inst/examples/overlap-feat.R
 33a85195fd7ee15d6c3b4d266cb9fd04 *inst/examples/phastCons.R
-247654afea69f6701551c4db9408a395 *inst/examples/phyloFit.R
+452126bc0dc65405f2cc12a2403f3e3e *inst/examples/phyloFit.R
 f58d810eab474c8e502b2edee09e4636 *inst/examples/phyloP-prior.R
 3ea5f50f883973fbca4048c84cd86723 *inst/examples/phyloP.R
 bb0d6b2b0f9e370495ca397f55e33241 *inst/examples/plot-feat.R
@@ -116,7 +116,7 @@ fbf239d058ed24b5616f6bedf220da39 *inst/examples/write-feat.R
 8383bc227c5b4aea9e300b7d9abb5f13 *inst/examples/write-wig-feat.R
 8b5aae3b4c3a460f381a3d6ad81c9107 *inst/examples/write-wig.R
 126644bc8398574d82158c0d66e76bb6 *inst/extdata/NRSF.zip
-4f63fcfdb345d13685140b10181ce4ac *inst/extdata/examples.zip
+2d56aa72296902c61e746eb44613a183 *inst/extdata/examples.zip
 84ee24ca6a3a90dda9a091b4f488d2c6 *man/add.UTRs.feat.Rd
 5f26e542063b47ac80d8df944e2f73cc *man/add.introns.feat.Rd
 db319d547cd4929b59e308c1bc1cae0b *man/add.ls.mod.Rd
@@ -197,7 +197,7 @@ bcfe56419c6f50c50f07fa3d8a4b5917 *man/optim.rphast.Rd
 349bdc8d15f0d3b264e44de1293ec1e4 *man/pairwise.diff.msa.Rd
 3cb24d27763f9d9319e6242ec80e0eb7 *man/phastBias.Rd
 962803a5940053bf24a030049465e739 *man/phastCons.Rd
-fe14c54812e87c7c22074317df06aec9 *man/phyloFit.Rd
+2674a9cbf0bcb1d1ce0dfb53348e720a *man/phyloFit.Rd
 31d135545d6c386c2a469ca5fab5326a *man/phyloP.Rd
 fe478f326269be4d65b97a8f47719db4 *man/phyloP.prior.Rd
 4529b850685881d87209e9c6bcfe6904 *man/phyloP.sph.Rd
@@ -216,7 +216,7 @@ bbe1465dc004f6cfb65f0371abee3fba *man/postprob.msa.Rd
 a23710b66038e958085213893fdc3672 *man/prune.tree.Rd
 7f136e59fed131d4880092219b8faaec *man/range.feat.Rd
 62a7cd0a51aea70c27e4bc522f62a74e *man/range.track.Rd
-cf14625203636ec04f765cd09693b4c4 *man/rbind.feat.Rd
+9370dd405becccf6c7855338f29a2e6c *man/rbind.feat.Rd
 9ffec4467f93ddd4895586e561032691 *man/read.feat.Rd
 1415563c251587b4ac4d47f7be0944a6 *man/read.hmm.Rd
 4eb2a82581fb06dc9a664027289ebbb7 *man/read.msa.Rd
@@ -228,7 +228,7 @@ a1c94d62ab25f83e043bf98098f2ffab *man/read.tm.Rd
 5413c5af0e65f901519f549a01e20dca *man/rename.tree.Rd
 c0dead23725849fd002741d134080f2f *man/rescale.tree.Rd
 e4e93732204eed8b23f12fa7c75deac8 *man/reverse.complement.msa.Rd
-0aa8a0e88f1d13aa4bb9b8ab0efc2a51 *man/rphast-package.Rd
+4cf98677b152f349e0cbf09cd0fe4972 *man/rphast-package.Rd
 5b694bd3f8d8c11e49c84dacfcbb5978 *man/sample.msa.Rd
 5ce889ac18eb420f91c13c57dacf3789 *man/score.hmm.Rd
 50b603667415e7bed5586056d9af3e17 *man/set.rate.matrix.tm.Rd
@@ -262,8 +262,8 @@ c37c321022dacdc6ca1d793f047b2f6e *man/unique.feat.Rd
 8c11db88c710c53307faccf81951705e *man/write.tm.Rd
 8dd2a8d2e3c7e29ef99cd616ff40ce72 *man/write.wig.Rd
 d477d800a47b23cbd756d082a348cce4 *man/write.wig.feat.Rd
-2d4965168a9c43906dcc37fb488e2a23 *src/Makevars.in
-fb09b36946addbda03bf43f203cc6875 *src/Makevars.win
+bae980b30cdc77266632d5441c4cbdaf *src/Makevars.in
+26ff1591aa118662f9fbc8abf4cdce85 *src/Makevars.win
 400f74484de7e6a072f82c35b3b437a2 *src/bd_phylo_hmm.h
 8ce2b292099b62be73731f2d0136e2b9 *src/bed.c
 e4c0310528a0982d24d9009e3a9fddac *src/bed.h
@@ -282,7 +282,7 @@ bb58cbc04e603d74882beff2373a8cbf *src/dgamma.c
 ecacc79ea6256c3259cfafc443d9c797 *src/eigen.h
 14d9e684c4c56589c58c1f48ab5f1b2b *src/em.c
 d5f2478276b28622ef767c09fea84429 *src/em.h
-1bf942174e85625881b4cd0204a88e70 *src/external_libs.h
+ac34d919b9200fa1290e70e474632879 *src/external_libs.h
 0804c52aa194d55a4f8dfa0ef1f01aba *src/fit_column.c
 3fbd3b5d5c759732aba37d93f819caee *src/fit_column.h
 bf43e8cb0cd41acefe56adac2c2cc936 *src/fit_em.c
@@ -352,7 +352,7 @@ d24fc7d05f9b86790a9d5608f6a05599 *src/rph_bgc_hmm.c
 6afd0852f23269b073b7cd6981ceeb81 *src/rph_category_map.c
 d78034d8c8997ef0b94338e9c2e2681c *src/rph_gff.c
 170726ba2e945c216ecb73719bfe28bc *src/rph_hmm.c
-fe5a65e9ba96415fee7695655faf3ddc *src/rph_init.c
+4def28ad486a12b1e08e3d04bfcc8a47 *src/rph_init.c
 1d12eb8bc2ff94730070a69a5dd144aa *src/rph_list_of_lists.c
 6409b2b7ebfa39f0d7ad493de7c0200a *src/rph_msa.c
 8e42967955eb885eb60339e52593c4ca *src/rph_phastCons.c
@@ -360,7 +360,7 @@ c2da4fe1ebfacc69c1408a2a5417c752 *src/rph_phyloFit.c
 2853fe713e7631e8d3d8b15eb4487bea *src/rph_phyloP.c
 0559abab8f3c819c7c1d6ccdc251f6a8 *src/rph_phylo_hmm.c
 3684ae315821c9f68bd2635d3cf13a8c *src/rph_subst_mods.c
-196f73bdd9c2931075fb26fce115b16c *src/rph_tfbs.c
+b8de2268f175fc1f2fabe460169b7a30 *src/rph_tfbs.c
 7c7b2cde1b3456db6e9b6a2530aedc53 *src/rph_tree_model.c
 ede642b93405012b80af4ac3ff7b9091 *src/rph_trees.c
 ba836d7af0821d7012b68b9e438b2159 *src/rph_util.c
@@ -374,7 +374,7 @@ ee891119c38ca130a1d4a3dc865ef3ba *src/stacks.h
 b41069c24239307f7b68561cc9a9053d *src/subst_distrib.h
 fdca1f757871ffd3f31d18e01f442dad *src/subst_mods.c
 0ddc397aa3149af87cabc751f2e88b04 *src/subst_mods.h
-8c578ff990c120f18a1eece4b3ffcee3 *src/sufficient_stats.c
+4a15d4ba7daf562487f714249bcdaf72 *src/sufficient_stats.c
 bfc8d698ed024e85af70aaae28bdcf3e *src/sufficient_stats.h
 31465448da4df2467e9e2b811fee121e *src/tfbs.c
 ffd9e03aff0ec7936bf3c57c3e83b7b1 *src/tfbs.h
@@ -386,7 +386,7 @@ b3067f50a086975c2826938377cbb6ed *src/tree_likelihoods.h
 fb5bcdb61eab74eecdf117a9f7b39aac *src/trees.h
 192b8182444d92301fa780cb7ec99b99 *src/vector.c
 664e8dae951f5fdf91eb0657644d13da *src/vector.h
-516a248ab5ee585ac588a1b85790ad79 *src/version
+4baffeb035d01ea37ea5b3ad590bd7da *src/version
 6238b852a504c6d9b4d5c5bd2c5ff188 *src/wig.c
 9c292b054c78343f5e81b5b51085f5d5 *src/wig.h
 2c44d3af8654c639874210abf2243af9 *tests/feat.examples.R

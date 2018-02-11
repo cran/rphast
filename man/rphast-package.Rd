@@ -3,10 +3,10 @@
 \alias{rphast}
 \docType{package}
 \title{
-Interface to PHAST Software for Comparative Genomics
+Interface to 'PHAST' Software for Comparative Genomics
 }
 \description{
-Provides an R interface to the PHAST software
+Provides an R interface to the 'PHAST'(<http://compgen.cshl.edu/phast/>) software
     (Phylogenetic Analysis with Space/Time Models).  It can be used for
     many types of analysis in comparative and evolutionary genomics,
     such as estimating models of evolution from sequence data, scoring
@@ -17,13 +17,13 @@ Provides an R interface to the PHAST software
 }
 \details{
 \tabular{ll}{
-Copyright: \tab All code is Copyright (c) 2002-2016 University\cr
+Copyright: \tab All code is Copyright (c) 2002-2018 University\cr
 \tab of California, Cornell University, Cold Spring Harbor Laboratory.\cr
 Package: \tab rphast\cr
 License: \tab BSD_3_clause + file LICENSE\cr
-Version: \tab 1.6.5\cr
+Version: \tab 1.6.9\cr
 URL: \tab http://compgen.cshl.edu/rphast\cr
-Date: \tab 2016-08-15\cr
+Date: \tab 2018-01-30\cr
 Imports: \tab methods\cr
 Depends: \tab \cr
 \tab stats\cr
@@ -47,7 +47,7 @@ Collate: \tab \cr
 \tab 'trees.R'\cr
 \tab 'zzz.R'\cr
 RoxygenNote: \tab 5.0.1\cr
-Built: \tab R 3.1.2; x86_64-unknown-linux-gnu; 2016-08-15 17:31:30 UTC; unix\cr
+Built: \tab R 3.1.2; x86_64-unknown-linux-gnu; 2018-01-30 15:53:11 UTC; unix\cr
 }
 
 Index:
@@ -240,6 +240,6 @@ write.wig.feat          Write a features object in fixedStep wig format
 \author{
 Melissa Hubisz, Katherine Pollard, and Adam Siepel
 
-Maintainer: Melissa Hubisz <mjhubisz@cornell.edu>
+Maintainer: Ritika Ramani <rramani@cshl.edu>
 }
 \keyword{ package }

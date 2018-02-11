@@ -4,7 +4,7 @@
 \alias{rbind.feat}
 \title{concatenate feature objects}
 \usage{
-rbind.feat(...)
+\method{rbind}{feat}(...)
 }
 \arguments{
 \item{...}{objects of type \code{feat} to be combined into a single object}
